@@ -1,23 +1,41 @@
+import React from 'react';
+import { Routes, Route, Link } from "react-router-dom";
+import Home from './Home';
+import Upload from './Upload';
+
 import './App.css';
 
-const SUPPORTED_PROVIDERS = [
-  'Slack', 'Google', 'Facebook', 'Amazon',
-];
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <code>500 Internal Server Error</code>;
+    }
+    return this.props.children;
+  }
+}
 
 function App() {
   return (
     <div className="App">
       <h1 className="App-header">
-        <a href="#">🎉 ccpa.party</a>
+        <Link to="/">🎉 ccpa.party</Link>
       </h1>
-      <section>
-        Upload data from...
-        <ul>
-          {SUPPORTED_PROVIDERS.map(provider =>
-            <li><a href="#">{provider}</a></li>
-          )}
-        </ul>
-      </section>
+      <ErrorBoundary>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/upload/:provider" element={<Upload />} />
+          <Route path="*" element={<code>404 Not Found</code>} />
+        </Routes>
+      </ErrorBoundary>
     </div>
   );
 }
