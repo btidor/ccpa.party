@@ -1,6 +1,6 @@
 body {
-  margin: 5vmin;
-  height: calc(100vh - 10vmin);
+  margin: 5vw;
+  height: calc(100vh - 10vw);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
