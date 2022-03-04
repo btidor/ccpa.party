@@ -8,7 +8,7 @@ function Home() {
       <ul>
         {SupportedProviders.map(provider =>
           <li key={provider.slug}>
-            <Link to={'/upload/' + provider.slug}>{provider.displayName}</Link>
+            <Link to={'/import/' + provider.slug}>{provider.displayName}</Link>
           </li>
         )}
       </ul>
