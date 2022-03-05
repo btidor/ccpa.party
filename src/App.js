@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, Link } from "react-router-dom";
+import Explore from './Explore';
 import Home from './Home';
 import Import from './Import';
 
@@ -32,6 +33,7 @@ function App() {
       <ErrorBoundary>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/explore/:provider" element={<Explore />} />
           <Route path="/import/:provider" element={<Import />} />
           <Route path="*" element={<code>404 Not Found</code>} />
         </Routes>
