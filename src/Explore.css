@@ -1,0 +1,21 @@
+.Explore {
+  display: flex;
+  height: 100%;
+}
+
+.Explore-categories {
+  width: 20vw;
+}
+
+.Explore-listing {
+  width: 60vw;
+}
+
+.Explore-drilldown {
+  width: 20vw;
+}
+
+.App .Explore-categories ul {
+  padding: 0;
+  list-style-type: none;
+}

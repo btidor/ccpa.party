@@ -30,14 +30,16 @@ function App() {
       <h1 className="App-header">
         <Link to="/">🎉 ccpa.party</Link>
       </h1>
-      <ErrorBoundary>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/explore/:provider" element={<Explore />} />
-          <Route path="/import/:provider" element={<Import />} />
-          <Route path="*" element={<code>404 Not Found</code>} />
-        </Routes>
-      </ErrorBoundary>
+      <div className="App-body">
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/explore/:provider" element={<Explore />} />
+            <Route path="/import/:provider" element={<Import />} />
+            <Route path="*" element={<code>404 Not Found</code>} />
+          </Routes>
+        </ErrorBoundary>
+      </div>
     </div>
   );
 }

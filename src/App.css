@@ -18,11 +18,17 @@
 }
 
 .App h1 {
+  margin: 1vw 0 0 0;
   font-size: 20px;
   font-variant: small-caps;
   text-decoration: underline;
   text-decoration-thickness: 15%;
   text-underline-offset: 20%;
+}
+
+.App-body {
+  margin: 1vw 0 0 0;
+  height: calc(100vh - 4vw - 28px - 1vw);
 }
 
 .App ul {
