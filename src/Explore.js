@@ -1,9 +1,8 @@
 import { openDB } from "idb";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { FixedSizeList } from "react-window";
-import InfiniteLoader from "react-window-infinite-loader";
-import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
+import { InfiniteLoader } from "react-virtualized";
+import { Virtuoso } from "react-virtuoso";
 import { SupportedProviders } from "./constants";
 
 import "./Explore.css";
@@ -12,42 +11,44 @@ function Explore() {
   const params = useParams();
   const provider = SupportedProviders.find(p => p.slug === params.provider);
 
-  let db;
-  let items = {};
-  let users = {};
-  const [itemCount, setItemCount] = useState(undefined);
+  const [db, setDb] = useState(undefined);
+  const [keys, setKeys] = useState(undefined);
+  const [items, setItems] = useState({});
+  const [ready, setReady] = useState(false);
+  const [drilldownItem, setDrilldownItem] = useState(undefined);
+
+  const isRowLoaded = (index) => !!items[index];
+  const loadMoreRows = async ({ startIndex, endIndex }) => {
+    for (let i = startIndex; i < endIndex; i++) {
+      if (!items[i]) {
+        items[i] = await db.get("slack.messages", keys[i]);
+        setItems(items);
+      }
+    }
+    setReady(true);
+  };
+
   useEffect(() => {
     async function setup() {
-      db = await openDB("data", 1);
-      const rusers = await db.getAll("slack.users");
-      for (const r of rusers) {
-        users[r.id] = r;
-      }
-      const keys = await db.getAllKeys("slack.messages");
-      for (let i = 0; i < keys.length; i++) {
-        items[i] = [keys[i], undefined];
-      }
-      setItemCount(keys.length);
+      const db = await openDB("data", 1);
+      setDb(db);
+      setKeys(await db.getAllKeys("slack.messages"));
     }
     setup();
-  })
-
-  const isItemLoaded = index => (!!items[index] && !!items[index][1]);
-  const loadMoreItems = async (start, end) => {
-    for (let i = start; i < end; i++) {
-      if (items[i] && !items[i][1]) {
-        items[i][1] = await db.get("slack.messages", items[i][0])
-      }
+  }, []);
+  useEffect(() => {
+    if (!!keys) {
+      loadMoreRows({ startIndex: 0, endIndex: 100 });
     }
-  };
+  }, [keys]);
 
   if (provider.slug !== "slack") {
     return (
       <div className="Explore">Unknown provider: {provider.displayName}</div>
     );
-  } else if (itemCount === undefined) {
+  } else if (!ready) {
     return (
-      <div className="Explore">Loading...</div>
+      <div className="Explore">📊 Loading...</div>
     )
   } else {
     return (
@@ -62,40 +63,41 @@ function Explore() {
         </div>
         <div className="Explore-listing">
           <InfiniteLoader
-            isItemLoaded={isItemLoaded}
-            itemCount={itemCount}
-            loadMoreItems={loadMoreItems}
+            isRowLoaded={isRowLoaded}
+            loadMoreRows={loadMoreRows}
+            rowCount={keys.length}
           >
-            {({ onItemsRendered, ref }) => (
-              <AutoSizer>
-                {({ height, width }) => (
-                  <FixedSizeList
-                    itemCount={itemCount}
-                    onItemsRendered={onItemsRendered}
-                    ref={ref}
-                    height={height}
-                    width={width}
-                    itemSize={25}
-                  >
-                    {({ index, style }) => {
-                      if (!isItemLoaded(index)) {
-                        return (<div style={style}>Loading...</div>)
-                      }
-                      const item = items[index][1];
-                      return (
-                        <div style={style}>
-                          {users[item.user].profile.display_name_normalized}: {item.text.slice(0, 80)}
-                        </div>
-                      );
-                    }}
-                  </FixedSizeList>
-                )}
-              </AutoSizer>
+            {({ onRowsRendered, registerChild }) => (
+              <Virtuoso
+                itemsRendered={onRowsRendered}
+                ref={registerChild}
+                totalCount={keys.length}
+                itemContent={(i) => {
+                  if (!!items[i]) {
+                    let name;
+                    if (!!items[i].user_profile) {
+                      name = items[i].user_profile.display_name ||
+                        items[i].user_profile.real_name;
+                    } else {
+                      name = "<unknown>";
+                    }
+                    let message = items[i].text;
+                    if (items[i].files || items[i].attachments) {
+                      message += " <attachment>";
+                    }
+                    return (<div onClick={() => setDrilldownItem(i)}>{name}: {message}</div>);
+                  } else {
+                    return (<div>Loading...</div>);
+                  }
+                }}
+                overscan={200}
+                rangeChanged={loadMoreRows}
+              />
             )}
           </InfiniteLoader>
         </div>
         <div className="Explore-drilldown">
-          <pre>{JSON.stringify({ example: "data", other: 123 }, undefined, 2)}</pre>
+          <pre>{JSON.stringify(items[drilldownItem], undefined, 2)}</pre>
         </div>
       </div>
     );

@@ -13,6 +13,7 @@
 
 .Explore-drilldown {
   width: 20vw;
+  overflow-y: scroll;
 }
 
 .App .Explore-categories ul {
