@@ -6,5 +6,5 @@ COPY *.list /etc/apt/sources.list.d/
 
 RUN apt update -q && apt upgrade -yq
 
-RUN apt install -yq nodejs && \
+RUN apt install -yq nodejs libatomic1 && \
     npm install -g npm@latest

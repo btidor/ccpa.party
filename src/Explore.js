@@ -10,7 +10,7 @@ import "./Explore.css";
 
 function Explore(): React.Node {
   const params = useParams();
-  const provider = SupportedProviders.find(p => p.slug === params.provider);
+  const provider = SupportedProviders.find((p) => p.slug === params.provider);
 
   const [db, setDb] = React.useState(undefined);
   const [keys, setKeys] = React.useState(undefined);
@@ -44,22 +44,26 @@ function Explore(): React.Node {
   }, [keys]);
 
   if (!provider || provider.slug !== "slack") {
-    return (
-      <div className="Explore">Unknown provider: {params.provider}</div>
-    );
+    return <div className="Explore">Unknown provider: {params.provider}</div>;
   } else if (!ready || !keys || !items) {
-    return (
-      <div className="Explore">📊 Loading...</div>
-    )
+    return <div className="Explore">📊 Loading...</div>;
   } else {
     return (
       <div className="Explore">
         <div className="Explore-categories">
           <ul>
-            <li><a href="#">Users</a></li>
-            <li><a href="#">Channels</a></li>
-            <li><a href="#">Integration Logs</a></li>
-            <li><a href="#">All Messages</a></li>
+            <li>
+              <a href="#">Users</a>
+            </li>
+            <li>
+              <a href="#">Channels</a>
+            </li>
+            <li>
+              <a href="#">Integration Logs</a>
+            </li>
+            <li>
+              <a href="#">All Messages</a>
+            </li>
           </ul>
         </div>
         <div className="Explore-listing">
@@ -77,7 +81,8 @@ function Explore(): React.Node {
                   if (!!items[i]) {
                     let name;
                     if (!!items[i].user_profile) {
-                      name = items[i].user_profile.display_name ||
+                      name =
+                        items[i].user_profile.display_name ||
                         items[i].user_profile.real_name;
                     } else {
                       name = "<unknown>";
@@ -86,9 +91,13 @@ function Explore(): React.Node {
                     if (items[i].files || items[i].attachments) {
                       message += " <attachment>";
                     }
-                    return (<div onClick={() => setDrilldownItem(i)}>{name}: {message}</div>);
+                    return (
+                      <div onClick={() => setDrilldownItem(i)}>
+                        {name}: {message}
+                      </div>
+                    );
                   } else {
-                    return (<div>Loading...</div>);
+                    return <div>Loading...</div>;
                   }
                 }}
                 overscan={200}
@@ -98,7 +107,7 @@ function Explore(): React.Node {
           </InfiniteLoader>
         </div>
         <div className="Explore-drilldown">
-          <pre>{JSON.stringify(items[drilldownItem || ''], undefined, 2)}</pre>
+          <pre>{JSON.stringify(items[drilldownItem || ""], undefined, 2)}</pre>
         </div>
       </div>
     );

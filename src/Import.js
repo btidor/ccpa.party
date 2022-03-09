@@ -6,7 +6,7 @@ import importSlack from "./importers/slack";
 
 function Import(): React.Node {
   const params = useParams();
-  const provider = SupportedProviders.find(p => p.slug === params.provider);
+  const provider = SupportedProviders.find((p) => p.slug === params.provider);
   if (!provider) {
     throw new Error(`Unknown provider: ${params.provider}`);
   }
@@ -38,7 +38,9 @@ function Import(): React.Node {
 
   return (
     <div className="Import">
-      <div className="instructions">Import data from {provider.displayName}...</div>
+      <div className="instructions">
+        Import data from {provider.displayName}...
+      </div>
       <input type="file" accept=".zip,application/zip" onChange={importFile} />
       <div className="status">{status}</div>
     </div>

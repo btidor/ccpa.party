@@ -1,19 +1,19 @@
 // @flow
-import * as React from 'react';
+import * as React from "react";
 import { Routes, Route, Link } from "react-router-dom";
-import Explore from './Explore';
-import Home from './Home';
-import Import from './Import';
+import Explore from "./Explore";
+import Home from "./Home";
+import Import from "./Import";
 
-import './App.css';
+import "./App.css";
 
 type Prop = {
-  children: React.Node
-}
+  children: React.Node,
+};
 
 type State = {
   hasError: boolean,
-}
+};
 
 class ErrorBoundary extends React.Component<Prop, State> {
   constructor(props) {

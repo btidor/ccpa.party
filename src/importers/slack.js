@@ -6,13 +6,18 @@ async function importSlack(file: File) {
   const zip = await unzip(file);
   const db = await openDB("data", 1, {
     async upgrade(db) {
-      const channels = await db.createObjectStore("slack.channels", { keyPath: "id" });
+      const channels = await db.createObjectStore("slack.channels", {
+        keyPath: "id",
+      });
       channels.createIndex("name", "name", { unique: true });
 
-      db.createObjectStore("slack.integration_logs", { keyPath: "_id", autoIncrement: true });
-      db.createObjectStore("slack.messages", { keyPath: ["channel", "ts"] })
+      db.createObjectStore("slack.integration_logs", {
+        keyPath: "_id",
+        autoIncrement: true,
+      });
+      db.createObjectStore("slack.messages", { keyPath: ["channel", "ts"] });
       db.createObjectStore("slack.users", { keyPath: "id" });
-    }
+    },
   });
 
   const channels = await zip.entries["channels.json"].json();
@@ -37,15 +42,21 @@ async function importSlack(file: File) {
   await tx3.done;
 
   const files = Object.entries(zip.entries).filter(([name, entry]) => {
-    if (["channels.json", "integration_logs.json", "users.json"].includes(name)) return false;
+    if (["channels.json", "integration_logs.json", "users.json"].includes(name))
+      return false;
     if (!entry) return false;
     if (entry.isDirectory) return false;
     return true;
   });
   for (let i = 0; i < files.length; i += 25) {
-    const data = await Promise.all(files.slice(i, i + 25).map(async ([name, entry]) =>
-      [await db.getFromIndex("slack.channels", "name", name.split("/")[0]), await (entry: any).json()]
-    ));
+    const data = await Promise.all(
+      files
+        .slice(i, i + 25)
+        .map(async ([name, entry]) => [
+          await db.getFromIndex("slack.channels", "name", name.split("/")[0]),
+          await (entry: any).json(),
+        ])
+    );
     const tx = db.transaction("slack.messages", "readwrite");
     for (const [channel, messages] of data) {
       for (const message of messages) {
