@@ -1,8 +1,8 @@
 // @flow
 import * as React from "react";
 import { Link, useParams } from "react-router-dom";
-import { SupportedProviders } from "./constants";
-import importSlack from "./importers/slack";
+import { SupportedProviders } from "constants";
+import importSlack from "importers/slack";
 
 function Import(): React.Node {
   const params = useParams();

@@ -4,9 +4,9 @@ import * as React from "react";
 import { useParams } from "react-router-dom";
 import { InfiniteLoader } from "react-virtualized";
 import { Virtuoso } from "react-virtuoso";
-import { SupportedProviders } from "./constants";
+import { SupportedProviders } from "constants";
 
-import "./Explore.css";
+import "Explore.css";
 
 function Explore(): React.Node {
   const params = useParams();

@@ -1,11 +1,11 @@
 // @flow
 import * as React from "react";
 import { Routes, Route, Link } from "react-router-dom";
-import Explore from "./Explore";
-import Home from "./Home";
-import Import from "./Import";
+import Explore from "Explore";
+import Home from "Home";
+import Import from "Import";
 
-import "./App.css";
+import "App.css";
 
 type Prop = {
   children: React.Node,

@@ -20,13 +20,24 @@
     "build": "craco build",
     "test": "craco test",
     "flow": "flow",
+    "lint": "eslint .",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "rules": {
+      "no-restricted-imports": [
+        "error",
+        {
+          "patterns": [
+            ".*"
+          ]
+        }
+      ]
+    }
   },
   "browserslist": {
     "production": [

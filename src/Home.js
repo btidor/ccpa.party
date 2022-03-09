@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
 import { Link } from "react-router-dom";
-import { SupportedProviders } from "./constants";
+import { SupportedProviders } from "constants";
 
 function Home(): React.Node {
   return (
