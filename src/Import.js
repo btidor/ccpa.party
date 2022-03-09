@@ -1,15 +1,11 @@
 // @flow
 import * as React from "react";
 import { Link, useParams } from "react-router-dom";
-import { SupportedProviders } from "constants";
-import importSlack from "importers/slack";
+import { getProvider } from "provider";
 
 function Import(): React.Node {
   const params = useParams();
-  const provider = SupportedProviders.find((p) => p.slug === params.provider);
-  if (!provider) {
-    throw new Error(`Unknown provider: ${params.provider}`);
-  }
+  const provider = getProvider(params.provider);
   const [status, setStatus] = React.useState("");
 
   async function importFile(event) {
@@ -19,14 +15,7 @@ function Import(): React.Node {
 
     setStatus("Importing...");
     const start = Date.now();
-    switch (provider.slug) {
-      case "slack":
-        await importSlack(event.target.files[0]);
-        break;
-      default:
-        setStatus(`Unknown provider: ${provider.displayName}`);
-        return;
-    }
+    await provider.import(event.target.files[0]);
     setStatus(
       <React.Fragment>
         <div>Import complete!</div>
