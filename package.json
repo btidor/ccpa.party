@@ -19,6 +19,7 @@
     "start": "craco start",
     "build": "craco build",
     "test": "craco test",
+    "flow": "flow",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -40,6 +41,8 @@
     ]
   },
   "devDependencies": {
-    "@craco/craco": "^6.0.0"
+    "@craco/craco": "^6.0.0",
+    "flow-bin": "^0.173.0",
+    "flow-types": "^1.0.0"
   }
 }

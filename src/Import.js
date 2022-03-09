@@ -1,12 +1,16 @@
-import React, { useState } from "react";
+// @flow
+import * as React from "react";
 import { Link, useParams } from "react-router-dom";
 import { SupportedProviders } from "./constants";
 import importSlack from "./importers/slack";
 
-function Import() {
+function Import(): React.Node {
   const params = useParams();
   const provider = SupportedProviders.find(p => p.slug === params.provider);
-  const [status, setStatus] = useState("");
+  if (!provider) {
+    throw new Error(`Unknown provider: ${params.provider}`);
+  }
+  const [status, setStatus] = React.useState("");
 
   async function importFile(event) {
     if (event.target.files.length < 1) {

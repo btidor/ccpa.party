@@ -1,4 +1,5 @@
-import React from 'react';
+// @flow
+import * as React from 'react';
 import { Routes, Route, Link } from "react-router-dom";
 import Explore from './Explore';
 import Home from './Home';
@@ -6,7 +7,15 @@ import Import from './Import';
 
 import './App.css';
 
-class ErrorBoundary extends React.Component {
+type Prop = {
+  children: React.Node
+}
+
+type State = {
+  hasError: boolean,
+}
+
+class ErrorBoundary extends React.Component<Prop, State> {
   constructor(props) {
     super(props);
     this.state = { hasError: false };
@@ -24,7 +33,7 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-function App() {
+function App(): React.Node {
   return (
     <div className="App">
       <h1 className="App-header">

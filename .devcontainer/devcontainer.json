@@ -3,5 +3,9 @@
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
+	"extensions": [
+		"dbaeumer.vscode-eslint",
+		"flowtype.flow-for-vscode"
+	],
 	"remoteUser": "vscode"
 }

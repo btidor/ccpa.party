@@ -1,5 +1,6 @@
+// @flow
 import { openDB } from "idb";
-import { useEffect, useState } from "react";
+import * as React from "react";
 import { useParams } from "react-router-dom";
 import { InfiniteLoader } from "react-virtualized";
 import { Virtuoso } from "react-virtuoso";
@@ -7,28 +8,28 @@ import { SupportedProviders } from "./constants";
 
 import "./Explore.css";
 
-function Explore() {
+function Explore(): React.Node {
   const params = useParams();
   const provider = SupportedProviders.find(p => p.slug === params.provider);
 
-  const [db, setDb] = useState(undefined);
-  const [keys, setKeys] = useState(undefined);
-  const [items, setItems] = useState({});
-  const [ready, setReady] = useState(false);
-  const [drilldownItem, setDrilldownItem] = useState(undefined);
+  const [db, setDb] = React.useState(undefined);
+  const [keys, setKeys] = React.useState(undefined);
+  const [items, setItems] = React.useState({});
+  const [ready, setReady] = React.useState(false);
+  const [drilldownItem, setDrilldownItem] = React.useState(undefined);
 
   const isRowLoaded = (index) => !!items[index];
   const loadMoreRows = async ({ startIndex, endIndex }) => {
     for (let i = startIndex; i < endIndex; i++) {
       if (!items[i]) {
-        items[i] = await db.get("slack.messages", keys[i]);
+        items[i] = await (db: any).get("slack.messages", (keys: any)[i]);
         setItems(items);
       }
     }
     setReady(true);
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     async function setup() {
       const db = await openDB("data", 1);
       setDb(db);
@@ -36,17 +37,17 @@ function Explore() {
     }
     setup();
   }, []);
-  useEffect(() => {
+  React.useEffect(() => {
     if (!!keys) {
       loadMoreRows({ startIndex: 0, endIndex: 100 });
     }
   }, [keys]);
 
-  if (provider.slug !== "slack") {
+  if (!provider || provider.slug !== "slack") {
     return (
-      <div className="Explore">Unknown provider: {provider.displayName}</div>
+      <div className="Explore">Unknown provider: {params.provider}</div>
     );
-  } else if (!ready) {
+  } else if (!ready || !keys || !items) {
     return (
       <div className="Explore">📊 Loading...</div>
     )
@@ -97,7 +98,7 @@ function Explore() {
           </InfiniteLoader>
         </div>
         <div className="Explore-drilldown">
-          <pre>{JSON.stringify(items[drilldownItem], undefined, 2)}</pre>
+          <pre>{JSON.stringify(items[drilldownItem || ''], undefined, 2)}</pre>
         </div>
       </div>
     );

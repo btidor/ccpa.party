@@ -1,7 +1,8 @@
+// @flow
 import { openDB } from "idb";
 import { unzip } from "unzipit";
 
-async function importSlack(file) {
+async function importSlack(file: File) {
   const zip = await unzip(file);
   const db = await openDB("data", 1, {
     async upgrade(db) {
@@ -37,12 +38,13 @@ async function importSlack(file) {
 
   const files = Object.entries(zip.entries).filter(([name, entry]) => {
     if (["channels.json", "integration_logs.json", "users.json"].includes(name)) return false;
+    if (!entry) return false;
     if (entry.isDirectory) return false;
     return true;
   });
   for (let i = 0; i < files.length; i += 25) {
     const data = await Promise.all(files.slice(i, i + 25).map(async ([name, entry]) =>
-      [await db.getFromIndex("slack.channels", "name", name.split("/")[0]), await entry.json()]
+      [await db.getFromIndex("slack.channels", "name", name.split("/")[0]), await (entry: any).json()]
     ));
     const tx = db.transaction("slack.messages", "readwrite");
     for (const [channel, messages] of data) {
