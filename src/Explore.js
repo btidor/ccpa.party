@@ -1,20 +1,22 @@
 // @flow
 import { openDB } from "idb";
 import * as React from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 
-import { getProvider } from "provider";
+import { getProviderView } from "provider";
+import Navigator from "Navigator";
 import "Explore.css";
 
 let keys = [];
 let items = {};
 let categories = [];
 let metadata;
+let provider;
+let view;
 
 function Explore(): React.Node {
   const params = useParams();
-  const provider = getProvider(params.provider);
 
   const [db, setDb] = React.useState(undefined);
   const [dataKey, setDataKey] = React.useState(0);
@@ -26,22 +28,24 @@ function Explore(): React.Node {
     setDataKey(dataKey + 1);
   };
   const _loadMoreRows = async (db, { startIndex, endIndex }) => {
+    let finish = endIndex >= keys.length ? keys.length - 1 : endIndex;
     const results = await db.getAll(
-      "slack.messages",
+      view.table,
       // $FlowFixMe[prop-missing]
-      IDBKeyRange.bound(keys[startIndex], keys[endIndex])
+      IDBKeyRange.bound(keys[startIndex], keys[finish])
     );
-    for (let i = startIndex; i <= endIndex; i++) {
+    for (let i = startIndex; i <= finish; i++) {
       items[i] = results[i - startIndex];
     }
   };
 
   React.useEffect(() => {
     (async () => {
+      [provider, view] = await getProviderView(params.provider, params.view);
       const db = await openDB("data", 1);
-      keys = await db.getAllKeys("slack.messages");
-      categories = await provider.categories(db);
-      metadata = await provider.metadata(db);
+      keys = await db.getAllKeys(view.table);
+      categories = await provider.views(db);
+      metadata = await view.metadata(db);
       if (keys.length > 0) {
         await _loadMoreRows(db, {
           startIndex: 0,
@@ -50,49 +54,47 @@ function Explore(): React.Node {
       }
       setDb(db);
     })();
-  }, [provider]);
+  }, [params]);
 
   if (!db) {
     return <div className="Explore">📊 Loading...</div>;
   } else {
     return (
-      <div className="Explore">
-        <div className="Explore-categories">
-          <ul>
-            {categories.map((category) => (
-              <li key={category}>
-                <Link to="/TODO">{category}</Link>
-              </li>
-            ))}
-          </ul>
+      <React.Fragment>
+        <Navigator
+          provider={provider}
+          views={categories}
+          selected={params.view}
+        />
+        <div className="App-body Explore">
+          <div className="Explore-listing">
+            <Virtuoso
+              totalCount={keys.length}
+              itemContent={(index) => {
+                if (!!items[index]) {
+                  return (
+                    <div
+                      className="Explore-item"
+                      onClick={() => setDrilldownItem(index)}
+                    >
+                      {view.render(items[index], metadata)}
+                    </div>
+                  );
+                } else {
+                  return <div>Loading... #{index}</div>;
+                }
+              }}
+              overscan={200}
+              rangeChanged={loadMoreRows}
+            />
+          </div>
+          <div className="Explore-drilldown">
+            {drilldownItem !== undefined && (
+              <pre>{JSON.stringify(items[drilldownItem], undefined, 2)}</pre>
+            )}
+          </div>
         </div>
-        <div className="Explore-listing">
-          <Virtuoso
-            totalCount={keys.length}
-            itemContent={(index) => {
-              if (!!items[index]) {
-                return (
-                  <div
-                    className="Explore-item"
-                    onClick={() => setDrilldownItem(index)}
-                  >
-                    {provider.render(items[index], metadata)}
-                  </div>
-                );
-              } else {
-                return <div>Loading... #{index}</div>;
-              }
-            }}
-            overscan={200}
-            rangeChanged={loadMoreRows}
-          />
-        </div>
-        <div className="Explore-drilldown">
-          {drilldownItem !== undefined && (
-            <pre>{JSON.stringify(items[drilldownItem], undefined, 2)}</pre>
-          )}
-        </div>
-      </div>
+      </React.Fragment>
     );
   }
 }

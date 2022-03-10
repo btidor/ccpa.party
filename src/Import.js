@@ -26,7 +26,7 @@ function Import(): React.Node {
   }
 
   return (
-    <div className="Import">
+    <div className="App-body">
       <div className="instructions">
         Import data from {provider.displayName}...
       </div>

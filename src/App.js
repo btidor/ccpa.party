@@ -39,16 +39,22 @@ function App(): React.Node {
       <h1 className="App-header">
         <Link to="/">🎉 ccpa.party</Link>
       </h1>
-      <div className="App-body">
-        <ErrorBoundary>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/explore/:provider" element={<Explore />} />
-            <Route path="/import/:provider" element={<Import />} />
-            <Route path="*" element={<code>404 Not Found</code>} />
-          </Routes>
-        </ErrorBoundary>
-      </div>
+      <ErrorBoundary>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/explore/:provider" element={<Explore />} />
+          <Route path="/explore/:provider/:view" element={<Explore />} />
+          <Route path="/import/:provider" element={<Import />} />
+          <Route
+            path="*"
+            element={
+              <div className="App-body">
+                <code>404 Not Found</code>
+              </div>
+            }
+          />
+        </Routes>
+      </ErrorBoundary>
     </div>
   );
 }

@@ -4,14 +4,9 @@ import { openDB } from "idb";
 import * as React from "react";
 import { unzip } from "unzipit";
 
-import type { Provider } from "provider";
+import type { Provider, View } from "provider";
 
-type SlackMetadata = {|
-  channels: { [key: string]: { [key: string]: any } },
-  users: { [key: string]: { [key: string]: any } },
-|};
-
-class Slack implements Provider<SlackMetadata> {
+class Slack implements Provider {
   slug: string = "slack";
   displayName: string = "Slack";
 
@@ -84,11 +79,27 @@ class Slack implements Provider<SlackMetadata> {
     }
   }
 
-  async categories(db: any): Promise<$ReadOnlyArray<string>> {
-    return ["Users", "Channels", "Integration Logs", "All Messages"];
+  views(db: any): $ReadOnlyArray<View<any>> {
+    return [
+      new ChannelView(),
+      new UserView(),
+      new IntegrationLogView(),
+      new MessageView(),
+    ];
   }
+}
 
-  async metadata(db: any): Promise<SlackMetadata> {
+type MessageMetadata = {|
+  channels: { [key: string]: { [key: string]: any } },
+  users: { [key: string]: { [key: string]: any } },
+|};
+
+class MessageView implements View<MessageMetadata> {
+  slug: string = "messages";
+  displayName: string = "All Messages";
+  table: string = "slack.messages";
+
+  async metadata(db: any): Promise<MessageMetadata> {
     const users = {};
     (await db.getAll("slack.users")).forEach((u) => (users[u.id] = u));
     const channels = {};
@@ -96,7 +107,7 @@ class Slack implements Provider<SlackMetadata> {
     return { channels, users };
   }
 
-  render(item: { [key: string]: any }, metadata: SlackMetadata): React.Node {
+  render(item: { [key: string]: any }, metadata: MessageMetadata): React.Node {
     let name;
     let style = {};
     const user = metadata.users[item.user];
@@ -203,6 +214,51 @@ class Slack implements Provider<SlackMetadata> {
         <span className={messageClass}>{message}</span>
       </React.Fragment>
     );
+  }
+}
+
+class ChannelView implements View<void> {
+  slug: string = "channels";
+  displayName: string = "Channels";
+  table: string = "slack.channels";
+
+  async metadata(db: any): Promise<void> {}
+
+  render(item: { [key: string]: any }, metadata: void): React.Node {
+    return (
+      <span>
+        #{item.name} ({item.id})
+      </span>
+    );
+  }
+}
+
+class UserView implements View<void> {
+  slug: string = "users";
+  displayName: string = "Users";
+  table: string = "slack.users";
+
+  async metadata(db: any): Promise<void> {}
+
+  render(item: { [key: string]: any }, metadata: void): React.Node {
+    return (
+      <span>
+        {[]}
+        {item.real_name} ({item.profile.display_name || item.name}, {item.id})
+      </span>
+    );
+  }
+}
+
+class IntegrationLogView implements View<void> {
+  slug: string = "integration_logs";
+  displayName: string = "Integration Logs";
+  table: string = "slack.integration_logs";
+
+  async metadata(db: any): Promise<void> {}
+
+  render(item: { [key: string]: any }, metadata: void): React.Node {
+    return <span>{JSON.stringify(item)}</span>;
   }
 }
 

@@ -5,7 +5,7 @@ import { ProviderRegistry } from "provider";
 
 function Home(): React.Node {
   return (
-    <div className="Home">
+    <div className="App-body">
       <div className="instructions">Import data from...</div>
       <ul>
         {ProviderRegistry.map((provider) => (
