@@ -11,6 +11,7 @@ import type { Provider, View } from "provider";
 class Slack implements Provider {
   slug: string = "slack";
   displayName: string = "Slack";
+  defaultView: string = "messages";
 
   async import(file: File): Promise<void> {
     const zip = await unzip(file);

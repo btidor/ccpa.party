@@ -4,11 +4,10 @@ import { useNavigate } from "react-router-dom";
 
 import styles from "Navigator.module.css";
 
-import type { Provider, View } from "provider";
+import type { Provider } from "provider";
 
 type Props = {
   provider: Provider,
-  views: $ReadOnlyArray<View<any>>,
   selected: string,
 };
 
@@ -17,19 +16,31 @@ function Navigator(props: Props): React.Node {
   const onChange = (event) => {
     navigate(`/explore/${props.provider.slug}/${event.target.value}`);
   };
-  return (
-    <select
-      className={styles.select}
-      onChange={onChange}
-      defaultValue={props.selected}
-    >
-      {props.views.map((view) => (
-        <option key={view.slug} value={view.slug}>
-          {view.displayName}
-        </option>
-      ))}
-    </select>
-  );
+
+  const [views, setViews] = React.useState();
+  React.useEffect(() => {
+    (async () => {
+      setViews(await props.provider.views());
+    })();
+  }, [props.provider]);
+
+  if (!views) {
+    return <React.Fragment></React.Fragment>;
+  } else {
+    return (
+      <select
+        className={styles.select}
+        onChange={onChange}
+        defaultValue={props.selected}
+      >
+        {views.map((view) => (
+          <option key={view.slug} value={view.slug}>
+            {view.displayName}
+          </option>
+        ))}
+      </select>
+    );
+  }
 }
 
 export default Navigator;

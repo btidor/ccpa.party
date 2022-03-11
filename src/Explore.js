@@ -1,7 +1,7 @@
 // @flow
 import { openDB } from "idb";
 import * as React from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 
 import { getProviderView } from "provider";
@@ -9,73 +9,92 @@ import Navigator from "Navigator";
 
 import styles from "Explore.module.css";
 
-let keys = [];
-let items = {};
-let categories = [];
-let metadata;
-let provider;
-let view;
+import type { Provider, View } from "provider";
+
+type Cache<M> = {
+  provider: Provider,
+  view: View<M>,
+  metadata: M,
+
+  db: any,
+  keys: $ReadOnlyArray<string>,
+  items: { [key: number]: { [key: string]: any } },
+};
+
+let cache: ?Cache<any>;
 
 function Explore(): React.Node {
   const params = useParams();
+  const navigate = useNavigate();
 
-  const [db, setDb] = React.useState(undefined);
-  const [dataKey, setDataKey] = React.useState(0);
+  const [refreshKey, setRefreshKey] = React.useState(0);
   const [drilldownItem, setDrilldownItem] = React.useState(undefined);
 
   const loadMoreRows = async (params) => {
-    if (!db) return;
-    await _loadMoreRows(db, params);
-    setDataKey(dataKey + 1);
+    if (!cache) return;
+    await _loadMoreRows(cache, params);
+    setRefreshKey(refreshKey + 1);
   };
-  const _loadMoreRows = async (db, { startIndex, endIndex }) => {
-    let finish = endIndex >= keys.length ? keys.length - 1 : endIndex;
-    const results = await db.getAll(
-      view.table,
+  const _loadMoreRows = async (cache, { startIndex, endIndex }) => {
+    let finish =
+      endIndex >= cache.keys.length ? cache.keys.length - 1 : endIndex;
+    const results = await cache.db.getAll(
+      cache.view.table,
       // $FlowFixMe[prop-missing]
-      IDBKeyRange.bound(keys[startIndex], keys[finish])
+      IDBKeyRange.bound(cache.keys[startIndex], cache.keys[finish])
     );
     for (let i = startIndex; i <= finish; i++) {
-      items[i] = results[i - startIndex];
+      cache.items[i] = results[i - startIndex];
     }
   };
 
   React.useEffect(() => {
     (async () => {
-      [provider, view] = await getProviderView(params.provider, params.view);
+      const [provider, view] = await getProviderView(
+        params.provider,
+        params.view
+      );
+      if (!view) {
+        const destination = provider.defaultView || provider.views()[0].slug;
+        navigate(`/explore/${provider.slug}/${destination}`);
+        return;
+      }
       const db = await openDB("data", 1);
-      keys = await db.getAllKeys(view.table);
-      categories = await provider.views(db);
-      metadata = await view.metadata(db);
+      const keys = await db.getAllKeys(view.table);
+      const metadata = await view.metadata(db);
+      cache = {
+        provider,
+        view,
+        metadata,
+        db,
+        keys,
+        items: {},
+      };
       if (keys.length > 0) {
-        await _loadMoreRows(db, {
+        await _loadMoreRows(cache, {
           startIndex: 0,
           endIndex: Math.min(100, keys.length),
         });
       }
-      setDb(db);
+      setRefreshKey(1);
     })();
-  }, [params]);
+  }, [params, navigate]);
 
-  if (!db) {
+  if (!cache) {
     return <main>📊 Loading...</main>;
   } else {
     return (
       <React.Fragment>
-        <Navigator
-          provider={provider}
-          views={categories}
-          selected={params.view}
-        />
+        <Navigator provider={cache.provider} selected={params.view} />
         <main className={styles.main}>
           <div className={styles.listing}>
             <Virtuoso
-              totalCount={keys.length}
+              totalCount={cache.keys.length}
               itemContent={(index) => {
-                if (!!items[index]) {
+                if (cache && cache.items[index]) {
                   return (
                     <div onClick={() => setDrilldownItem(index)}>
-                      {view.render(items[index], metadata)}
+                      {cache.view.render(cache.items[index], cache.metadata)}
                     </div>
                   );
                 } else {
@@ -88,7 +107,9 @@ function Explore(): React.Node {
           </div>
           <div className={styles.drilldown}>
             {drilldownItem !== undefined && (
-              <pre>{JSON.stringify(items[drilldownItem], undefined, 2)}</pre>
+              <pre>
+                {JSON.stringify(cache.items[drilldownItem], undefined, 2)}
+              </pre>
             )}
           </div>
         </main>

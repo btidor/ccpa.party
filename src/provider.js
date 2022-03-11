@@ -4,16 +4,17 @@ import * as React from "react";
 import Slack from "providers/slack";
 
 export interface View<M> {
-  slug: string;
-  displayName: string;
-  table: string;
+  +slug: string;
+  +displayName: string;
+  +table: string;
   metadata(db: any): Promise<M>;
   render(item: { [key: string]: any }, metadata: M): React.Node;
 }
 
 export interface Provider {
-  slug: string;
-  displayName: string;
+  +slug: string;
+  +displayName: string;
+  +defaultView?: string;
   import(file: File): Promise<void>;
   views(db: any): $ReadOnlyArray<View<any>>;
 }
@@ -36,11 +37,8 @@ export function getProvider(slug: string): Provider {
 export async function getProviderView(
   providerSlug: string,
   viewSlug: string
-): Promise<[Provider, View<any>]> {
+): Promise<[Provider, ?View<any>]> {
   const provider = getProvider(providerSlug);
   const view = (await provider.views()).find((v) => v.slug === viewSlug);
-  if (view === undefined) {
-    throw new Error(`No such view: ${viewSlug}`);
-  }
   return [provider, view];
 }
