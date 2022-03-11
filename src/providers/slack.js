@@ -155,8 +155,14 @@ class MessageView implements View<MessageMetadata> {
       } else if (element.type === "rich_text_preformatted") {
         return <pre key={key}>{element.elements.flatMap(handleElement)}</pre>;
       } else if (element.type === "text") {
-        // TODO: handle "style" attributes
-        return [<React.Fragment key={key}>{element.text}</React.Fragment>];
+        let node = <React.Fragment>{element.text}</React.Fragment>;
+        if (element.style) {
+          if (element.style.bold) node = <b>{node}</b>;
+          if (element.style.italic) node = <i>{node}</i>;
+          if (element.style.strike) node = <s>{node}</s>;
+          if (element.style.code) node = <code>{node}</code>;
+        }
+        return [<React.Fragment key={key}>{node}</React.Fragment>];
       } else if (element.type === "emoji") {
         return [
           <React.Fragment key={key}>
