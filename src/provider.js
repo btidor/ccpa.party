@@ -1,6 +1,7 @@
 // @flow
 import * as React from "react";
 
+import Generic from "providers/generic";
 import Slack from "providers/slack";
 
 export interface View<M> {
@@ -16,10 +17,13 @@ export interface Provider {
   +displayName: string;
   +defaultView?: string;
   import(file: File): Promise<void>;
-  views(db: any): $ReadOnlyArray<View<any>>;
+  views(): $ReadOnlyArray<View<any>>;
 }
 
-export const ProviderRegistry: $ReadOnlyArray<Provider> = [new Slack()];
+export const ProviderRegistry: $ReadOnlyArray<Provider> = [
+  new Slack(),
+  new Generic(),
+];
 
 const ProviderLookup: { [key: string]: Provider } = {};
 ProviderRegistry.forEach(

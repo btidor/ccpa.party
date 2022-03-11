@@ -82,7 +82,7 @@ class Slack implements Provider {
     }
   }
 
-  views(db: any): $ReadOnlyArray<View<any>> {
+  views(): $ReadOnlyArray<View<any>> {
     return [
       new ChannelView(),
       new UserView(),
