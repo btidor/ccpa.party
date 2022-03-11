@@ -4,6 +4,8 @@ import { openDB } from "idb";
 import * as React from "react";
 import { unzip } from "unzipit";
 
+import styles from "providers/slack.module.css";
+
 import type { Provider, View } from "provider";
 
 class Slack implements Provider {
@@ -108,30 +110,30 @@ class MessageView implements View<MessageMetadata> {
   }
 
   render(item: { [key: string]: any }, metadata: MessageMetadata): React.Node {
-    let name;
+    let name = "unknown";
     let style = {};
     const user = metadata.users[item.user];
     if (!!user) {
       name = user.profile.display_name || user.profile.real_name;
       if (user.color) style = { color: `#${user.color}` };
-    } else {
-      name = "<unknown_user>";
     }
-    let ch;
+    let ch = "unknown";
     const channel = metadata.channels[item.channel];
     if (!!channel) {
       ch = channel.name;
-    } else {
-      ch = "<unknown_channel>";
     }
     let message = item.text;
-    let messageClass = "message";
+    let messageClass;
     if (item.files || item.attachments) {
-      message += " <attachment>";
+      message = (
+        <React.Fragment>
+          {message} <span className={styles.unknown}>attachment</span>
+        </React.Fragment>
+      );
     }
     if (item.subtype === "channel_join") {
       message = `joined #${ch}`;
-      messageClass = "system-message";
+      messageClass = styles.system;
     }
     let key = 0;
     const handleElement = (element) => {
@@ -171,17 +173,17 @@ class MessageView implements View<MessageMetadata> {
         ];
       } else if (element.type === "user") {
         return [
-          <React.Fragment key={key}>
+          <span key={key} className={styles.internal}>
             @
             {metadata.users[element.user_id].display_name ||
               metadata.users[element.user_id].real_name}
-          </React.Fragment>,
+          </span>,
         ];
       } else if (element.type === "channel") {
         return [
-          <React.Fragment key={key}>
+          <span key={key} className={styles.internal}>
             #{metadata.channels[element.channel_id].name}
-          </React.Fragment>,
+          </span>,
         ];
       } else if (element.type === "link") {
         return [
@@ -190,10 +192,11 @@ class MessageView implements View<MessageMetadata> {
           </a>,
         ];
       } else {
+        console.warn(element.type);
         return [
-          <React.Fragment key={key}>
-            &lt;unknown:{element.type}&gt;
-          </React.Fragment>,
+          <span key={key} className={styles.unknown}>
+            {element.type}
+          </span>,
         ];
       }
     };
@@ -202,9 +205,9 @@ class MessageView implements View<MessageMetadata> {
         key++;
         if (block.type !== "rich_text") {
           return (
-            <React.Fragment key={key}>
-              &lt;unknown:{block.type}&gt;
-            </React.Fragment>
+            <span key={key} className={styles.unknown}>
+              {block.type}
+            </span>
           );
         } else {
           return block.elements.flatMap(handleElement);
@@ -212,13 +215,17 @@ class MessageView implements View<MessageMetadata> {
       });
     }
     return (
-      <React.Fragment>
-        <span className="channel">#{ch}</span>{" "}
-        <span style={style} className="username">
-          {name}
-        </span>{" "}
-        <span className={messageClass}>{message}</span>
-      </React.Fragment>
+      <div className={styles.item}>
+        <div className={styles.prefix}>
+          <span className={styles.channel}>#{ch}</span>
+        </div>
+        <div className={styles.message}>
+          <span style={style} className={styles.username}>
+            {name}
+          </span>{" "}
+          <span className={messageClass}>{message}</span>
+        </div>
+      </div>
     );
   }
 }

@@ -19,20 +19,20 @@ function Import(): React.Node {
     setStatus(
       <React.Fragment>
         <div>Import complete!</div>
-        <Link to={`/explore/${provider.slug}`}>View results</Link>
+        <Link to={`/explore/${provider.slug}`} className="box-link">
+          View results
+        </Link>
       </React.Fragment>
     );
     console.warn(`Time: ${(Date.now() - start) / 1000}s`);
   }
 
   return (
-    <div className="App-body">
-      <div className="instructions">
-        Import data from {provider.displayName}...
-      </div>
+    <main>
+      <div>Import data from {provider.displayName}...</div>
       <input type="file" accept=".zip,application/zip" onChange={importFile} />
-      <div className="status">{status}</div>
-    </div>
+      <div>{status}</div>
+    </main>
   );
 }
 

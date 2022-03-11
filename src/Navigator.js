@@ -2,6 +2,8 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 
+import styles from "Navigator.module.css";
+
 import type { Provider, View } from "provider";
 
 type Props = {
@@ -17,7 +19,7 @@ function Navigator(props: Props): React.Node {
   };
   return (
     <select
-      className="App-navigator"
+      className={styles.select}
       onChange={onChange}
       defaultValue={props.selected}
     >

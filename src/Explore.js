@@ -6,7 +6,8 @@ import { Virtuoso } from "react-virtuoso";
 
 import { getProviderView } from "provider";
 import Navigator from "Navigator";
-import "Explore.css";
+
+import styles from "Explore.module.css";
 
 let keys = [];
 let items = {};
@@ -57,7 +58,7 @@ function Explore(): React.Node {
   }, [params]);
 
   if (!db) {
-    return <div className="Explore">📊 Loading...</div>;
+    return <main>📊 Loading...</main>;
   } else {
     return (
       <React.Fragment>
@@ -66,17 +67,14 @@ function Explore(): React.Node {
           views={categories}
           selected={params.view}
         />
-        <div className="App-body Explore">
-          <div className="Explore-listing">
+        <main className={styles.main}>
+          <div className={styles.listing}>
             <Virtuoso
               totalCount={keys.length}
               itemContent={(index) => {
                 if (!!items[index]) {
                   return (
-                    <div
-                      className="Explore-item"
-                      onClick={() => setDrilldownItem(index)}
-                    >
+                    <div onClick={() => setDrilldownItem(index)}>
                       {view.render(items[index], metadata)}
                     </div>
                   );
@@ -88,12 +86,12 @@ function Explore(): React.Node {
               rangeChanged={loadMoreRows}
             />
           </div>
-          <div className="Explore-drilldown">
+          <div className={styles.drilldown}>
             {drilldownItem !== undefined && (
               <pre>{JSON.stringify(items[drilldownItem], undefined, 2)}</pre>
             )}
           </div>
-        </div>
+        </main>
       </React.Fragment>
     );
   }

@@ -5,9 +5,7 @@ import Explore from "Explore";
 import Home from "Home";
 import Import from "Import";
 
-import "App.css";
-
-type Prop = {
+type Props = {
   children: React.Node,
 };
 
@@ -15,7 +13,7 @@ type State = {
   hasError: boolean,
 };
 
-class ErrorBoundary extends React.Component<Prop, State> {
+class ErrorBoundary extends React.Component<Props, State> {
   constructor(props) {
     super(props);
     this.state = { hasError: false };
@@ -35,9 +33,11 @@ class ErrorBoundary extends React.Component<Prop, State> {
 
 function App(): React.Node {
   return (
-    <div className="App">
-      <h1 className="App-header">
-        <Link to="/">🎉 ccpa.party</Link>
+    <React.Fragment>
+      <h1>
+        <Link to="/" className="box-link">
+          🎉 ccpa.party
+        </Link>
       </h1>
       <ErrorBoundary>
         <Routes>
@@ -48,14 +48,14 @@ function App(): React.Node {
           <Route
             path="*"
             element={
-              <div className="App-body">
-                <code>404 Not Found</code>
-              </div>
+              <main>
+                <code>404 Not Found</code>{" "}
+              </main>
             }
           />
         </Routes>
       </ErrorBoundary>
-    </div>
+    </React.Fragment>
   );
 }
 
