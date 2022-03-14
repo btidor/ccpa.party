@@ -46,6 +46,14 @@ class FileView implements View<void> {
   render(item: { [key: string]: any }, metadata: void): React.Node {
     return <span>{item.filename}</span>;
   }
+
+  drilldown(item: { [key: string]: any }): string {
+    let data = item.data;
+    try {
+      data = JSON.stringify(JSON.parse(data), undefined, 2);
+    } catch {}
+    return data;
+  }
 }
 
 export default Generic;

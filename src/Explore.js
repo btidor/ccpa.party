@@ -56,7 +56,7 @@ function Explore(): React.Node {
       );
       if (!view) {
         const destination = provider.defaultView || provider.views()[0].slug;
-        navigate(`/explore/${provider.slug}/${destination}`);
+        navigate(`/explore/${provider.slug}/${destination}`, { replace: true });
         return;
       }
       const db = await openDB("data", 1);
@@ -107,9 +107,7 @@ function Explore(): React.Node {
           </div>
           <div className={styles.drilldown}>
             {drilldownItem !== undefined && (
-              <pre>
-                {JSON.stringify(cache.items[drilldownItem], undefined, 2)}
-              </pre>
+              <pre>{cache.view.drilldown(cache.items[drilldownItem])}</pre>
             )}
           </div>
         </main>

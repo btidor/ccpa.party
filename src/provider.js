@@ -10,6 +10,7 @@ export interface View<M> {
   +table: string;
   metadata(db: any): Promise<M>;
   render(item: { [key: string]: any }, metadata: M): React.Node;
+  drilldown(item: { [key: string]: any }): string;
 }
 
 export interface Provider {

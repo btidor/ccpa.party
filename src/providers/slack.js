@@ -229,6 +229,10 @@ class MessageView implements View<MessageMetadata> {
       </div>
     );
   }
+
+  drilldown(item: { [key: string]: any }): string {
+    return JSON.stringify(item, undefined, 2);
+  }
 }
 
 class ChannelView implements View<void> {
@@ -244,6 +248,10 @@ class ChannelView implements View<void> {
         #{item.name} ({item.id})
       </span>
     );
+  }
+
+  drilldown(item: { [key: string]: any }): string {
+    return JSON.stringify(item, undefined, 2);
   }
 }
 
@@ -262,6 +270,10 @@ class UserView implements View<void> {
       </span>
     );
   }
+
+  drilldown(item: { [key: string]: any }): string {
+    return JSON.stringify(item, undefined, 2);
+  }
 }
 
 class IntegrationLogView implements View<void> {
@@ -273,6 +285,10 @@ class IntegrationLogView implements View<void> {
 
   render(item: { [key: string]: any }, metadata: void): React.Node {
     return <span>{JSON.stringify(item)}</span>;
+  }
+
+  drilldown(item: { [key: string]: any }): string {
+    return JSON.stringify(item, undefined, 2);
   }
 }
 
