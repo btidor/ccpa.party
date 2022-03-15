@@ -1,5 +1,5 @@
 // @flow
-import { openDB } from "idb";
+import { deleteDB, openDB } from "idb";
 import * as React from "react";
 import { unzip } from "unzipit";
 
@@ -11,23 +11,26 @@ class Generic implements Provider {
 
   async import(file: File): Promise<void> {
     const zip = await unzip(file);
-    const entries = Object.values(zip.entries).filter(
+    const entries: $ReadOnlyArray<any> = Object.values(zip.entries).filter(
       (entry) => !(entry: any).isDirectory
     );
-    const db = await openDB("data", 1, {
+    await deleteDB(this.slug);
+    const db = await openDB(this.slug, 1, {
       async upgrade(db) {
-        entries.forEach((entry) =>
-          db.createObjectStore("generic.files", {
-            keyPath: "filename",
-          })
-        );
+        entries.forEach((entry) => db.createObjectStore("files"));
       },
     });
 
-    for (let i = 0; i < entries.length; i++) {
-      const filename = (entries[i]: any).name;
-      const data = await (entries[i]: any).text();
-      await db.put("generic.files", { filename, data });
+    for (const entry of entries) {
+      let data;
+      if (entry.name.endsWith(".json")) {
+        data = await entry.text();
+      } else if (entry.name.endsWith(".txt")) {
+        data = await entry.text();
+      } else {
+        data = await entry.blob();
+      }
+      await db.put("files", data, entry.name);
     }
   }
 
@@ -39,20 +42,11 @@ class Generic implements Provider {
 class FileView implements View<void> {
   slug: string = "files";
   displayName: string = "Files";
-  table: string = "generic.files";
 
   async metadata(db: any): Promise<void> {}
 
-  render(item: { [key: string]: any }, metadata: void): React.Node {
-    return <span>{item.filename}</span>;
-  }
-
-  drilldown(item: { [key: string]: any }): string {
-    let data = item.data;
-    try {
-      data = JSON.stringify(JSON.parse(data), undefined, 2);
-    } catch {}
-    return data;
+  render(key: string, item: { [string]: any }, metadata: void): React.Node {
+    return <span>{key}</span>;
   }
 }
 

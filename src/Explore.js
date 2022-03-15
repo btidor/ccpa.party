@@ -1,10 +1,9 @@
 // @flow
-import { openDB } from "idb";
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 
-import { getProviderView } from "provider";
+import { getDbProviderView } from "provider";
 import Navigator from "Navigator";
 
 import styles from "Explore.module.css";
@@ -39,7 +38,7 @@ function Explore(): React.Node {
     let finish =
       endIndex >= cache.keys.length ? cache.keys.length - 1 : endIndex;
     const results = await cache.db.getAll(
-      cache.view.table,
+      cache.view.slug,
       // $FlowFixMe[prop-missing]
       IDBKeyRange.bound(cache.keys[startIndex], cache.keys[finish])
     );
@@ -50,17 +49,16 @@ function Explore(): React.Node {
 
   React.useEffect(() => {
     (async () => {
-      const [provider, view] = await getProviderView(
+      const [db, provider, view] = await getDbProviderView(
         params.provider,
         params.view
       );
       if (!view) {
-        const destination = provider.defaultView || provider.views()[0].slug;
+        const destination = provider.defaultView || provider.views(db)[0].slug;
         navigate(`/explore/${provider.slug}/${destination}`, { replace: true });
         return;
       }
-      const db = await openDB("data", 1);
-      const keys = await db.getAllKeys(view.table);
+      const keys = await db.getAllKeys(view.slug);
       const metadata = await view.metadata(db);
       cache = {
         provider,
@@ -85,7 +83,11 @@ function Explore(): React.Node {
   } else {
     return (
       <React.Fragment>
-        <Navigator provider={cache.provider} selected={params.view} />
+        <Navigator
+          db={cache.db}
+          provider={cache.provider}
+          selected={params.view}
+        />
         <main className={styles.main}>
           <div className={styles.listing}>
             <Virtuoso
@@ -94,7 +96,11 @@ function Explore(): React.Node {
                 if (cache && cache.items[index]) {
                   return (
                     <div onClick={() => setDrilldownItem(index)}>
-                      {cache.view.render(cache.items[index], cache.metadata)}
+                      {cache.view.render(
+                        cache.keys[index],
+                        cache.items[index],
+                        cache.metadata
+                      )}
                     </div>
                   );
                 } else {
@@ -106,9 +112,36 @@ function Explore(): React.Node {
             />
           </div>
           <div className={styles.drilldown}>
-            {drilldownItem !== undefined && (
-              <pre>{cache.view.drilldown(cache.items[drilldownItem])}</pre>
-            )}
+            {(() => {
+              if (!cache || typeof drilldownItem !== "number") {
+                return;
+              }
+              const item = cache.items[drilldownItem];
+              if (item instanceof Blob) {
+                const filename = cache.keys[drilldownItem];
+                const url = URL.createObjectURL(item);
+                return (
+                  <React.Fragment>
+                    <img
+                      src={url}
+                      alt="uploaded content"
+                      className={styles.media}
+                    />
+                    <a href={url} download={filename}>
+                      Download
+                    </a>
+                  </React.Fragment>
+                );
+              } else if (typeof item === "string") {
+                let content = item;
+                try {
+                  content = JSON.stringify(JSON.parse(item), undefined, 2);
+                } catch {}
+                return <pre>{content}</pre>;
+              } else {
+                return <pre>{JSON.stringify(item, undefined, 2)}</pre>;
+              }
+            })()}
           </div>
         </main>
       </React.Fragment>

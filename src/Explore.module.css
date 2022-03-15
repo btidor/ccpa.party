@@ -16,3 +16,8 @@
   width: 40vw;
   overflow-y: scroll;
 }
+
+.media {
+  display: block;
+  max-width: 100%;
+}

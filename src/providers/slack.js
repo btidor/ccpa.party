@@ -1,6 +1,6 @@
 // @flow
 import EmojiMap from "emoji-name-map";
-import { openDB } from "idb";
+import { deleteDB, openDB } from "idb";
 import * as React from "react";
 import { unzip } from "unzipit";
 
@@ -15,38 +15,39 @@ class Slack implements Provider {
 
   async import(file: File): Promise<void> {
     const zip = await unzip(file);
-    const db = await openDB("data", 1, {
+    await deleteDB(this.slug);
+    const db = await openDB(this.slug, 1, {
       async upgrade(db) {
-        const channels = await db.createObjectStore("slack.channels", {
+        const channels = await db.createObjectStore("channels", {
           keyPath: "id",
         });
         channels.createIndex("name", "name", { unique: true });
 
-        db.createObjectStore("slack.integration_logs", {
+        db.createObjectStore("integration_logs", {
           keyPath: "_id",
           autoIncrement: true,
         });
-        db.createObjectStore("slack.messages", { keyPath: ["channel", "ts"] });
-        db.createObjectStore("slack.users", { keyPath: "id" });
+        db.createObjectStore("messages", { keyPath: ["channel", "ts"] });
+        db.createObjectStore("users", { keyPath: "id" });
       },
     });
 
     const channels = await zip.entries["channels.json"].json();
-    const tx1 = db.transaction("slack.channels", "readwrite");
+    const tx1 = db.transaction("channels", "readwrite");
     for (const channel of channels) {
       await tx1.store.put(channel);
     }
     await tx1.done;
 
     const integrationLogs = await zip.entries["integration_logs.json"].json();
-    const tx2 = db.transaction("slack.integration_logs", "readwrite");
+    const tx2 = db.transaction("integration_logs", "readwrite");
     for (const log of integrationLogs) {
       await tx2.store.put(log);
     }
     await tx2.done;
 
     const users = await zip.entries["users.json"].json();
-    const tx3 = db.transaction("slack.users", "readwrite");
+    const tx3 = db.transaction("users", "readwrite");
     for (const user of users) {
       await tx3.store.put(user);
     }
@@ -66,12 +67,12 @@ class Slack implements Provider {
         files.slice(i, i + 25).map(async ([name, entry]) => {
           let aentry: any = entry;
           return [
-            await db.getFromIndex("slack.channels", "name", name.split("/")[0]),
+            await db.getFromIndex("channels", "name", name.split("/")[0]),
             await aentry.json(),
           ];
         })
       );
-      const tx = db.transaction("slack.messages", "readwrite");
+      const tx = db.transaction("messages", "readwrite");
       for (const [channel, messages] of data) {
         for (const message of messages) {
           message.channel = channel.id;
@@ -93,24 +94,27 @@ class Slack implements Provider {
 }
 
 type MessageMetadata = {|
-  channels: { [key: string]: { [key: string]: any } },
-  users: { [key: string]: { [key: string]: any } },
+  channels: { [string]: { [string]: any } },
+  users: { [string]: { [string]: any } },
 |};
 
 class MessageView implements View<MessageMetadata> {
   slug: string = "messages";
   displayName: string = "All Messages";
-  table: string = "slack.messages";
 
   async metadata(db: any): Promise<MessageMetadata> {
     const users = {};
-    (await db.getAll("slack.users")).forEach((u) => (users[u.id] = u));
+    (await db.getAll("users")).forEach((u) => (users[u.id] = u));
     const channels = {};
-    (await db.getAll("slack.channels")).forEach((ch) => (channels[ch.id] = ch));
+    (await db.getAll("channels")).forEach((ch) => (channels[ch.id] = ch));
     return { channels, users };
   }
 
-  render(item: { [key: string]: any }, metadata: MessageMetadata): React.Node {
+  render(
+    _key: string,
+    item: { [string]: any },
+    metadata: MessageMetadata
+  ): React.Node {
     let name = "unknown";
     let style = {};
     const user = metadata.users[item.user];
@@ -229,40 +233,30 @@ class MessageView implements View<MessageMetadata> {
       </div>
     );
   }
-
-  drilldown(item: { [key: string]: any }): string {
-    return JSON.stringify(item, undefined, 2);
-  }
 }
 
 class ChannelView implements View<void> {
   slug: string = "channels";
   displayName: string = "Channels";
-  table: string = "slack.channels";
 
   async metadata(db: any): Promise<void> {}
 
-  render(item: { [key: string]: any }, metadata: void): React.Node {
+  render(key: string, item: { [string]: any }, metadata: void): React.Node {
     return (
       <span>
         #{item.name} ({item.id})
       </span>
     );
   }
-
-  drilldown(item: { [key: string]: any }): string {
-    return JSON.stringify(item, undefined, 2);
-  }
 }
 
 class UserView implements View<void> {
   slug: string = "users";
   displayName: string = "Users";
-  table: string = "slack.users";
 
   async metadata(db: any): Promise<void> {}
 
-  render(item: { [key: string]: any }, metadata: void): React.Node {
+  render(key: string, item: { [string]: any }, metadata: void): React.Node {
     return (
       <span>
         {[]}
@@ -270,25 +264,16 @@ class UserView implements View<void> {
       </span>
     );
   }
-
-  drilldown(item: { [key: string]: any }): string {
-    return JSON.stringify(item, undefined, 2);
-  }
 }
 
 class IntegrationLogView implements View<void> {
   slug: string = "integration_logs";
   displayName: string = "Integration Logs";
-  table: string = "slack.integration_logs";
 
   async metadata(db: any): Promise<void> {}
 
-  render(item: { [key: string]: any }, metadata: void): React.Node {
+  render(key: string, item: { [string]: any }, metadata: void): React.Node {
     return <span>{JSON.stringify(item)}</span>;
-  }
-
-  drilldown(item: { [key: string]: any }): string {
-    return JSON.stringify(item, undefined, 2);
   }
 }
 

@@ -7,6 +7,7 @@ import styles from "Navigator.module.css";
 import type { Provider } from "provider";
 
 type Props = {
+  db: any,
   provider: Provider,
   selected: string,
 };
@@ -18,11 +19,10 @@ function Navigator(props: Props): React.Node {
   };
 
   const [views, setViews] = React.useState();
-  React.useEffect(() => {
-    (async () => {
-      setViews(await props.provider.views());
-    })();
-  }, [props.provider]);
+  React.useEffect(
+    () => setViews(props.provider.views(props.db)),
+    [props.provider, props.db]
+  );
 
   if (!views) {
     return <React.Fragment></React.Fragment>;
