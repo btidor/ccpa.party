@@ -27,6 +27,8 @@ class Generic implements Provider {
         data = await entry.text();
       } else if (entry.name.endsWith(".txt")) {
         data = await entry.text();
+      } else if (entry.name.endsWith(".csv")) {
+        data = await entry.text();
       } else {
         data = await entry.blob();
       }
