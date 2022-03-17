@@ -121,11 +121,7 @@ class GenericView implements View<void> {
 
   async metadata(db: any): Promise<void> {}
 
-  render(
-    key: string,
-    item: { [key: string]: any },
-    metadata: void
-  ): React.Node {
+  render(key: string, item: { [string]: any }, metadata: void): React.Node {
     let content;
     if (typeof key === "string") {
       content = key;

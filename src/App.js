@@ -1,6 +1,7 @@
 // @flow
 import * as React from "react";
 import { Routes, Route, Link } from "react-router-dom";
+import Activity from "Activity";
 import Explore from "Explore";
 import Home from "Home";
 import Import from "Import";
@@ -42,9 +43,14 @@ function App(): React.Node {
       <ErrorBoundary>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/explore/:provider" element={<Explore />} />
-          <Route path="/explore/:provider/:view" element={<Explore />} />
-          <Route path="/import/:provider" element={<Import />} />
+          <Route path="/:provider">
+            <Route path="activity" element={<Activity />} />
+            <Route path="explore">
+              <Route path=":view" element={<Explore />} />
+              <Route path="" element={<Explore />} />
+            </Route>
+            <Route path="import" element={<Import />} />
+          </Route>
           <Route
             path="*"
             element={

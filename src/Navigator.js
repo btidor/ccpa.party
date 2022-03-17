@@ -15,7 +15,7 @@ type Props = {
 function Navigator(props: Props): React.Node {
   const navigate = useNavigate();
   const onChange = (event) => {
-    navigate(`/explore/${props.provider.slug}/${event.target.value}`);
+    navigate(`../${event.target.value}`);
   };
 
   const [views, setViews] = React.useState();

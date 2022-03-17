@@ -16,8 +16,8 @@ type Cache<M> = {
   metadata: M,
 
   db: any,
-  keys: $ReadOnlyArray<string>,
-  items: { [key: number]: { [key: string]: any } },
+  keys: $ReadOnlyArray<any>,
+  values: { [number]: any },
 };
 
 let cache: ?Cache<any>;
@@ -43,7 +43,7 @@ function Explore(): React.Node {
       IDBKeyRange.bound(cache.keys[startIndex], cache.keys[finish])
     );
     for (let i = startIndex; i <= finish; i++) {
-      cache.items[i] = results[i - startIndex];
+      cache.values[i] = results[i - startIndex];
     }
   };
 
@@ -55,7 +55,7 @@ function Explore(): React.Node {
       );
       if (!view) {
         const destination = provider.defaultView || provider.views(db)[0].slug;
-        navigate(`/explore/${provider.slug}/${destination}`, { replace: true });
+        navigate(`./${destination}`, { replace: true });
         return;
       }
       const keys = await db.getAllKeys(view.slug);
@@ -66,7 +66,7 @@ function Explore(): React.Node {
         metadata,
         db,
         keys,
-        items: {},
+        values: {},
       };
       if (keys.length > 0) {
         await _loadMoreRows(cache, {
@@ -93,12 +93,12 @@ function Explore(): React.Node {
             <Virtuoso
               totalCount={cache.keys.length}
               itemContent={(index) => {
-                if (cache && cache.items[index]) {
+                if (cache && cache.values[index]) {
                   return (
                     <div onClick={() => setDrilldownItem(index)}>
                       {cache.view.render(
                         cache.keys[index],
-                        cache.items[index],
+                        cache.values[index],
                         cache.metadata
                       )}
                     </div>
@@ -116,7 +116,7 @@ function Explore(): React.Node {
               if (!cache || typeof drilldownItem !== "number") {
                 return;
               }
-              const item = cache.items[drilldownItem];
+              const item = cache.values[drilldownItem];
               if (item instanceof Blob) {
                 const filename = cache.keys[drilldownItem];
                 const url = URL.createObjectURL(item);

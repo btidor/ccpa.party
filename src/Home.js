@@ -12,7 +12,7 @@ function Home(): React.Node {
       <ul className={styles.list}>
         {ProviderRegistry.map((provider) => (
           <li key={provider.slug}>
-            <Link to={"/import/" + provider.slug} className="box-link">
+            <Link to={`${provider.slug}/import`} className="box-link">
               {provider.displayName}
             </Link>
           </li>

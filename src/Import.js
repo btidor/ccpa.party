@@ -19,7 +19,7 @@ function Import(): React.Node {
     setStatus(
       <React.Fragment>
         <div>Import complete!</div>
-        <Link to={`/explore/${provider.slug}`} className="box-link">
+        <Link to={`../explore`} className="box-link">
           View results
         </Link>
       </React.Fragment>
