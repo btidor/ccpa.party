@@ -13,12 +13,22 @@ export interface View<M> {
   render(key: string, value: { [string]: any }, metadata: M): React.Node;
 }
 
+export interface ActivityEvent<M> {
+  timestamp: number;
+  label: string;
+  data: { [string]: any };
+
+  view: View<M>;
+  metadata: M;
+}
+
 export interface Provider {
   +slug: string;
   +displayName: string;
   +defaultView?: string;
   import(file: File): Promise<void>;
   views(db: any): $ReadOnlyArray<View<any>>;
+  activityEvents(db: any): Promise<Array<ActivityEvent<any>>>;
 }
 
 export const ProviderRegistry: $ReadOnlyArray<Provider> = [

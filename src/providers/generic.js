@@ -3,7 +3,7 @@ import { deleteDB, openDB } from "idb";
 import * as React from "react";
 import { unzip } from "unzipit";
 
-import type { Provider, View } from "provider";
+import type { ActivityEvent, Provider, View } from "provider";
 
 class Generic implements Provider {
   slug: string = "generic";
@@ -38,6 +38,10 @@ class Generic implements Provider {
 
   views(): $ReadOnlyArray<View<any>> {
     return [new FileView()];
+  }
+
+  async activityEvents(): Promise<Array<ActivityEvent<any>>> {
+    return [];
   }
 }
 

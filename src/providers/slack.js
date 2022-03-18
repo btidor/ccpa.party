@@ -6,7 +6,7 @@ import { unzip } from "unzipit";
 
 import styles from "providers/slack.module.css";
 
-import type { Provider, View } from "provider";
+import type { ActivityEvent, Provider, View } from "provider";
 
 class Slack implements Provider {
   slug: string = "slack";
@@ -90,6 +90,10 @@ class Slack implements Provider {
       new IntegrationLogView(),
       new MessageView(),
     ];
+  }
+
+  async activityEvents(): Promise<Array<ActivityEvent<any>>> {
+    return [];
   }
 }
 
