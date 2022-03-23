@@ -3,7 +3,7 @@
 }
 
 .listing {
-  width: 60vw;
+  width: 30vw;
   overflow-y: scroll;
   white-space: nowrap;
 
@@ -12,7 +12,7 @@
 }
 
 .drilldown {
-  width: 40vw;
+  width: 70vw;
   overflow-y: scroll;
 }
 

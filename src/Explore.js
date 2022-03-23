@@ -1,145 +1,93 @@
 // @flow
+import { openDB } from "idb";
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 
-import { getDbProviderView } from "provider";
-import Navigator from "Navigator";
+import { autoParse } from "parse";
+import { getProvider } from "provider";
 
 import styles from "Explore.module.css";
 
-import type { Provider, View } from "provider";
+import type { Entry } from "parse";
 
-type Cache<M> = {
-  provider: Provider,
-  view: View<M>,
-  metadata: M,
-
-  db: any,
-  keys: $ReadOnlyArray<any>,
-  values: { [number]: any },
-};
-
-let cache: ?Cache<any>;
+let items: $ReadOnlyArray<Entry>;
 
 function Explore(): React.Node {
   const params = useParams();
   const navigate = useNavigate();
 
-  const [refreshKey, setRefreshKey] = React.useState(0);
+  const [, setRefreshKey] = React.useState(0);
   const [drilldownItem, setDrilldownItem] = React.useState(undefined);
-
-  const loadMoreRows = async (params) => {
-    if (!cache) return;
-    await _loadMoreRows(cache, params);
-    setRefreshKey(refreshKey + 1);
-  };
-  const _loadMoreRows = async (cache, { startIndex, endIndex }) => {
-    let finish =
-      endIndex >= cache.keys.length ? cache.keys.length - 1 : endIndex;
-    const results = await cache.db.getAll(
-      cache.view.slug,
-      // $FlowFixMe[prop-missing]
-      IDBKeyRange.bound(cache.keys[startIndex], cache.keys[finish])
-    );
-    for (let i = startIndex; i <= finish; i++) {
-      cache.values[i] = results[i - startIndex];
-    }
-  };
 
   React.useEffect(() => {
     (async () => {
-      const [db, provider, view] = await getDbProviderView(
-        params.provider,
-        params.view
+      const provider = getProvider(params.provider);
+      const db = await openDB("import");
+      const files = await db.getAllFromIndex(
+        "files",
+        "provider",
+        provider.slug
       );
-      if (!view) {
-        const destination = provider.defaultView || provider.views(db)[0].slug;
-        navigate(`./${destination}`, { replace: true });
-        return;
-      }
-      const keys = await db.getAllKeys(view.slug);
-      const metadata = await view.metadata(db);
-      cache = {
-        provider,
-        view,
-        metadata,
-        db,
-        keys,
-        values: {},
-      };
-      if (keys.length > 0) {
-        await _loadMoreRows(cache, {
-          startIndex: 0,
-          endIndex: Math.min(100, keys.length),
-        });
-      }
+      items = files.flatMap((file) => autoParse(file, provider));
       setRefreshKey(1);
     })();
   }, [params, navigate]);
 
-  if (!cache) {
+  if (!items) {
     return <main>📊 Loading...</main>;
   } else {
     return (
       <React.Fragment>
-        <Navigator
-          db={cache.db}
-          provider={cache.provider}
-          selected={params.view}
-        />
         <main className={styles.main}>
           <div className={styles.listing}>
             <Virtuoso
-              totalCount={cache.keys.length}
+              totalCount={items.length}
               itemContent={(index) => {
-                if (cache && cache.values[index]) {
+                if (items && items[index]) {
                   return (
                     <div onClick={() => setDrilldownItem(index)}>
-                      {cache.view.render(
-                        cache.keys[index],
-                        cache.values[index],
-                        cache.metadata
-                      )}
+                      {[items[index].file.path, items[index].label]
+                        .filter((x) => x)
+                        .join("—")}
                     </div>
                   );
                 } else {
                   return <div>Loading... #{index}</div>;
                 }
               }}
-              overscan={200}
-              rangeChanged={loadMoreRows}
             />
           </div>
           <div className={styles.drilldown}>
             {(() => {
-              if (!cache || typeof drilldownItem !== "number") {
+              if (!items || typeof drilldownItem !== "number") {
                 return;
               }
-              const item = cache.values[drilldownItem];
-              if (item instanceof Blob) {
-                const filename = cache.keys[drilldownItem];
-                const url = URL.createObjectURL(item);
-                return (
-                  <React.Fragment>
-                    <img
-                      src={url}
-                      alt="uploaded content"
-                      className={styles.media}
-                    />
-                    <a href={url} download={filename}>
-                      Download
-                    </a>
-                  </React.Fragment>
-                );
-              } else if (typeof item === "string") {
-                let content = item;
-                try {
-                  content = JSON.stringify(JSON.parse(item), undefined, 2);
-                } catch {}
-                return <pre>{content}</pre>;
-              } else {
-                return <pre>{JSON.stringify(item, undefined, 2)}</pre>;
+              const item: Entry = items[drilldownItem];
+              switch (item.type) {
+                case "activity":
+                case "setting": {
+                  return <pre>{JSON.stringify(item.value, undefined, 2)}</pre>;
+                }
+                case "media":
+                case "unknown": {
+                  if (item.file.path.endsWith(".txt")) {
+                    const text = new TextDecoder().decode(item.file.data);
+                    return <pre>{text}</pre>;
+                  } else {
+                    const url = URL.createObjectURL(new Blob([item.file.data]));
+                    return (
+                      <React.Fragment>
+                        <img src={url} alt="" className={styles.media} />
+                        <a href={url} download={item.file.path}>
+                          Download
+                        </a>
+                      </React.Fragment>
+                    );
+                  }
+                }
+                default:
+                  console.error("Unknown Entry type", item.type);
               }
             })()}
           </div>

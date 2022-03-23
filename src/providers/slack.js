@@ -1,98 +1,20 @@
 // @flow
 import EmojiMap from "emoji-name-map";
-import { deleteDB, openDB } from "idb";
 import * as React from "react";
-import { unzip } from "unzipit";
 
 import styles from "providers/slack.module.css";
 
-import type { ActivityEvent, Provider, View } from "provider";
+import type { Entry } from "parse";
+import type { DataFile, Provider } from "provider";
 
 class Slack implements Provider {
   slug: string = "slack";
   displayName: string = "Slack";
-  defaultView: string = "messages";
 
-  async import(file: File): Promise<void> {
-    const zip = await unzip(file);
-    await deleteDB(this.slug);
-    const db = await openDB(this.slug, 1, {
-      async upgrade(db) {
-        const channels = await db.createObjectStore("channels", {
-          keyPath: "id",
-        });
-        channels.createIndex("name", "name", { unique: true });
+  activityLabels: { [string]: string } = {};
+  settingLabels: { [string]: string } = {};
 
-        db.createObjectStore("integration_logs", {
-          keyPath: "_id",
-          autoIncrement: true,
-        });
-        db.createObjectStore("messages", { keyPath: ["channel", "ts"] });
-        db.createObjectStore("users", { keyPath: "id" });
-      },
-    });
-
-    const channels = await zip.entries["channels.json"].json();
-    const tx1 = db.transaction("channels", "readwrite");
-    for (const channel of channels) {
-      await tx1.store.put(channel);
-    }
-    await tx1.done;
-
-    const integrationLogs = await zip.entries["integration_logs.json"].json();
-    const tx2 = db.transaction("integration_logs", "readwrite");
-    for (const log of integrationLogs) {
-      await tx2.store.put(log);
-    }
-    await tx2.done;
-
-    const users = await zip.entries["users.json"].json();
-    const tx3 = db.transaction("users", "readwrite");
-    for (const user of users) {
-      await tx3.store.put(user);
-    }
-    await tx3.done;
-
-    const files = Object.entries(zip.entries).filter(([name, entry]) => {
-      if (
-        ["channels.json", "integration_logs.json", "users.json"].includes(name)
-      )
-        return false;
-      if (!entry) return false;
-      if (entry.isDirectory) return false;
-      return true;
-    });
-    for (let i = 0; i < files.length; i += 25) {
-      const data = await Promise.all(
-        files.slice(i, i + 25).map(async ([name, entry]) => {
-          let aentry: any = entry;
-          return [
-            await db.getFromIndex("channels", "name", name.split("/")[0]),
-            await aentry.json(),
-          ];
-        })
-      );
-      const tx = db.transaction("messages", "readwrite");
-      for (const [channel, messages] of data) {
-        for (const message of messages) {
-          message.channel = channel.id;
-          await tx.store.put(message);
-        }
-      }
-      await tx.done;
-    }
-  }
-
-  views(): $ReadOnlyArray<View<any>> {
-    return [
-      new ChannelView(),
-      new UserView(),
-      new IntegrationLogView(),
-      new MessageView(),
-    ];
-  }
-
-  async activityEvents(): Promise<Array<ActivityEvent<any>>> {
+  parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {
     return [];
   }
 }
@@ -102,7 +24,7 @@ type MessageMetadata = {|
   users: { [string]: { [string]: any } },
 |};
 
-class MessageView implements View<MessageMetadata> {
+class MessageView {
   slug: string = "messages";
   displayName: string = "All Messages";
 
@@ -239,7 +161,7 @@ class MessageView implements View<MessageMetadata> {
   }
 }
 
-class ChannelView implements View<void> {
+class ChannelView {
   slug: string = "channels";
   displayName: string = "Channels";
 
@@ -254,7 +176,7 @@ class ChannelView implements View<void> {
   }
 }
 
-class UserView implements View<void> {
+class UserView {
   slug: string = "users";
   displayName: string = "Users";
 
@@ -270,7 +192,7 @@ class UserView implements View<void> {
   }
 }
 
-class IntegrationLogView implements View<void> {
+class IntegrationLogView {
   slug: string = "integration_logs";
   displayName: string = "Integration Logs";
 

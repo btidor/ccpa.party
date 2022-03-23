@@ -3,6 +3,7 @@ import * as React from "react";
 import { Routes, Route, Link } from "react-router-dom";
 import Activity from "Activity";
 import Explore from "Explore";
+import Files from "Files";
 import Home from "Home";
 import Import from "Import";
 
@@ -49,6 +50,7 @@ function App(): React.Node {
               <Route path=":view" element={<Explore />} />
               <Route path="" element={<Explore />} />
             </Route>
+            <Route path="files" element={<Files />} />
             <Route path="import" element={<Import />} />
           </Route>
           <Route
