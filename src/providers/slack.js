@@ -2,6 +2,8 @@
 import EmojiMap from "emoji-name-map";
 import * as React from "react";
 
+import { parseJSON } from "parse";
+
 import styles from "providers/slack.module.css";
 
 import type { Entry } from "parse";
@@ -15,55 +17,65 @@ class Slack implements Provider {
   settingLabels: { [string]: string } = {};
 
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {
-    return [];
+    const users = new Map();
+    const channels = new Map();
+    const messages = [];
+    for (const file of files) {
+      if (file.path === "users.json") {
+        for (const user of parseJSON(file)) {
+          users.set(user.id, user);
+        }
+      } else if (file.path === "channels.json") {
+        for (const channel of parseJSON(file)) {
+          channels.set(channel.id, channel);
+        }
+      } else if (file.path === "integration_logs.json") {
+        // Skip
+      } else {
+        for (const message of parseJSON(file)) {
+          messages.push({ message, file });
+        }
+      }
+    }
+
+    return messages.map(({ message, file }) => ({
+      type: "activity",
+      file,
+      timestamp: parseInt(message.ts),
+      label: this.renderMessage(
+        message,
+        file.path.split("/")[0],
+        users,
+        channels
+      ),
+      value: message,
+    }));
   }
-}
 
-type MessageMetadata = {|
-  channels: { [string]: { [string]: any } },
-  users: { [string]: { [string]: any } },
-|};
-
-class MessageView {
-  slug: string = "messages";
-  displayName: string = "All Messages";
-
-  async metadata(db: any): Promise<MessageMetadata> {
-    const users = {};
-    (await db.getAll("users")).forEach((u) => (users[u.id] = u));
-    const channels = {};
-    (await db.getAll("channels")).forEach((ch) => (channels[ch.id] = ch));
-    return { channels, users };
-  }
-
-  render(
-    _key: string,
-    item: { [string]: any },
-    metadata: MessageMetadata
+  renderMessage(
+    message: any,
+    channelName: string,
+    users: Map<string, any>,
+    channels: Map<string, any>
   ): React.Node {
     let name = "unknown";
     let style = {};
-    const user = metadata.users[item.user];
+    const user = users.get(message.user);
     if (!!user) {
       name = user.profile.display_name || user.profile.real_name;
       if (user.color) style = { color: `#${user.color}` };
     }
-    let ch = "unknown";
-    const channel = metadata.channels[item.channel];
-    if (!!channel) {
-      ch = channel.name;
-    }
-    let message = item.text;
+    let text = message.text;
     let messageClass;
-    if (item.files || item.attachments) {
-      message = (
+    if (message.files || message.attachments) {
+      text = (
         <React.Fragment>
-          {message} <span className={styles.unknown}>attachment</span>
+          {text} <span className={styles.unknown}>attachment</span>
         </React.Fragment>
       );
     }
-    if (item.subtype === "channel_join") {
-      message = `joined #${ch}`;
+    if (message.subtype === "channel_join") {
+      text = `joined #${channelName}`;
       messageClass = styles.system;
     }
     let key = 0;
@@ -103,17 +115,17 @@ class MessageView {
           </React.Fragment>,
         ];
       } else if (element.type === "user") {
+        const user = users.get(element.user_id) || {};
         return [
           <span key={key} className={styles.internal}>
-            @
-            {metadata.users[element.user_id].display_name ||
-              metadata.users[element.user_id].real_name}
+            @{user.display_name || user.real_name || "unknown"}
           </span>,
         ];
       } else if (element.type === "channel") {
+        const channel = channels.get(element.channel_id) || {};
         return [
           <span key={key} className={styles.internal}>
-            #{metadata.channels[element.channel_id].name}
+            #{channel.name || "unknown"}
           </span>,
         ];
       } else if (element.type === "link") {
@@ -131,8 +143,8 @@ class MessageView {
         ];
       }
     };
-    if (item.blocks) {
-      message = item.blocks.flatMap((block) => {
+    if (message.blocks) {
+      text = message.blocks.flatMap((block) => {
         key++;
         if (block.type !== "rich_text") {
           return (
@@ -148,58 +160,16 @@ class MessageView {
     return (
       <div className={styles.item}>
         <div className={styles.prefix}>
-          <span className={styles.channel}>#{ch}</span>
+          <span className={styles.channel}>#{channelName}</span>
         </div>
         <div className={styles.message}>
           <span style={style} className={styles.username}>
             {name}
           </span>{" "}
-          <span className={messageClass}>{message}</span>
+          <span className={messageClass}>{text}</span>
         </div>
       </div>
     );
-  }
-}
-
-class ChannelView {
-  slug: string = "channels";
-  displayName: string = "Channels";
-
-  async metadata(db: any): Promise<void> {}
-
-  render(key: string, item: { [string]: any }, metadata: void): React.Node {
-    return (
-      <span>
-        #{item.name} ({item.id})
-      </span>
-    );
-  }
-}
-
-class UserView {
-  slug: string = "users";
-  displayName: string = "Users";
-
-  async metadata(db: any): Promise<void> {}
-
-  render(key: string, item: { [string]: any }, metadata: void): React.Node {
-    return (
-      <span>
-        {[]}
-        {item.real_name} ({item.profile.display_name || item.name}, {item.id})
-      </span>
-    );
-  }
-}
-
-class IntegrationLogView {
-  slug: string = "integration_logs";
-  displayName: string = "Integration Logs";
-
-  async metadata(db: any): Promise<void> {}
-
-  render(key: string, item: { [string]: any }, metadata: void): React.Node {
-    return <span>{JSON.stringify(item)}</span>;
   }
 }
 

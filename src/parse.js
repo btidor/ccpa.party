@@ -1,12 +1,13 @@
 //@flow
+import * as React from "react";
+
 import type { DataFile, Provider } from "provider";
 
 export type ActivityEntry = {|
   type: "activity",
   file: DataFile,
   timestamp: number,
-  description: string,
-  label: string,
+  label: React.Node,
   value: any,
 |};
 
@@ -93,8 +94,12 @@ export function discoverEntry(
       type: "activity",
       timestamp,
       file,
-      description: activityLabel || "unknown: " + file.path,
-      label,
+      label: (
+        <React.Fragment>
+          {new Date(timestamp * 1000).toLocaleString("en-US")} (
+          {activityLabel || "unknown: " + file.path}) {label}
+        </React.Fragment>
+      ),
       value: obj,
     };
   } else {

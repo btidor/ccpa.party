@@ -49,8 +49,7 @@ function Activity(): React.Node {
                 if (event) {
                   return (
                     <div onClick={() => setDrilldownItem(index)}>
-                      {new Date(event.timestamp * 1000).toLocaleString("en-US")}{" "}
-                      ({event.description}) {event.label}
+                      {event.label}
                     </div>
                   );
                 } else {
@@ -68,7 +67,7 @@ function Activity(): React.Node {
               return (
                 <pre>
                   From {event.file.path}:{"\n"}
-                  {JSON.stringify(event, undefined, 2)}
+                  {JSON.stringify(event.value, undefined, 2)}
                 </pre>
               );
             })()}
