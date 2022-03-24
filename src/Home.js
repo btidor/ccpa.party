@@ -6,31 +6,22 @@ import Navigation from "Navigation";
 
 import styles from "Home.module.css";
 
+import AppleIcon from "icons/apple.svg";
+import AmazonIcon from "icons/amazon.svg";
+import DiscordIcon from "icons/discord.svg";
+import FacebookIcon from "icons/facebook.svg";
+import GoogleIcon from "icons/google.svg";
+import NetflixIcon from "icons/netflix.svg";
+import SlackIcon from "icons/slack.svg";
+
 const PlaceholderProviders = [
-  "Facebook",
-  "Apple",
-  "Amazon",
-  "Netflix",
-  "Google",
-  "TikTok",
-  "Instagram",
-  "Snapchat",
-  "Discord",
-  "Twitter",
-  "Spotify",
-  "HBO Max",
-  "Disney+",
-  "Reddit",
-  "GitHub",
-  "Slack",
-  "Quora",
-  "PayPal",
-  "Square",
-  "eBay",
-  "LinkedIn",
-  "Microsoft",
-  "Zoom",
-  "Yahoo",
+  { displayName: "Amazon", icon: AmazonIcon },
+  { displayName: "Apple", icon: AppleIcon },
+  { displayName: "Discord", icon: DiscordIcon },
+  { displayName: "Facebook", icon: FacebookIcon },
+  { displayName: "Google", icon: GoogleIcon },
+  { displayName: "Netflix", icon: NetflixIcon },
+  { displayName: "Slack", icon: SlackIcon },
 ];
 
 function Home(): React.Node {
@@ -38,20 +29,20 @@ function Home(): React.Node {
     <React.Fragment>
       <Navigation />
       <main className={styles.home}>
-        <div className={styles.info}>
-          <strong>Hello World!</strong> Lorem ipsum dolor sit amet, consectetur
-          adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
-          magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-          ullamco laboris nisi ut aliquip ex ea commodo consequat.
+        <div className={styles.providers}>
+          <div>1 Select a Company</div>
+          {PlaceholderProviders.map(({ displayName, icon }) => (
+            <Link key={displayName} to="/">
+              {icon()} <span>{displayName}</span>
+            </Link>
+          ))}
         </div>
-        {PlaceholderProviders.map((name) => (
-          <Link key={name} to="/">
-            {name}
-          </Link>
-        ))}
-        {[...Array(100)].map((_, i) => (
-          <div className={styles.filler}></div>
-        ))}
+        <div className={styles.info}>
+          2 Submit data access request
+          <br />
+          (wait...)
+          <br />3 Import to data explorer
+        </div>
       </main>
     </React.Fragment>
   );
