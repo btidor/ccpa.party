@@ -1,19 +1,5 @@
-.main {
-  display: flex;
-}
-
-.listing {
-  width: 30vw;
-  overflow-y: scroll;
+.row {
   white-space: nowrap;
-
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.drilldown {
-  width: 70vw;
-  overflow-y: scroll;
 }
 
 .media {

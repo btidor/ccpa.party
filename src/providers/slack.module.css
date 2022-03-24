@@ -14,10 +14,6 @@
   overflow-wrap: anywhere;
 }
 
-.item:hover {
-  background-color: #ff9;
-}
-
 .item a {
   color: #1264a3;
   text-decoration: none;

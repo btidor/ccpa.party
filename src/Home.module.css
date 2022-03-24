@@ -1,5 +1,14 @@
-.list {
+.home ul {
   margin: 0;
   padding: 0 0 0 1em;
   list-style-type: "– ";
+}
+
+.home ul a {
+  color: black;
+  text-decoration: none;
+}
+
+.home ul a:hover {
+  text-decoration: underline;
 }

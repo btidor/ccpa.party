@@ -4,7 +4,10 @@ import * as React from "react";
 import { Link, useParams } from "react-router-dom";
 import { unzip } from "unzipit";
 
+import Navigation from "Navigation";
 import { getProvider } from "provider";
+
+import styles from "Import.module.css";
 
 import type { DataFile } from "provider";
 
@@ -61,25 +64,26 @@ function Import(): React.Node {
     setStatus(
       <React.Fragment>
         <div>Import complete!</div>
-        <Link to={`../files`} className="box-link">
-          View results
-        </Link>
+        <Link to="../files">View results</Link>
       </React.Fragment>
     );
     console.warn(`Time: ${(Date.now() - start) / 1000}s`);
   }
 
   return (
-    <main>
-      <div>Import data from {provider.displayName}...</div>
-      <input
-        type="file"
-        multiple
-        accept=".zip,application/zip"
-        onChange={importFile}
-      />
-      <div>{status}</div>
-    </main>
+    <React.Fragment>
+      <Navigation provider={provider} />
+      <main className={styles.import}>
+        <div>Import data from {provider.displayName}...</div>
+        <input
+          type="file"
+          multiple
+          accept=".zip,application/zip"
+          onChange={importFile}
+        />
+        <div>{status}</div>
+      </main>
+    </React.Fragment>
   );
 }
 

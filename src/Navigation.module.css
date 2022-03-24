@@ -1,0 +1,44 @@
+.header {
+  display: flex;
+  padding: 1vw;
+
+  background-color: black;
+  white-space: nowrap;
+  justify-content: space-between;
+  align-items: center;
+
+  font-weight: bold;
+}
+
+.logo {
+  margin: 0;
+  padding: 0.2rem 0.5rem;
+
+  font-size: 20px;
+  font-variant: small-caps;
+  text-decoration: none;
+
+  color: white;
+  background-color: black;
+}
+
+.header nav a {
+  margin: 0 1vw;
+  color: white;
+  text-decoration: none;
+}
+
+.header nav a:hover,
+.header nav a[aria-current="page"] {
+  border-bottom: 2px solid white;
+}
+
+.header select {
+  align-self: stretch;
+  border: none;
+  margin: 0;
+  padding: 0 0.5rem;
+  background-color: white;
+  font-weight: inherit;
+  width: 200px;
+}
