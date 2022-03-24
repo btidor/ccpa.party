@@ -1,14 +1,45 @@
-.home ul {
-  margin: 0;
-  padding: 0 0 0 1em;
-  list-style-type: "– ";
+.home {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(30ch, 1fr));
+  grid-gap: 1vw;
+  --hpadding: 1vw;
+  align-content: start;
+  overflow: hidden;
 }
 
-.home ul a {
-  color: black;
+.info,
+.home a,
+.filler {
+  padding: 0.5rem 1rem;
+
+  color: white;
+  background-color: black;
+}
+
+.info {
+  font-size: 0.9em;
+  line-height: 1.5;
+
+  grid-row: 1 / span 2;
+  grid-column: 1 / span 2;
+}
+
+.home a {
+  height: 2rem;
+  line-height: 2rem;
+  font-weight: bold;
   text-decoration: none;
+  border: 2px solid black;
+  transition: 0.2s;
 }
 
-.home ul a:hover {
-  text-decoration: underline;
+.home a:hover {
+  border-color: white;
+  filter: invert(100%);
+}
+
+.filler {
+  height: 2rem;
+  padding: 0.5rem 1rem;
+  background-color: lightgray;
 }

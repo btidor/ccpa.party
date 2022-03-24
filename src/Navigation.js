@@ -31,9 +31,11 @@ function Navigation(props: Props): React.Node {
   React.useEffect(() => {
     (async () => {
       const db = await openDB("import");
-      const files = await db.getAll("files");
       const active = new Set<string>();
-      files.forEach((file) => active.add(file.provider));
+      if (db.objectStoreNames.contains("files")) {
+        const files = await db.getAll("files");
+        files.forEach((file) => active.add(file.provider));
+      }
       setProviders(
         ProviderRegistry.filter(
           (provider) =>
@@ -44,39 +46,42 @@ function Navigation(props: Props): React.Node {
     })();
   }, [props]);
 
+  const provider = props.provider;
   return (
     <header className={styles.header}>
       <Link to="/" className={styles.logo}>
         🎉 ccpa.party
       </Link>
-      {props.provider && (
-        <nav>
-          {links.map((link) => (
-            <NavLink key={link.label} to={link.to}>
-              {link.label}
-            </NavLink>
-          ))}
-        </nav>
+      {provider && (
+        <React.Fragment>
+          <nav>
+            {links.map((link) => (
+              <NavLink key={link.label} to={link.to}>
+                {link.label}
+              </NavLink>
+            ))}
+          </nav>
+          <select
+            value={provider.slug}
+            onChange={(event) => {
+              const { value } = event.target;
+              if (!value || value === provider.slug) return;
+              if (value === importTag) navigate("/");
+              else
+                navigate(
+                  `/${value}/${location.pathname.split("/").slice(-1)[0]}`
+                );
+            }}
+          >
+            {providers.map((provider) => (
+              <option key={provider.slug} value={provider.slug}>
+                {provider.displayName}
+              </option>
+            ))}
+            <option value={importTag}>+ Import</option>
+          </select>
+        </React.Fragment>
       )}
-      <select
-        value={!!props.provider ? props.provider.slug : ""}
-        onChange={(event) => {
-          const { value } = event.target;
-          if (!value) return;
-          if (props.provider && value === props.provider.slug) return;
-          if (value === importTag) navigate("/");
-          else
-            navigate(`/${value}/${location.pathname.split("/").slice(-1)[0]}`);
-        }}
-      >
-        {!props.provider && <option></option>}
-        {providers.map((provider) => (
-          <option key={provider.slug} value={provider.slug}>
-            {provider.displayName}
-          </option>
-        ))}
-        <option value={importTag}>+ Import</option>
-      </select>
     </header>
   );
 }
