@@ -43,8 +43,8 @@
   padding-right: 1rem;
 }
 
-.providers a:hover svg {
-  --primary: white;
+.providers a.whiteout:hover svg {
+  filter: brightness(0) invert(1);
 }
 
 .info {

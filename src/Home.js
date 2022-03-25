@@ -1,6 +1,7 @@
 // @flow
 import * as React from "react";
 import { Link } from "react-router-dom";
+import { StopwatchIcon } from "@primer/octicons-react";
 
 import Navigation from "Navigation";
 
@@ -14,22 +15,31 @@ import GoogleIcon from "icons/google.svg";
 import GithubIcon from "icons/github.svg";
 import NetflixIcon from "icons/netflix.svg";
 import SlackIcon from "icons/slack.svg";
-import { StopwatchIcon } from "@primer/octicons-react";
 
 const PlaceholderProviders = ([
   { displayName: "Amazon", icon: AmazonIcon, primary: "#f90" },
   { displayName: "Apple", icon: AppleIcon, primary: "#000" },
   { displayName: "Discord", icon: DiscordIcon, primary: "#5865f2" },
   { displayName: "Facebook", icon: FacebookIcon, primary: "#1877f2" },
-  { displayName: "Google", icon: GoogleIcon, primary: "#34a853" },
   { displayName: "Github", icon: GithubIcon, primary: "#000" },
-  { displayName: "Netflix", icon: NetflixIcon, primary: "#000" },
-  { displayName: "Slack", icon: SlackIcon, primary: "#4a154b" },
+  { displayName: "Google", icon: GoogleIcon, primary: "#34a853" },
+  {
+    displayName: "Netflix",
+    icon: NetflixIcon,
+    primary: "#000",
+    fullColor: true,
+  },
+  {
+    displayName: "Slack",
+    icon: SlackIcon,
+    primary: "#4a154b",
+    fullColor: true,
+  },
 ]: $ReadOnlyArray<{|
   displayName: string,
   icon: (any) => React.Node,
   primary: string,
-  unprimary?: string,
+  fullColor?: boolean,
 |}>);
 
 function Home(): React.Node {
@@ -42,14 +52,12 @@ function Home(): React.Node {
             <span className={styles.numeral}>1</span> Select a company
           </div>
           {PlaceholderProviders.map(
-            ({ displayName, icon, primary, unprimary }) => (
+            ({ displayName, icon, primary, fullColor }) => (
               <Link
                 key={displayName}
                 to="/"
-                style={{
-                  "--primary": primary,
-                  "--unprimary": unprimary || primary,
-                }}
+                style={{ "--primary": primary }}
+                className={!fullColor && styles.whiteout}
               >
                 {icon()} <span>{displayName}</span>
               </Link>
