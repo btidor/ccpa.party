@@ -53,6 +53,7 @@
   },
   "devDependencies": {
     "@craco/craco": "^6.0.0",
+    "@primer/octicons-react": "^17.0.0",
     "flow-bin": "^0.173.0",
     "flow-types": "^1.0.0"
   }

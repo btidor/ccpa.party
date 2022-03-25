@@ -11,18 +11,26 @@ import AmazonIcon from "icons/amazon.svg";
 import DiscordIcon from "icons/discord.svg";
 import FacebookIcon from "icons/facebook.svg";
 import GoogleIcon from "icons/google.svg";
+import GithubIcon from "icons/github.svg";
 import NetflixIcon from "icons/netflix.svg";
 import SlackIcon from "icons/slack.svg";
+import { StopwatchIcon } from "@primer/octicons-react";
 
-const PlaceholderProviders = [
-  { displayName: "Amazon", icon: AmazonIcon },
-  { displayName: "Apple", icon: AppleIcon },
-  { displayName: "Discord", icon: DiscordIcon },
-  { displayName: "Facebook", icon: FacebookIcon },
-  { displayName: "Google", icon: GoogleIcon },
-  { displayName: "Netflix", icon: NetflixIcon },
-  { displayName: "Slack", icon: SlackIcon },
-];
+const PlaceholderProviders = ([
+  { displayName: "Amazon", icon: AmazonIcon, primary: "#f90" },
+  { displayName: "Apple", icon: AppleIcon, primary: "#000" },
+  { displayName: "Discord", icon: DiscordIcon, primary: "#5865f2" },
+  { displayName: "Facebook", icon: FacebookIcon, primary: "#1877f2" },
+  { displayName: "Google", icon: GoogleIcon, primary: "#34a853" },
+  { displayName: "Github", icon: GithubIcon, primary: "#000" },
+  { displayName: "Netflix", icon: NetflixIcon, primary: "#000" },
+  { displayName: "Slack", icon: SlackIcon, primary: "#4a154b" },
+]: $ReadOnlyArray<{|
+  displayName: string,
+  icon: (any) => React.Node,
+  primary: string,
+  unprimary?: string,
+|}>);
 
 function Home(): React.Node {
   return (
@@ -30,18 +38,39 @@ function Home(): React.Node {
       <Navigation />
       <main className={styles.home}>
         <div className={styles.providers}>
-          <div>1 Select a Company</div>
-          {PlaceholderProviders.map(({ displayName, icon }) => (
-            <Link key={displayName} to="/">
-              {icon()} <span>{displayName}</span>
-            </Link>
-          ))}
+          <div>
+            <span className={styles.numeral}>1</span> Select a company
+          </div>
+          {PlaceholderProviders.map(
+            ({ displayName, icon, primary, unprimary }) => (
+              <Link
+                key={displayName}
+                to="/"
+                style={{
+                  "--primary": primary,
+                  "--unprimary": unprimary || primary,
+                }}
+              >
+                {icon()} <span>{displayName}</span>
+              </Link>
+            )
+          )}
         </div>
         <div className={styles.info}>
-          2 Submit data access request
-          <br />
-          (wait...)
-          <br />3 Import to data explorer
+          <ol>
+            <li>
+              <span className={styles.numeral}>2</span>
+              Submit data access request
+            </li>
+            <li>
+              <StopwatchIcon className={styles.iconNumeral} />
+              <i>Wait (up to a few days)</i>
+            </li>
+            <li>
+              <span className={styles.numeral}>3</span>
+              Import data to ccpa.party
+            </li>
+          </ol>
         </div>
       </main>
     </React.Fragment>
