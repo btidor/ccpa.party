@@ -3,6 +3,7 @@
   --hpadding: 5vw;
   font-weight: bold;
   line-height: 2rem;
+  user-select: none;
 }
 
 .providers {
@@ -30,7 +31,8 @@
   text-decoration: none;
 }
 
-.home a:hover {
+.providers a:hover,
+.providers a[aria-selected="true"] {
   color: white;
   background-color: var(--primary);
   border-color: var(--primary);
@@ -43,14 +45,14 @@
   padding-right: 1rem;
 }
 
-.providers a.whiteout:hover svg {
+.providers a.whiteout:hover svg,
+.providers a[aria-selected="true"].whiteout svg {
   filter: brightness(0) invert(1);
 }
 
 .info {
   width: calc(100vw - 15vw - 300px);
-  margin-top: auto;
-  margin-bottom: auto;
+  margin: auto 3em auto 0;
 }
 
 .info ol {
@@ -59,6 +61,35 @@
 
 .info li {
   margin: 3em 0;
+}
+
+.instructions {
+  margin: 1em 0 0;
+  padding: 0 0 0 calc(32px + 1ch);
+  font-weight: normal;
+}
+
+.instructions ol {
+  padding: 0 0 0 1.2em;
+  list-style: lower-alpha;
+}
+
+.instructions li {
+  margin: auto;
+}
+
+.info a {
+  color: #009bd6;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.info a::after {
+  content: " ➜";
+}
+
+.info a:hover {
+  text-decoration: underline;
 }
 
 .numeral {

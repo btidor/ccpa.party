@@ -1,14 +1,62 @@
 // @flow
-import { autoParse } from "parse";
+import * as React from "react";
 
-import type { DataFile, Provider } from "provider";
+import { autoParse, discoverEntry, parseJSON } from "parse";
+
+import FacebookIcon from "icons/facebook.svg";
+
 import type { Entry } from "parse";
-import { parseJSON } from "parse";
-import { discoverEntry } from "parse";
+import type { DataFile, Provider } from "provider";
 
 class Facebook implements Provider {
   slug: string = "facebook";
   displayName: string = "Facebook";
+  icon: React.Node = (<FacebookIcon />);
+  color: string = "#1877f2";
+
+  privacyPolicy: string = "https://www.facebook.com/legal/policy/ccpa";
+  waitTime: string = "an unknown amount of time";
+  instructions: React.Node = (
+    <ol>
+      <li>
+        Visit the{" "}
+        <a
+          href="https://www.facebook.com/help/contact/784491318687824"
+          target="_blank"
+          rel="noreferrer"
+        >
+          CCPA inquiry form
+        </a>
+      </li>
+      <li>
+        Select <i>Facebook</i> as the product
+      </li>
+      <li>
+        Select{" "}
+        <i>
+          I would like to access or download my personal information on Facebook
+        </i>
+      </li>
+      <li>
+        Enter your name and email address, then hit <i>Send</i>
+      </li>
+      <li>Wait for the email to arrive</li>
+      <li>
+        Follow the link to the <i>Download Your Information</i> tool
+      </li>
+      <li>
+        Choose <i>JSON</i> as the file format and <i>All Time</i> as the date
+        range
+      </li>
+      <li>
+        In the next section, click <i>Select all</i> or make sure all items are
+        checked
+      </li>
+      <li>
+        Finally, hit <i>Request a download</i> at the bottom of the page
+      </li>
+    </ol>
+  );
 
   activityLabels: { [string]: string } = {
     "apps_and_websites_off_of_facebook/apps_and_websites.json":

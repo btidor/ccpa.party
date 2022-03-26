@@ -1,48 +1,36 @@
 // @flow
 import * as React from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { StopwatchIcon } from "@primer/octicons-react";
 
 import Navigation from "Navigation";
+import { getProvider } from "provider";
+import Amazon from "providers/amazon";
+import Apple from "providers/apple";
+import Facebook from "providers/facebook";
+import GitHub from "providers/github";
+import Google from "providers/google";
+import Netflix from "providers/netflix";
+import Slack from "providers/slack";
+import Discord from "providers/discord";
 
 import styles from "Home.module.css";
 
-import AppleIcon from "icons/apple.svg";
-import AmazonIcon from "icons/amazon.svg";
-import DiscordIcon from "icons/discord.svg";
-import FacebookIcon from "icons/facebook.svg";
-import GoogleIcon from "icons/google.svg";
-import GithubIcon from "icons/github.svg";
-import NetflixIcon from "icons/netflix.svg";
-import SlackIcon from "icons/slack.svg";
-
-const PlaceholderProviders = ([
-  { displayName: "Amazon", icon: AmazonIcon, primary: "#f90" },
-  { displayName: "Apple", icon: AppleIcon, primary: "#000" },
-  { displayName: "Discord", icon: DiscordIcon, primary: "#5865f2" },
-  { displayName: "Facebook", icon: FacebookIcon, primary: "#1877f2" },
-  { displayName: "Github", icon: GithubIcon, primary: "#000" },
-  { displayName: "Google", icon: GoogleIcon, primary: "#34a853" },
-  {
-    displayName: "Netflix",
-    icon: NetflixIcon,
-    primary: "#000",
-    fullColor: true,
-  },
-  {
-    displayName: "Slack",
-    icon: SlackIcon,
-    primary: "#4a154b",
-    fullColor: true,
-  },
-]: $ReadOnlyArray<{|
-  displayName: string,
-  icon: (any) => React.Node,
-  primary: string,
-  fullColor?: boolean,
-|}>);
+const ProviderList = [
+  new Amazon(),
+  new Apple(),
+  new Discord(),
+  new Facebook(),
+  new GitHub(),
+  new Google(),
+  new Netflix(),
+  new Slack(),
+];
 
 function Home(): React.Node {
+  const params = useParams();
+  const current = params.provider && getProvider(params.provider);
+
   return (
     <React.Fragment>
       <Navigation />
@@ -51,32 +39,46 @@ function Home(): React.Node {
           <div>
             <span className={styles.numeral}>1</span> Select a company
           </div>
-          {PlaceholderProviders.map(
-            ({ displayName, icon, primary, fullColor }) => (
-              <Link
-                key={displayName}
-                to="/"
-                style={{ "--primary": primary }}
-                className={!fullColor && styles.whiteout}
-              >
-                {icon()} <span>{displayName}</span>
-              </Link>
-            )
-          )}
+          {ProviderList.map((provider) => (
+            <Link
+              key={provider.slug}
+              to={
+                current && provider.slug === current.slug
+                  ? "/"
+                  : `/${provider.slug}`
+              }
+              style={{ "--primary": provider.color }}
+              className={provider.fullColor ? undefined : styles.whiteout}
+              aria-selected={current && provider.slug === current.slug}
+            >
+              {provider.icon} <span>{provider.displayName}</span>
+            </Link>
+          ))}
         </div>
         <div className={styles.info}>
           <ol>
             <li>
               <span className={styles.numeral}>2</span>
               Submit data access request
+              {current && (
+                <div className={styles.instructions}>
+                  {current.instructions}
+                </div>
+              )}
             </li>
             <li>
               <StopwatchIcon className={styles.iconNumeral} />
-              <i>Wait (up to a few days)</i>
+              <i>
+                {current ? `Wait ${current.waitTime} for a response` : "Wait"}
+              </i>
             </li>
             <li>
               <span className={styles.numeral}>3</span>
-              Import data to ccpa.party
+              {current ? (
+                <Link to="import">Import data into ccpa.party</Link>
+              ) : (
+                "Import data into ccpa.party"
+              )}
             </li>
           </ol>
         </div>

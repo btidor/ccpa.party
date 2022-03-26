@@ -13,14 +13,11 @@ import type { DataFile } from "provider";
 
 function Files(): React.Node {
   const params = useParams();
-  const [provider, setProvider] = React.useState();
-  const [items, setItems] = React.useState(([]: $ReadOnlyArray<DataFile>));
+  const provider = getProvider(params.provider);
 
+  const [items, setItems] = React.useState(([]: $ReadOnlyArray<DataFile>));
   React.useEffect(() => {
     (async () => {
-      const provider = getProvider(params.provider);
-      setProvider(provider);
-
       const db = await openDB("import");
       const files = await db.getAllFromIndex(
         "files",
@@ -29,7 +26,7 @@ function Files(): React.Node {
       );
       setItems(files);
     })();
-  }, [params]);
+  }, [provider]);
 
   return (
     <React.Fragment>

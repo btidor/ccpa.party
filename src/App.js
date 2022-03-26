@@ -40,6 +40,7 @@ function App(): React.Node {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/:provider">
+          <Route path="" element={<Home />} />
           <Route path="activity" element={<Activity />} />
           <Route path="files" element={<Files />} />
           <Route path="import" element={<Import />} />

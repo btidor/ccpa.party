@@ -11,14 +11,11 @@ import type { ActivityEntry } from "parse";
 
 function Activity(): React.Node {
   const params = useParams();
-  const [provider, setProvider] = React.useState();
-  const [items, setItems] = React.useState(([]: $ReadOnlyArray<ActivityEntry>));
+  const provider = getProvider(params.provider);
 
+  const [items, setItems] = React.useState(([]: $ReadOnlyArray<ActivityEntry>));
   React.useEffect(() => {
     (async () => {
-      const provider = getProvider(params.provider);
-      setProvider(provider);
-
       const db = await openDB("import");
       const files = await db.getAllFromIndex(
         "files",
@@ -32,7 +29,7 @@ function Activity(): React.Node {
       items.sort((a, b) => b.timestamp - a.timestamp);
       setItems(items);
     })();
-  }, [params]);
+  }, [provider]);
 
   return (
     <React.Fragment>

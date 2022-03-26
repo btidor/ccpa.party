@@ -6,12 +6,43 @@ import { parseJSON } from "parse";
 
 import styles from "providers/slack.module.css";
 
+import SlackIcon from "icons/slack.svg";
+
 import type { Entry } from "parse";
 import type { DataFile, Provider } from "provider";
 
 class Slack implements Provider {
   slug: string = "slack";
   displayName: string = "Slack";
+  icon: React.Node = (<SlackIcon />);
+  color: string = "#4a154b";
+  fullColor: boolean = true;
+
+  privacyPolicy: string =
+    "https://slack.com/trust/privacy/privacy-policy#california-rights";
+  // Also: https://slack.com/trust/compliance/ccpa-faq
+  waitTime: string = "an unknown amount of time";
+  instructions: React.Node = (
+    <React.Fragment>
+      <p>
+        To submit a data access request, email <b>privacy@slack.com</b>. Slack
+        will pass on your request to the Workspace Owner. Slack does not support
+        self-serve data exports.
+      </p>
+      <p>
+        If you're the Workspace Owner, you can perform a full data export, which
+        includes all messages from all public channels (but may not include
+        messages from private channels or DMs). To do so, see{" "}
+        <a
+          href="https://slack.com/help/articles/201658943-Export-your-workspace-data"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Export your workspace data
+        </a>
+      </p>
+    </React.Fragment>
+  );
 
   activityLabels: { [string]: string } = {};
   settingLabels: { [string]: string } = {};
