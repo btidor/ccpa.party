@@ -45,6 +45,11 @@
   padding-right: 1rem;
 }
 
+.loaded .providers a,
+.loaded .providers svg {
+  transition: 250ms;
+}
+
 .providers a.whiteout:hover svg,
 .providers a[aria-selected="true"].whiteout svg {
   filter: brightness(0) invert(1);
@@ -86,6 +91,7 @@
 
 .info a::after {
   content: " ➜";
+  white-space: nowrap;
 }
 
 .info a:hover {

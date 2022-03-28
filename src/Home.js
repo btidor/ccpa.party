@@ -30,11 +30,16 @@ const ProviderList = [
 function Home(): React.Node {
   const params = useParams();
   const current = params.provider && getProvider(params.provider);
+  const [loaded, setLoaded] = React.useState(false);
+
+  React.useEffect(() => {
+    setTimeout(() => setLoaded(true));
+  }, []);
 
   return (
     <React.Fragment>
       <Navigation />
-      <main className={styles.home}>
+      <main className={styles.home + (loaded ? " " + styles.loaded : "")}>
         <div className={styles.providers}>
           <div>
             <span className={styles.numeral}>1</span> Select a company
@@ -60,11 +65,9 @@ function Home(): React.Node {
             <li>
               <span className={styles.numeral}>2</span>
               Submit data access request
-              {current && (
-                <div className={styles.instructions}>
-                  {current.instructions}
-                </div>
-              )}
+              <div className={styles.instructions}>
+                {current && current.instructions}
+              </div>
             </li>
             <li>
               <StopwatchIcon className={styles.iconNumeral} />
@@ -75,9 +78,9 @@ function Home(): React.Node {
             <li>
               <span className={styles.numeral}>3</span>
               {current ? (
-                <Link to="import">Import data into ccpa.party</Link>
+                <Link to="import">Analyze data with ccpa.party</Link>
               ) : (
-                "Import data into ccpa.party"
+                "Analyze data with ccpa.party"
               )}
             </li>
           </ol>
