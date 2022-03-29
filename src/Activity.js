@@ -1,10 +1,10 @@
 // @flow
-import { openDB } from "idb";
 import * as React from "react";
 import { useParams } from "react-router-dom";
 
 import Drilldown from "Drilldown";
 import Navigation from "Navigation";
+import { openFiles } from "parse";
 import { getProvider } from "provider";
 
 import type { ActivityEntry } from "parse";
@@ -16,7 +16,7 @@ function Activity(): React.Node {
   const [items, setItems] = React.useState(([]: $ReadOnlyArray<ActivityEntry>));
   React.useEffect(() => {
     (async () => {
-      const db = await openDB("import");
+      const db = await openFiles();
       const files = await db.getAllFromIndex(
         "files",
         "provider",

@@ -1,10 +1,10 @@
 // @flow
-import { openDB } from "idb";
 import * as React from "react";
 import { Link, useParams } from "react-router-dom";
 import { unzip } from "unzipit";
 
 import Navigation from "Navigation";
+import { openFiles } from "parse";
 import { getProvider } from "provider";
 
 import styles from "Import.module.css";
@@ -32,14 +32,7 @@ function Import(): React.Node {
 
     setStatus("Importing...");
     const start = Date.now();
-    const db = await openDB("import", 1, {
-      async upgrade(db) {
-        const store = db.createObjectStore("files", {
-          keyPath: ["archive", "path"],
-        });
-        store.createIndex("provider", "provider", { unique: false });
-      },
-    });
+    const db = await openFiles();
     for (const { archive, path, file } of files) {
       const zip = await unzip(file);
       for (const entry of (Object.values(zip.entries): any)) {

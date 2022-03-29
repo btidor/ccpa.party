@@ -1,4 +1,5 @@
 //@flow
+import { openDB } from "idb";
 import * as React from "react";
 
 import type { DataFile, Provider } from "provider";
@@ -29,6 +30,17 @@ export type UnknownEntry = {|
 |};
 
 export type Entry = ActivityEntry | MediaEntry | SettingEntry | UnknownEntry;
+
+export function openFiles(): Promise<any> {
+  return openDB("import", 1, {
+    async upgrade(db) {
+      const store = db.createObjectStore("files", {
+        keyPath: ["archive", "path"],
+      });
+      store.createIndex("provider", "provider", { unique: false });
+    },
+  });
+}
 
 export function autoParse(
   file: DataFile,

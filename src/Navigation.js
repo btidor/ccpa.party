@@ -1,8 +1,8 @@
 // @flow
-import { openDB } from "idb";
 import * as React from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
+import { openFiles } from "parse";
 import { ProviderRegistry } from "provider";
 
 import styles from "Navigation.module.css";
@@ -30,7 +30,7 @@ function Navigation(props: Props): React.Node {
 
   React.useEffect(() => {
     (async () => {
-      const db = await openDB("import");
+      const db = await openFiles();
       const active = new Set<string>();
       if (db.objectStoreNames.contains("files")) {
         const files = await db.getAll("files");
