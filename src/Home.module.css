@@ -38,6 +38,10 @@
   border-color: var(--primary);
 }
 
+.providers a:hover {
+  transform: translateX(7px);
+}
+
 .providers a svg {
   display: block;
   height: 2rem;
@@ -87,15 +91,23 @@
   color: #009bd6;
   font-weight: bold;
   text-decoration: none;
+  transition: 250ms;
 }
 
 .info a::after {
-  content: " ➜";
+  content: "➜";
   white-space: nowrap;
+  display: inline-block;
+  padding: 0 0 0 0.5ch;
+  transition: 250ms;
 }
 
 .info a:hover {
-  text-decoration: underline;
+  filter: brightness(50%);
+}
+
+.info a:hover::after {
+  transform: translateX(0.5ch);
 }
 
 .numeral {

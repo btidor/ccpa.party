@@ -49,7 +49,7 @@ function Navigation(props: Props): React.Node {
   const provider = props.provider;
   return (
     <header className={styles.header}>
-      <Link to="/" className={styles.logo}>
+      <Link to="/start" className={styles.logo}>
         🎉 ccpa.party
       </Link>
       {provider && (

@@ -1,4 +1,5 @@
 // @flow
+import { motion, AnimatePresence } from "framer-motion";
 import * as React from "react";
 import { Link, useParams } from "react-router-dom";
 import { StopwatchIcon } from "@primer/octicons-react";
@@ -29,7 +30,7 @@ const ProviderList = [
 
 function Home(): React.Node {
   const params = useParams();
-  const current = params.provider && getProvider(params.provider);
+  const current = params.provider !== "start" && getProvider(params.provider);
   const [loaded, setLoaded] = React.useState(false);
 
   React.useEffect(() => {
@@ -49,7 +50,7 @@ function Home(): React.Node {
               key={provider.slug}
               to={
                 current && provider.slug === current.slug
-                  ? "/"
+                  ? "/start"
                   : `/${provider.slug}`
               }
               style={{ "--primary": provider.color }}
@@ -60,31 +61,50 @@ function Home(): React.Node {
             </Link>
           ))}
         </div>
-        <div className={styles.info}>
+        <motion.div className={styles.info} transition={{ duration: 2 }}>
           <ol>
             <li>
               <span className={styles.numeral}>2</span>
               Submit data access request
-              <div className={styles.instructions}>
-                {current && current.instructions}
-              </div>
+              <AnimatePresence>
+                {(() => {
+                  if (!current) return;
+
+                  let count = 9;
+                  try {
+                    const instructions = (current.instructions: any);
+                    if (instructions.type === "ol") {
+                      count = instructions.props.children.length;
+                    }
+                  } catch {}
+
+                  return (
+                    <motion.div
+                      className={styles.instructions}
+                      initial={loaded ? { maxHeight: 0, opacity: 0 } : false}
+                      animate={{ maxHeight: 32 * count, opacity: 1 }}
+                      exit={{ maxHeight: 0, opacity: [0, 0] }}
+                    >
+                      {current.instructions}
+                    </motion.div>
+                  );
+                })()}
+              </AnimatePresence>
             </li>
             <li>
               <StopwatchIcon className={styles.iconNumeral} />
-              <i>
-                {current ? `Wait ${current.waitTime} for a response` : "Wait"}
-              </i>
+              <i>Wait {current && `${current.waitTime} for a response`}</i>
             </li>
             <li>
               <span className={styles.numeral}>3</span>
               {current ? (
-                <Link to="import">Analyze data with ccpa.party</Link>
+                <Link to="import">Inspect your data with ccpa.party</Link>
               ) : (
-                "Analyze data with ccpa.party"
+                "Inspect your data with ccpa.party"
               )}
             </li>
           </ol>
-        </div>
+        </motion.div>
       </main>
     </React.Fragment>
   );

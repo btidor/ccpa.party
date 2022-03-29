@@ -1,6 +1,6 @@
 // @flow
 import * as React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import Activity from "Activity";
 import Files from "Files";
@@ -38,7 +38,7 @@ function App(): React.Node {
   return (
     <ErrorBoundary>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Navigate replace to="/start" />} />
         <Route path="/:provider">
           <Route path="" element={<Home />} />
           <Route path="activity" element={<Activity />} />
