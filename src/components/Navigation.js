@@ -1,7 +1,8 @@
 // @flow
 import * as React from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
+import Logo from "components/Logo";
 import { openFiles } from "parse";
 import { ProviderRegistry } from "provider";
 
@@ -49,9 +50,7 @@ function Navigation(props: Props): React.Node {
   const provider = props.provider;
   return (
     <header className={styles.header}>
-      <Link to="/start" className={styles.logo}>
-        🎉 ccpa.party
-      </Link>
+      <Logo />
       {provider && (
         <React.Fragment>
           <nav>

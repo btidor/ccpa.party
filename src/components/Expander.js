@@ -55,7 +55,7 @@ function Expander(props: Props): React.Node {
         <div
           className={props.className}
           ref={root}
-          style={{ width: "100%", marginTop: hackMargin }}
+          style={{ marginTop: hackMargin }}
         >
           <motion.div
             transition={{ ease: "easeInOut" }}

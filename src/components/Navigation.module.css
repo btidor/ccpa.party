@@ -10,17 +10,8 @@
   font-weight: bold;
 }
 
-.logo {
-  margin: 0;
-  padding: 0.2rem 0.5rem;
-
-  font-size: 20px;
-  font-variant: small-caps;
-  text-decoration: none;
-  user-select: none;
-
-  color: white;
-  background-color: black;
+.header + main {
+  --navheight: calc(2vw + 1rem + 28px);
 }
 
 .header nav a {

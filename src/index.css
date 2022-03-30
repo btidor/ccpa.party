@@ -13,12 +13,14 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  user-select: none;
 }
 
 main {
   --vpadding: 1vw;
   --hpadding: calc(1vw + 0.5rem);
-  height: calc(100vh - 2vw - 28px - 0.4rem - 2 * var(--vpadding));
+  --navheight: 0px;
+  height: calc(100vh - 2 * var(--vpadding) - var(--navheight));
   padding: var(--vpadding) var(--hpadding);
 }
 

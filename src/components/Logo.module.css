@@ -1,0 +1,11 @@
+.logo {
+  padding: 0.5rem 1rem;
+
+  font-size: 20px;
+  font-variant: small-caps;
+  text-decoration: none;
+
+  color: white;
+  background-color: black;
+  display: inline-block;
+}

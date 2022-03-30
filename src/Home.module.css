@@ -1,25 +1,28 @@
 .home {
   display: flex;
-  --hpadding: 5vw;
   font-weight: bold;
   line-height: 2rem;
-  user-select: none;
+  --hpadding: 10vw;
+  gap: 8vw;
 }
 
 .providerList {
   width: 300px;
-  margin: auto 0;
-  padding-right: 1vw;
-  margin-right: 4vw;
+  margin: auto;
   text-align: center;
 }
 
+.one {
+  margin: 3em 0 0;
+}
+
 .steps {
-  width: calc(100vw - 15vw - 300px);
-  margin: auto 3em auto 0;
+  margin: auto;
+  flex: 1;
 }
 
 .steps ol {
+  padding: 0;
   list-style: none;
 }
 
@@ -30,6 +33,7 @@
 .instructions {
   padding: 0 0 0 calc(32px + 1ch);
   font-weight: normal;
+  user-select: text;
 }
 
 .instructions ol {
