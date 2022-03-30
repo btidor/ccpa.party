@@ -2,6 +2,7 @@
 import EmojiMap from "emoji-name-map";
 import * as React from "react";
 
+import { ExternalLink } from "components/Links";
 import { parseJSON } from "parse";
 
 import styles from "providers/slack.module.css";
@@ -33,13 +34,12 @@ class Slack implements Provider {
         If you're the Workspace Owner, you can perform a full data export, which
         includes all messages from all public channels (but may not include
         messages from private channels or DMs). To do so, see{" "}
-        <a
-          href="https://slack.com/help/articles/201658943-Export-your-workspace-data"
-          target="_blank"
-          rel="noreferrer"
+        <ExternalLink
+          to="https://slack.com/help/articles/201658943-Export-your-workspace-data"
+          newTab
         >
           Export your workspace data
-        </a>
+        </ExternalLink>
       </p>
     </React.Fragment>
   );

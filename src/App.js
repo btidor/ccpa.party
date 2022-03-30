@@ -6,7 +6,7 @@ import Activity from "Activity";
 import Files from "Files";
 import Home from "Home";
 import Import from "Import";
-import Navigation from "Navigation";
+import Navigation from "components/Navigation";
 
 type Props = {
   children: React.Node,

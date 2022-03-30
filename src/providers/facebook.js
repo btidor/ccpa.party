@@ -1,6 +1,7 @@
 // @flow
 import * as React from "react";
 
+import { ExternalLink } from "components/Links";
 import { autoParse, discoverEntry, parseJSON } from "parse";
 
 import FacebookIcon from "icons/facebook.svg";
@@ -20,13 +21,12 @@ class Facebook implements Provider {
     <ol>
       <li>
         Visit the{" "}
-        <a
-          href="https://www.facebook.com/help/contact/784491318687824"
-          target="_blank"
-          rel="noreferrer"
+        <ExternalLink
+          to="https://www.facebook.com/help/contact/784491318687824"
+          newTab
         >
           CCPA inquiry form
-        </a>
+        </ExternalLink>
       </li>
       <li>
         Select <i>Facebook</i> as the product

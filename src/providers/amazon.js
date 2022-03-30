@@ -1,6 +1,8 @@
 // @flow
 import * as React from "react";
 
+import { ExternalLink } from "components/Links";
+
 import AmazonIcon from "icons/amazon.svg";
 
 import type { Entry } from "parse";
@@ -19,13 +21,12 @@ class Amazon implements Provider {
     <ol>
       <li>
         Log in to{" "}
-        <a
-          href="https://amazon.com/gp/privacycentral/dsar/preview.html"
-          target="_blank"
-          rel="noreferrer"
+        <ExternalLink
+          newTab
+          to="https://amazon.com/gp/privacycentral/dsar/preview.html"
         >
           Request My Data
-        </a>
+        </ExternalLink>
       </li>
       <li>
         Select <i>Request All Your Data</i> from the menu

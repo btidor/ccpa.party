@@ -3,7 +3,7 @@ import * as React from "react";
 import { Link, useParams } from "react-router-dom";
 import { unzip } from "unzipit";
 
-import Navigation from "Navigation";
+import Navigation from "components/Navigation";
 import { openFiles } from "parse";
 import { getProvider } from "provider";
 

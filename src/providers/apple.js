@@ -1,6 +1,8 @@
 // @flow
 import * as React from "react";
 
+import { ExternalLink } from "components/Links";
+
 import AppleIcon from "icons/apple.svg";
 
 import type { Entry } from "parse";
@@ -18,9 +20,9 @@ class Apple implements Provider {
     <ol>
       <li>
         Log in to{" "}
-        <a href="https://privacy.apple.com/" target="_blank" rel="noreferrer">
+        <ExternalLink to="https://privacy.apple.com/" newTab>
           Data and Privacy
-        </a>
+        </ExternalLink>
       </li>
       <li>
         Select <i>Request a copy of your data</i>

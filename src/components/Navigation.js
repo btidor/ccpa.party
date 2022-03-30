@@ -5,7 +5,7 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { openFiles } from "parse";
 import { ProviderRegistry } from "provider";
 
-import styles from "Navigation.module.css";
+import styles from "components/Navigation.module.css";
 
 import type { Provider } from "provider";
 

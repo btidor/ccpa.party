@@ -2,7 +2,7 @@
 import * as React from "react";
 import { Virtuoso } from "react-virtuoso";
 
-import styles from "Drilldown.module.css";
+import styles from "components/Drilldown.module.css";
 
 type Props<T> = {|
   items: ?$ReadOnlyArray<T>,

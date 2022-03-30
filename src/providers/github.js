@@ -1,6 +1,8 @@
 // @flow
 import * as React from "react";
 
+import { ExternalLink } from "components/Links";
+
 import GitHubIcon from "icons/github.svg";
 
 import type { Entry } from "parse";
@@ -19,13 +21,9 @@ class GitHub implements Provider {
     <ol>
       <li>
         Log in to{" "}
-        <a
-          href="https://github.com/settings/admin"
-          target="_blank"
-          rel="noreferrer"
-        >
+        <ExternalLink to="https://github.com/settings/admin" newTab>
           Account Settings
-        </a>
+        </ExternalLink>
       </li>
       <li>
         Click <i>New export</i>

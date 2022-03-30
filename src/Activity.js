@@ -2,8 +2,8 @@
 import * as React from "react";
 import { useParams } from "react-router-dom";
 
-import Drilldown from "Drilldown";
-import Navigation from "Navigation";
+import Drilldown from "components/Drilldown";
+import Navigation from "components/Navigation";
 import { openFiles } from "parse";
 import { getProvider } from "provider";
 

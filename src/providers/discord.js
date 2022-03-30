@@ -1,6 +1,8 @@
 // @flow
 import * as React from "react";
 
+import { ExternalLink } from "components/Links";
+
 import DiscordIcon from "icons/discord.svg";
 
 import type { Entry } from "parse";
@@ -19,9 +21,9 @@ class Discord implements Provider {
     <ol>
       <li>
         Log in to{" "}
-        <a href="https://discord.com/app" target="_blank" rel="noreferrer">
+        <ExternalLink to="https://discord.com/app" newTab>
           Discord
-        </a>
+        </ExternalLink>
       </li>
       <li>
         Open <i>User Settings</i>

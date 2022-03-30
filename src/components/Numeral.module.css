@@ -1,0 +1,19 @@
+.numeral {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  margin-right: 12px;
+
+  color: white;
+  background-color: black;
+  border-radius: 50%;
+  text-align: center;
+}
+
+.iconNumeral {
+  width: 20px;
+  height: 20px;
+  padding: 4px;
+  margin-right: 12px;
+}

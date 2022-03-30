@@ -3,6 +3,8 @@ import * as React from "react";
 
 import NetflixIcon from "icons/netflix.svg";
 
+import { ExternalLink } from "components/Links";
+
 import type { Entry } from "parse";
 import type { DataFile, Provider } from "provider";
 
@@ -19,13 +21,9 @@ class Netflix implements Provider {
     <ol>
       <li>
         Log in to the{" "}
-        <a
-          href="https://www.netflix.com/account/getmyinfo"
-          target="_blank"
-          rel="noreferrer"
-        >
+        <ExternalLink to="https://www.netflix.com/account/getmyinfo" newTab>
           data request page
-        </a>
+        </ExternalLink>
       </li>
       <li>
         Click <i>Submit Request</i>

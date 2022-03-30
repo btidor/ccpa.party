@@ -6,74 +6,28 @@
   user-select: none;
 }
 
-.providers {
+.providerList {
   width: 300px;
   margin: auto 0;
   padding-right: 1vw;
   margin-right: 4vw;
-}
-
-.providers div {
   text-align: center;
 }
 
-.providers a {
-  display: flex;
-  height: 2rem;
-  margin: 1rem 0;
-  padding: 0.5rem 1rem;
-
-  --primary: black;
-
-  color: black;
-  border: 2px solid black;
-  border-radius: 4px;
-  text-decoration: none;
-}
-
-.providers a:hover,
-.providers a[aria-selected="true"] {
-  color: white;
-  background-color: var(--primary);
-  border-color: var(--primary);
-}
-
-.providers a:hover {
-  transform: translateX(7px);
-}
-
-.providers a svg {
-  display: block;
-  height: 2rem;
-  width: 2rem;
-  padding-right: 1rem;
-}
-
-.loaded .providers a,
-.loaded .providers svg {
-  transition: 250ms;
-}
-
-.providers a.whiteout:hover svg,
-.providers a[aria-selected="true"].whiteout svg {
-  filter: brightness(0) invert(1);
-}
-
-.info {
+.steps {
   width: calc(100vw - 15vw - 300px);
   margin: auto 3em auto 0;
 }
 
-.info ol {
+.steps ol {
   list-style: none;
 }
 
-.info li {
+.steps li {
   margin: 3em 0;
 }
 
 .instructions {
-  margin: 1em 0 0;
   padding: 0 0 0 calc(32px + 1ch);
   font-weight: normal;
 }
@@ -87,49 +41,10 @@
   margin: auto;
 }
 
-.info a {
-  color: #009bd6;
-  font-weight: bold;
-  text-decoration: none;
-  transition: 250ms;
+.instructions p {
+  margin: 0;
 }
 
-.info a::after {
-  content: "➜";
-  white-space: nowrap;
-  display: inline-block;
-  padding: 0 0 0 0.5ch;
-  transition: 250ms;
-}
-
-.info a:hover {
-  filter: brightness(50%);
-}
-
-.info a:hover::after {
-  transform: translateX(0.5ch);
-}
-
-.numeral {
-  display: inline-block;
-  width: 28px;
-  height: 28px;
-  line-height: 28px;
-  margin-right: 4px;
-
-  color: white;
-  background-color: black;
-  border-radius: 50%;
-  text-align: center;
-}
-
-.info .iconNumeral {
-  width: 20px;
-  height: 20px;
-  padding: 8px 4px 0;
-  margin-right: 12px;
-}
-
-.info .numeral {
-  margin-right: 12px;
+.instructions p + p {
+  margin: 1em 0 0;
 }

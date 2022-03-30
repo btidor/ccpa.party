@@ -1,0 +1,23 @@
+a.link {
+  color: #009bd6;
+  font-weight: bold;
+  text-decoration: none;
+  transition: 250ms;
+}
+
+.nobr {
+  white-space: nowrap;
+}
+
+.caret {
+  display: inline-block;
+  transition: 250ms;
+}
+
+a.link:hover {
+  filter: brightness(50%);
+}
+
+a.link:hover .caret {
+  transform: translateX(0.5ch);
+}

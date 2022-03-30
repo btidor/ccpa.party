@@ -1,6 +1,8 @@
 // @flow
 import * as React from "react";
 
+import { ExternalLink } from "components/Links";
+
 import GoogleIcon from "icons/google.svg";
 
 import type { Entry } from "parse";
@@ -19,9 +21,9 @@ class Google implements Provider {
     <ol>
       <li>
         Log in to{" "}
-        <a href="https://takeout.google.com/" target="_blank" rel="noreferrer">
+        <ExternalLink to="https://takeout.google.com/" newTab>
           Google Takeout
-        </a>
+        </ExternalLink>
       </li>
       <li>Check all of the boxes</li>
       <li>
