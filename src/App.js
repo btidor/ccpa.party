@@ -38,13 +38,11 @@ function App(): React.Node {
   return (
     <ErrorBoundary>
       <Routes>
-        <Route path="/" element={<Navigate replace to="/start" />} />
-        <Route path="/:provider">
-          <Route path="" element={<Home />} />
-          <Route path="activity" element={<Activity />} />
-          <Route path="files" element={<Files />} />
-          <Route path="import" element={<Import />} />
-        </Route>
+        <Route path="/" element={<Home />} />
+        <Route path="/:provider" element={<Home />} />
+        <Route path="/:provider/import" element={<Home import />} />
+        <Route path="/:provider/files" element={<Files />} />
+        <Route path="/:provider/activity" element={<Activity />} />
         <Route
           path="*"
           element={

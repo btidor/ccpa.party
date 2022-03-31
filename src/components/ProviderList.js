@@ -16,7 +16,7 @@ import styles from "components/ProviderList.module.css";
 import type { Provider } from "provider";
 
 type Props = {|
-  className?: string,
+  backLink: ?string,
   selected: ?Provider,
 |};
 
@@ -43,8 +43,10 @@ function ProviderList(props: Props): React.Node {
         <Link
           key={provider.slug}
           to={
-            props.selected && provider.slug === props.selected.slug
-              ? "/start"
+            props.selected &&
+            provider.slug === props.selected.slug &&
+            props.backLink
+              ? props.backLink
               : `/${provider.slug}`
           }
           style={{ "--primary": provider.color }}

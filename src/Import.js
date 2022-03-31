@@ -1,9 +1,9 @@
 // @flow
 import * as React from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { unzip } from "unzipit";
 
-import Navigation from "components/Navigation";
+import { InternalLink } from "components/Links";
 import { openFiles } from "parse";
 import { getProvider } from "provider";
 
@@ -57,26 +57,23 @@ function Import(): React.Node {
     setStatus(
       <React.Fragment>
         <div>Import complete!</div>
-        <Link to="../files">View results</Link>
+        <InternalLink to={`/${provider.slug}/files`}>View results</InternalLink>
       </React.Fragment>
     );
     console.warn(`Time: ${(Date.now() - start) / 1000}s`);
   }
 
   return (
-    <React.Fragment>
-      <Navigation provider={provider} />
-      <main className={styles.import}>
-        <div>Import data from {provider.displayName}...</div>
-        <input
-          type="file"
-          multiple
-          accept=".zip,application/zip"
-          onChange={importFile}
-        />
-        <div>{status}</div>
-      </main>
-    </React.Fragment>
+    <div className={styles.import}>
+      <div>Import from {provider.displayName}</div>
+      <input
+        type="file"
+        multiple
+        accept=".zip,application/zip"
+        onChange={importFile}
+      />
+      <div>{status}</div>
+    </div>
   );
 }
 

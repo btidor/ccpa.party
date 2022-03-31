@@ -6,7 +6,7 @@ import styles from "components/Logo.module.css";
 
 function Logo(): React.Node {
   return (
-    <Link to="/start" className={styles.logo}>
+    <Link to="/" className={styles.logo}>
       🎉 ccpa.party
     </Link>
   );
