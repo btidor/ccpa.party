@@ -1,10 +1,10 @@
 // @flow
-import { motion, AnimatePresence } from "framer-motion";
 import * as React from "react";
 import { useParams } from "react-router-dom";
 import { StopwatchIcon } from "@primer/octicons-react";
 
 import Expander from "components/Expander";
+import { Fader, FaderItem } from "components/Fader";
 import { InternalLink } from "components/Links";
 import Logo from "components/Logo";
 import Numeral from "components/Numeral";
@@ -33,54 +33,43 @@ function Home(props: Props): React.Node {
           backLink={props.import ? undefined : "/"}
         />
       </div>
-      <div className={styles.fader1}>
-        <AnimatePresence>
-          {!props.import && (
-            <motion.div
-              exit={{ opacity: 0 }}
-              className={styles.fader2}
-              key="steps"
-            >
-              <ol className={styles.steps}>
-                <li>
-                  <Numeral>2</Numeral>
-                  Submit data access request
-                  <Expander className={styles.instructions} marginTop="1em">
-                    {!!provider && provider.instructions}
-                  </Expander>
-                </li>
-                <li>
-                  <Numeral>
-                    <StopwatchIcon />
-                  </Numeral>
-                  <i>
-                    Wait {!!provider && `${provider.waitTime} for a response`}
-                  </i>
-                </li>
-                <li>
-                  <Numeral>3</Numeral>
-                  {provider ? (
-                    <InternalLink to="import">
-                      Inspect your data with ccpa.party
-                    </InternalLink>
-                  ) : (
-                    "Inspect your data with ccpa.party"
-                  )}
-                </li>
-              </ol>
-            </motion.div>
-          )}
-          {props.import && (
-            <motion.div
-              exit={{ opacity: 0 }}
-              className={styles.fader2}
-              key="import"
-            >
-              <Import />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      <Fader>
+        {props.import ? (
+          <FaderItem key="import">
+            <Import />
+          </FaderItem>
+        ) : (
+          <FaderItem key="steps">
+            <ol className={styles.steps}>
+              <li>
+                <Numeral>2</Numeral>
+                Submit data access request
+                <Expander className={styles.instructions} marginTop="1em">
+                  {!!provider && provider.instructions}
+                </Expander>
+              </li>
+              <li>
+                <Numeral>
+                  <StopwatchIcon />
+                </Numeral>
+                <i>
+                  Wait {!!provider && `${provider.waitTime} for a response`}
+                </i>
+              </li>
+              <li>
+                <Numeral>3</Numeral>
+                {provider ? (
+                  <InternalLink to={`/${provider.slug}/import`}>
+                    Inspect your data with ccpa.party
+                  </InternalLink>
+                ) : (
+                  "Inspect your data with ccpa.party"
+                )}
+              </li>
+            </ol>
+          </FaderItem>
+        )}
+      </Fader>
     </main>
   );
 }
