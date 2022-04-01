@@ -44,7 +44,9 @@ function App(): React.Node {
         <Route path="/:provider" element={<Home />} />
         <Route path="/:provider/import" element={<Home import />} />
         <Route path="/:provider/files" element={<Files />} />
+        <Route path="/:provider/files/:id" element={<Files />} />
         <Route path="/:provider/activity" element={<Activity />} />
+        <Route path="/:provider/activity/:id" element={<Activity />} />
         <Route
           path="*"
           element={

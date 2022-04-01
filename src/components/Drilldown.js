@@ -1,18 +1,23 @@
 // @flow
 import * as React from "react";
+import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 
 import styles from "components/Drilldown.module.css";
 
 type Props<T> = {|
+  baseLink: string,
   items: ?$ReadOnlyArray<T>,
+  listWidth: string,
   renderRow: (T) => React.Node,
   renderDrilldown: (T) => React.Node,
-  listWidth: string,
+  selected?: number,
 |};
 
 function Drilldown<T>(props: Props<T>): React.Node {
-  const [drilldownItem, setDrilldownItem] = React.useState();
+  const navigate = useNavigate();
+  const { items, selected } = props;
+  const id = typeof selected === "string" ? parseInt(selected) : selected;
 
   if (!props.items) {
     return <React.Fragment>📊 Loading...</React.Fragment>;
@@ -26,19 +31,20 @@ function Drilldown<T>(props: Props<T>): React.Node {
           <Virtuoso
             totalCount={props.items.length}
             itemContent={(index) => {
-              if (props.items && props.items[index]) {
+              if (items && items[index]) {
                 return (
                   <div
                     onClick={() =>
-                      setDrilldownItem(
-                        drilldownItem === index ? undefined : index
+                      navigate(
+                        props.baseLink +
+                          (id === index ? "" : `/${index.toString()}`)
                       )
                     }
                     className={styles.listItem}
                     role="row"
-                    aria-selected={drilldownItem === index}
+                    aria-selected={id === index}
                   >
-                    {props.renderRow(props.items[index])}
+                    {props.renderRow(items[index])}
                   </div>
                 );
               } else {
@@ -49,12 +55,8 @@ function Drilldown<T>(props: Props<T>): React.Node {
         </div>
         <div className={styles.inspector}>
           {(() => {
-            if (
-              props.items &&
-              drilldownItem !== undefined &&
-              props.items[drilldownItem]
-            ) {
-              return props.renderDrilldown(props.items[drilldownItem]);
+            if (items && id !== undefined && items[id]) {
+              return props.renderDrilldown(items[id]);
             } else {
               return;
             }

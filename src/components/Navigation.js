@@ -55,8 +55,7 @@ function Navigation(props: Props): React.Node {
           const { value } = event.target;
           if (!value || value === provider.slug) return;
           if (value === importTag) navigate("/");
-          else
-            navigate(`/${value}/${location.pathname.split("/").slice(-1)[0]}`);
+          else navigate(`/${value}/${location.pathname.split("/")[2]}`);
         }}
       >
         {providers ? (

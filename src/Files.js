@@ -33,7 +33,9 @@ function Files(): React.Node {
       <Navigation provider={provider} />
       <main className="thin">
         <Drilldown
+          baseLink={`/${provider.slug}/files`}
           items={items}
+          listWidth="30vw"
           renderRow={(item) => <div className={styles.row}>{item.path}</div>}
           renderDrilldown={(item) => {
             const ext = item.path.split(".").slice(-1)[0];
@@ -57,7 +59,7 @@ function Files(): React.Node {
                 );
             }
           }}
-          listWidth="30vw"
+          selected={params.id}
         />
       </main>
     </React.Fragment>

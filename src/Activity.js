@@ -36,7 +36,9 @@ function Activity(): React.Node {
       <Navigation provider={provider} />
       <main className="thin">
         <Drilldown
+          baseLink={`/${provider.slug}/activity`}
           items={items}
+          listWidth="60vw"
           renderRow={(item) => item.label}
           renderDrilldown={(item) => (
             <pre>
@@ -44,7 +46,7 @@ function Activity(): React.Node {
               {JSON.stringify(item.value, undefined, 2)}
             </pre>
           )}
-          listWidth="60vw"
+          selected={params.id}
         />
       </main>
     </React.Fragment>
