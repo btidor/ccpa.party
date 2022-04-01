@@ -1,17 +1,32 @@
 .header {
   display: flex;
-  padding: 1vw;
 
   background-color: black;
   white-space: nowrap;
-  justify-content: space-between;
   align-items: center;
 
   font-weight: bold;
 }
 
 .header + main {
-  --navheight: calc(2vw + 1rem + 28px);
+  --navheight: calc(1rem + 28px);
+}
+
+.header select {
+  align-self: stretch;
+  border: none;
+  margin: 0;
+  padding: 0 1rem;
+  color: white;
+  background-color: inherit;
+  font-weight: inherit;
+  width: 200px;
+}
+
+.header nav {
+  margin: 0 1rem;
+  font-size: 0.9em;
+  font-weight: normal;
 }
 
 .header nav a {
@@ -22,15 +37,5 @@
 
 .header nav a:hover,
 .header nav a[aria-current="page"] {
-  border-bottom: 2px solid white;
-}
-
-.header select {
-  align-self: stretch;
-  border: none;
-  margin: 0;
-  padding: 0 0.5rem;
-  background-color: white;
-  font-weight: inherit;
-  width: 200px;
+  border-bottom: 1px solid white;
 }

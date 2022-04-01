@@ -1,3 +1,7 @@
 .import {
   margin: auto 0;
 }
+
+.message {
+  display: inline-block;
+}

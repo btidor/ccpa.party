@@ -16,7 +16,7 @@ function Import(): React.Node {
   const provider = getProvider(params.provider);
   const [status, setStatus] = React.useState("");
 
-  async function importFile(event) {
+  async function importFiles(event) {
     const files: Array<{|
       archive: string,
       path?: string,
@@ -56,7 +56,7 @@ function Import(): React.Node {
     }
     setStatus(
       <React.Fragment>
-        <div>Import complete!</div>
+        <div className={styles.message}>Import complete!</div>{" "}
         <InternalLink to={`/${provider.slug}/files`}>View results</InternalLink>
       </React.Fragment>
     );
@@ -70,7 +70,7 @@ function Import(): React.Node {
         type="file"
         multiple
         accept=".zip,application/zip"
-        onChange={importFile}
+        onChange={importFiles}
       />
       <div>{status}</div>
     </div>

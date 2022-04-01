@@ -1,12 +1,10 @@
 // @flow
 import * as React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 import Activity from "Activity";
 import Files from "Files";
 import Home from "Home";
-import Import from "Import";
-import Navigation from "components/Navigation";
 
 type Props = {
   children: React.Node,
@@ -28,7 +26,11 @@ class ErrorBoundary extends React.Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      return <code>500 Internal Server Error</code>;
+      return (
+        <main>
+          <code>500 Internal Server Error</code>
+        </main>
+      );
     }
     return this.props.children;
   }
@@ -47,7 +49,6 @@ function App(): React.Node {
           path="*"
           element={
             <React.Fragment>
-              <Navigation />
               <main>
                 <code>404 Not Found</code>
               </main>
