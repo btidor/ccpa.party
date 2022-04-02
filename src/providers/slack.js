@@ -161,7 +161,7 @@ class Slack implements Provider {
         ];
       } else if (element.type === "link") {
         return [
-          <a href={element.url} key={key}>
+          <a href={element.url} key={key} target="_blank" rel="noreferrer">
             {element.url}
           </a>,
         ];

@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 
 import Drilldown from "components/Drilldown";
 import Navigation from "components/Navigation";
+import Theme from "components/Theme";
 import { openFiles } from "parse";
 import { getProvider } from "provider";
 
@@ -29,7 +30,7 @@ function Files(): React.Node {
   }, [provider]);
 
   return (
-    <React.Fragment>
+    <Theme provider={provider}>
       <Navigation provider={provider} />
       <main className="thin">
         <Drilldown
@@ -62,7 +63,7 @@ function Files(): React.Node {
           selected={params.id}
         />
       </main>
-    </React.Fragment>
+    </Theme>
   );
 }
 

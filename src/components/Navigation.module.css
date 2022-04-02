@@ -1,7 +1,7 @@
 .header {
   display: flex;
 
-  background-color: black;
+  background-color: var(--primary);
   white-space: nowrap;
   align-items: center;
 
@@ -9,7 +9,7 @@
 }
 
 .header + main {
-  --navheight: calc(1rem + 28px);
+  --navheight: calc(0.3rem + 40px);
 }
 
 .header select {

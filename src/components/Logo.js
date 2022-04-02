@@ -8,6 +8,9 @@ function Logo(): React.Node {
   return (
     <Link to="/" className={styles.logo}>
       🎉 ccpa.party
+      <sup>
+        {"{"}&alpha;{"}"}
+      </sup>
     </Link>
   );
 }

@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 
 import Drilldown from "components/Drilldown";
 import Navigation from "components/Navigation";
+import Theme from "components/Theme";
 import { openFiles } from "parse";
 import { getProvider } from "provider";
 
@@ -32,11 +33,19 @@ function Activity(): React.Node {
   }, [provider]);
 
   return (
-    <React.Fragment>
+    <Theme provider={provider}>
       <Navigation provider={provider} />
       <main className="thin">
         <Drilldown
           baseLink={`/${provider.slug}/activity`}
+          grouper={(item) =>
+            new Intl.DateTimeFormat("en-US", {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            }).format(new Date(item.timestamp * 1000))
+          }
           items={items}
           listWidth="60vw"
           renderRow={(item) => item.label}
@@ -49,7 +58,7 @@ function Activity(): React.Node {
           selected={params.id}
         />
       </main>
-    </React.Fragment>
+    </Theme>
   );
 }
 

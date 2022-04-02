@@ -44,10 +44,7 @@ function Navigation(props: Props): React.Node {
 
   const provider = props.provider;
   return (
-    <header
-      className={styles.header}
-      style={{ backgroundColor: provider.color }}
-    >
+    <header className={styles.header}>
       <Logo />
       <select
         value={provider.slug}

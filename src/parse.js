@@ -108,8 +108,7 @@ export function discoverEntry(
       file,
       label: (
         <React.Fragment>
-          {new Date(timestamp * 1000).toLocaleString("en-US")} (
-          {activityLabel || "unknown: " + file.path}) {label}
+          ({activityLabel || "unknown: " + file.path}) {label}
         </React.Fragment>
       ),
       value: obj,

@@ -11,7 +11,7 @@
   font-size: 14px;
   line-height: 1.5;
 
-  border-right: 1px solid black;
+  border-right: 1px solid var(--primary);
 }
 
 .listItem {
@@ -24,6 +24,27 @@
 .listItem[aria-selected="true"] {
   cursor: pointer;
   filter: invert(100%);
+}
+
+.outer,
+.firstOuter {
+  border-top: 1px solid var(--primary);
+}
+
+.outer {
+  margin: 1em 0;
+}
+
+.inner {
+  width: 15vw;
+  margin: 0 auto;
+  padding: 0.1em 1em 0.2em;
+  text-align: center;
+  font-size: 0.9em;
+
+  color: white;
+  background-color: var(--primary);
+  border-radius: 0 0 4px 4px;
 }
 
 .inspector {
