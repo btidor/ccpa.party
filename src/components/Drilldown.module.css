@@ -11,7 +11,7 @@
   font-size: 14px;
   line-height: 1.5;
 
-  border-right: 1px solid var(--primary);
+  border-right: 1px solid #aaa;
 }
 
 .listItem {
@@ -26,18 +26,20 @@
   filter: invert(100%);
 }
 
-.outer,
-.firstOuter {
-  border-top: 1px solid var(--primary);
+.last {
+  margin-bottom: 1em;
 }
 
-.outer {
-  margin: 1em 0;
+.divider {
+  margin: 1em 5% 0;
+  padding: 0;
+  border: none;
+  border-bottom: 1px solid var(--primary);
 }
 
-.inner {
+.group {
   width: 15vw;
-  margin: 0 auto;
+  margin: 0 auto 1em;
   padding: 0.1em 1em 0.2em;
   text-align: center;
   font-size: 0.9em;

@@ -20,22 +20,32 @@ function Drilldown<T, U>(props: Props<T, U>): React.Node {
   const { grouper, items, selected } = props;
   const id = typeof selected === "string" ? parseInt(selected) : selected;
 
-  const renderItem = (index) =>
-    items &&
-    items[index] && (
-      <div
-        onClick={() =>
-          navigate(
-            props.baseLink + (id === index ? "" : `/${index.toString()}`)
-          )
-        }
-        className={styles.listItem}
-        role="row"
-        aria-selected={id === index}
-      >
-        {props.renderRow(items[index])}
-      </div>
+  const renderItem = (index) => {
+    if (!items || !items[index]) return;
+    const lastInGroup =
+      grouper &&
+      items[index + 1] &&
+      grouper(items[index]) !== grouper(items[index + 1]);
+    return (
+      <React.Fragment>
+        <div
+          onClick={() =>
+            navigate(
+              props.baseLink + (id === index ? "" : `/${index.toString()}`)
+            )
+          }
+          className={
+            styles.listItem + (!items[index + 1] ? " " + styles.last : "")
+          }
+          role="row"
+          aria-selected={id === index}
+        >
+          {props.renderRow(items[index])}
+        </div>
+        {lastInGroup && <hr className={styles.divider} />}
+      </React.Fragment>
     );
+  };
 
   let groups;
   if (items && grouper) {
@@ -64,9 +74,7 @@ function Drilldown<T, U>(props: Props<T, U>): React.Node {
             <GroupedVirtuoso
               groupCounts={groups.map((g) => g.count)}
               groupContent={(index) => (
-                <div className={index === 0 ? styles.firstOuter : styles.outer}>
-                  <div className={styles.inner}>{groups[index]?.name}</div>
-                </div>
+                <div className={styles.group}>{groups[index]?.name}</div>
               )}
               itemContent={renderItem}
             />
