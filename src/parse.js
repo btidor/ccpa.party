@@ -6,7 +6,7 @@ import type { DataFile, Provider } from "provider";
 
 export type TimelineEntry = {|
   type: "timeline",
-  subtype: string,
+  category: string,
   file: DataFile,
   timestamp: number,
   label: React.Node,
@@ -45,7 +45,7 @@ export function openFiles(): Promise<any> {
 
 export function autoParse(
   file: DataFile,
-  provider: Provider<any>
+  provider: Provider
 ): $ReadOnlyArray<Entry> {
   const ext = file.path.split(".").slice(-1)[0];
   switch (ext) {
@@ -88,7 +88,7 @@ export function discoverEntry(
   file: DataFile,
   obj: any,
   timelineLabel: ?string,
-  subtype: string
+  category: string
 ): Entry {
   const label =
     obj.name ||
@@ -111,7 +111,7 @@ export function discoverEntry(
   if (timestamp) {
     return {
       type: "timeline",
-      subtype,
+      category,
       timestamp,
       file,
       label: (

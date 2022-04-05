@@ -16,8 +16,8 @@ import styles from "components/ProviderList.module.css";
 import type { Provider } from "provider";
 
 type Props = {|
-  backLink: ?string,
-  selected: ?Provider<any>,
+  +backLink: ?string,
+  +selected: ?Provider,
 |};
 
 const Providers = [

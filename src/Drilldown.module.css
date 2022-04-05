@@ -39,22 +39,18 @@
   font-size: 12px;
 }
 
-.bar button {
-  margin: auto 0;
-  height: 24px;
-  padding: 0 1ch;
-
-  background-color: inherit;
-  border: none;
-  border-radius: 2px;
+.filter {
+  margin: 0 1ch;
 }
 
-.bar button.selected {
-  filter: brightness(85%);
+.filter input[type="checkbox"] {
+  margin: 0 1ch 0 0;
+  filter: grayscale(100%);
 }
 
-.bar button:hover {
-  filter: brightness(75%);
+.filter,
+.filter input,
+.filter label {
   cursor: pointer;
 }
 
@@ -107,4 +103,13 @@
 
 .inspector pre {
   margin: 0;
+}
+
+.filePath {
+  white-space: nowrap;
+}
+
+.media {
+  display: block;
+  max-width: 100%;
 }

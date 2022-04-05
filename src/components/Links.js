@@ -5,9 +5,9 @@ import { Link } from "react-router-dom";
 import styles from "components/Links.module.css";
 
 type Props = {|
-  children: string,
-  to: string,
-  newTab?: boolean,
+  +children: string,
+  +to: string,
+  +newTab?: boolean,
 |};
 
 const newTabExtra = { target: "_blank", rel: "noreferrer" };

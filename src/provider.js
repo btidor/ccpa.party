@@ -14,13 +14,20 @@ import Slack from "providers/slack";
 import type { Entry } from "parse";
 
 export type DataFile = {|
-  archive: string,
-  path: string,
-  provider: string,
-  data: ArrayBuffer,
+  +archive: string,
+  +path: string,
+  +provider: string,
+  +data: ArrayBuffer,
 |};
 
-export interface Provider<C> {
+export type TimelineCategory = {|
+  +slug: string,
+  +char: string, // single-character identifier for URLs
+  +displayName: string,
+  +defaultEnabled: boolean,
+|};
+
+export interface Provider {
   +slug: string;
   +displayName: string;
   +icon: React.Node;
@@ -31,13 +38,13 @@ export interface Provider<C> {
   +waitTime: string;
   +instructions: React.Node;
 
-  +categoryLabels: $ReadOnlyMap<C, string>;
-  +timelineLabels: { [string]: [string, C] };
+  +timelineCategories: $ReadOnlyArray<TimelineCategory>;
+  +timelineLabels: { [string]: [string, string] };
   +settingLabels: { [string]: string };
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry>;
 }
 
-export const ProviderRegistry: $ReadOnlyArray<Provider<any>> = [
+export const ProviderRegistry: $ReadOnlyArray<Provider> = [
   new Amazon(),
   new Apple(),
   new Discord(),
@@ -49,18 +56,13 @@ export const ProviderRegistry: $ReadOnlyArray<Provider<any>> = [
   new Generic(),
 ];
 
-const ProviderLookup = new Map<string, Provider<any>>();
+export const ProviderLookup: $ReadOnlyMap<string, Provider> = new Map<
+  string,
+  Provider
+>();
 ProviderRegistry.forEach((provider) =>
-  ProviderLookup.set(provider.slug, provider)
+  (ProviderLookup: any).set(provider.slug, provider)
 );
-
-export function getProvider(slug: string): Provider<any> {
-  const provider = ProviderLookup.get(slug);
-  if (provider === undefined) {
-    throw new Error(`No such provider: ${slug}`);
-  }
-  return provider;
-}
 
 export function getLiteColor(base: string): string {
   if (!base.startsWith("#")) throw new Error("Can't parse color " + base);

@@ -6,9 +6,9 @@ import { ExternalLink } from "components/Links";
 import AmazonIcon from "icons/amazon.svg";
 
 import type { Entry } from "parse";
-import type { DataFile, Provider } from "provider";
+import type { DataFile, Provider, TimelineCategory } from "provider";
 
-class Amazon implements Provider<void> {
+class Amazon implements Provider {
   slug: string = "amazon";
   displayName: string = "Amazon";
   icon: React.Node = (<AmazonIcon />);
@@ -37,8 +37,8 @@ class Amazon implements Provider<void> {
     </ol>
   );
 
-  categoryLabels: $ReadOnlyMap<void, string> = new Map();
-  timelineLabels: { [string]: [string, void] } = {};
+  timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
+  timelineLabels: { [string]: [string, string] } = {};
   settingLabels: { [string]: string } = {};
 
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {

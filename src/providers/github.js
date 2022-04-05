@@ -6,9 +6,9 @@ import { ExternalLink } from "components/Links";
 import GitHubIcon from "icons/github.svg";
 
 import type { Entry } from "parse";
-import type { DataFile, Provider } from "provider";
+import type { DataFile, Provider, TimelineCategory } from "provider";
 
-class GitHub implements Provider<void> {
+class GitHub implements Provider {
   slug: string = "github";
   displayName: string = "GitHub";
   icon: React.Node = (<GitHubIcon />);
@@ -32,8 +32,8 @@ class GitHub implements Provider<void> {
     </ol>
   );
 
-  categoryLabels: $ReadOnlyMap<void, string> = new Map();
-  timelineLabels: { [string]: [string, void] } = {};
+  timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
+  timelineLabels: { [string]: [string, string] } = {};
   settingLabels: { [string]: string } = {};
 
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {

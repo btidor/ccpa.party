@@ -6,8 +6,8 @@ import { getLiteColor } from "provider";
 import type { Provider } from "provider";
 
 type Props = {|
-  provider: Provider<any>,
-  children: React.Node,
+  +provider: Provider,
+  +children: React.Node,
 |};
 
 function Theme(props: Props): React.Node {

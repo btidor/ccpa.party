@@ -1,6 +1,6 @@
 // @flow
 import * as React from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import Logo from "components/Logo";
 import { openFiles } from "parse";
@@ -18,14 +18,16 @@ const links = [
 const importTag = "__import__";
 
 type Props = {|
-  provider: Provider<any>,
+  +provider: Provider,
+  +pageSlug: string,
 |};
 
 function Navigation(props: Props): React.Node {
   const navigate = useNavigate();
   const location = useLocation();
+  const { provider, pageSlug } = props;
   const [providers, setProviders] = React.useState(
-    (undefined: ?$ReadOnlyArray<Provider<any>>)
+    (undefined: ?$ReadOnlyArray<Provider>)
   );
 
   React.useEffect(() => {
@@ -40,9 +42,8 @@ function Navigation(props: Props): React.Node {
         ProviderRegistry.filter((provider) => active.has(provider.slug))
       );
     })();
-  }, [props]);
+  }, []);
 
-  const provider = props.provider;
   return (
     <header className={styles.header}>
       <Logo />
@@ -52,7 +53,7 @@ function Navigation(props: Props): React.Node {
           const { value } = event.target;
           if (!value || value === provider.slug) return;
           if (value === importTag) navigate("/");
-          else navigate(`/${value}/${location.pathname.split("/")[2]}`);
+          else navigate(`/${value}/${pageSlug}`);
         }}
       >
         {providers ? (
@@ -73,9 +74,17 @@ function Navigation(props: Props): React.Node {
 
       <nav>
         {links.map((link) => (
-          <NavLink key={link.label} to={`/${provider.slug}/${link.to}`}>
+          <Link
+            key={link.label}
+            to={`/${provider.slug}/${link.to}`}
+            aria-current={
+              location.pathname.startsWith(`/${provider.slug}/${link.to}`)
+                ? "page"
+                : undefined
+            }
+          >
             {link.label}
-          </NavLink>
+          </Link>
         ))}
       </nav>
     </header>

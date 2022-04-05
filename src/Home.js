@@ -1,6 +1,5 @@
 // @flow
 import * as React from "react";
-import { useParams } from "react-router-dom";
 import { StopwatchIcon } from "@primer/octicons-react";
 
 import Expander from "components/Expander";
@@ -11,16 +10,20 @@ import Numeral from "components/Numeral";
 import ProviderList from "components/ProviderList";
 
 import Import from "Import";
-import { getProvider } from "provider";
 
 import styles from "Home.module.css";
 
-type Props = {| import?: boolean |};
+import type { Provider } from "provider";
+
+type Props =
+  | {| +provider?: void, +screen: "select" |}
+  | {|
+      +provider: Provider,
+      +screen: "request" | "import",
+    |};
 
 function Home(props: Props): React.Node {
-  const params = useParams();
-  const provider = params.provider ? getProvider(params.provider) : undefined;
-
+  const { provider, screen } = props;
   return (
     <main className={styles.home}>
       <div className={styles.providerList}>
@@ -30,17 +33,17 @@ function Home(props: Props): React.Node {
         </div>
         <ProviderList
           selected={provider}
-          backLink={props.import ? undefined : "/"}
+          backLink={screen === "import" ? undefined : "/"}
         />
       </div>
       <Fader>
-        {props.import ? (
+        {props.screen === "import" ? (
           <FaderItem key="import">
-            <Import />
+            <Import provider={props.provider} />
           </FaderItem>
         ) : (
-          <FaderItem key="steps">
-            <ol className={styles.steps}>
+          <FaderItem key="request">
+            <ol className={styles.request}>
               <li>
                 <Numeral>2</Numeral>
                 Submit data access request

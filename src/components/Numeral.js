@@ -3,7 +3,7 @@ import * as React from "react";
 
 import styles from "components/Numeral.module.css";
 
-function Numeral(props: {| children: React.Node |}): React.Node {
+function Numeral(props: {| +children: React.Node |}): React.Node {
   if (typeof props.children === "string") {
     return <span className={styles.numeral}>{props.children}</span>;
   } else {

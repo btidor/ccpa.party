@@ -6,9 +6,9 @@ import { ExternalLink } from "components/Links";
 import AppleIcon from "icons/apple.svg";
 
 import type { Entry } from "parse";
-import type { DataFile, Provider } from "provider";
+import type { DataFile, Provider, TimelineCategory } from "provider";
 
-class Apple implements Provider<void> {
+class Apple implements Provider {
   slug: string = "apple";
   displayName: string = "Apple";
   icon: React.Node = (<AppleIcon />);
@@ -37,8 +37,8 @@ class Apple implements Provider<void> {
     </ol>
   );
 
-  categoryLabels: $ReadOnlyMap<void, string> = new Map();
-  timelineLabels: { [string]: [string, void] } = {};
+  timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
+  timelineLabels: { [string]: [string, string] } = {};
   settingLabels: { [string]: string } = {};
 
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {

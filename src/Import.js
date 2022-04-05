@@ -1,19 +1,18 @@
 // @flow
 import * as React from "react";
-import { useParams } from "react-router-dom";
 import { unzip } from "unzipit";
 
 import { InternalLink } from "components/Links";
 import { openFiles } from "parse";
-import { getProvider } from "provider";
 
 import styles from "Import.module.css";
 
-import type { DataFile } from "provider";
+import type { DataFile, Provider } from "provider";
 
-function Import(): React.Node {
-  const params = useParams();
-  const provider = getProvider(params.provider);
+type Props = {| +provider: Provider |};
+
+function Import(props: Props): React.Node {
+  const { provider } = props;
   const [status, setStatus] = React.useState("");
 
   async function importFiles(event) {

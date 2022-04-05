@@ -7,11 +7,9 @@ import { autoParse, discoverEntry, parseJSON } from "parse";
 import FacebookIcon from "icons/facebook.svg";
 
 import type { Entry } from "parse";
-import type { DataFile, Provider } from "provider";
+import type { DataFile, Provider, TimelineCategory } from "provider";
 
-type Category = "activity" | "content" | "notification" | "security";
-
-class Facebook implements Provider<Category> {
+class Facebook implements Provider {
   slug: string = "facebook";
   displayName: string = "Facebook";
   icon: React.Node = (<FacebookIcon />);
@@ -59,15 +57,34 @@ class Facebook implements Provider<Category> {
       </li>
     </ol>
   );
+  timelineCategories: $ReadOnlyArray<TimelineCategory> = [
+    {
+      char: "a",
+      slug: "activity",
+      displayName: "Activity",
+      defaultEnabled: true,
+    },
+    {
+      char: "c",
+      slug: "content",
+      displayName: "Content",
+      defaultEnabled: true,
+    },
+    {
+      char: "n",
+      slug: "notification",
+      displayName: "Notifications",
+      defaultEnabled: false,
+    },
+    {
+      char: "s",
+      slug: "security",
+      displayName: "Security Logs",
+      defaultEnabled: false,
+    },
+  ];
 
-  categoryLabels: $ReadOnlyMap<Category, string> = new Map([
-    ["activity", "Activity"],
-    ["content", "Content"],
-    ["notification", "Notifications"],
-    ["security", "Security Log"],
-  ]);
-
-  timelineLabels: { [string]: [string, Category] } = {
+  timelineLabels: { [string]: [string, string] } = {
     "apps_and_websites_off_of_facebook/apps_and_websites.json": [
       "Added/Removed App",
       "activity",

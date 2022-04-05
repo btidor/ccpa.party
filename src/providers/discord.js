@@ -6,9 +6,9 @@ import { ExternalLink } from "components/Links";
 import DiscordIcon from "icons/discord.svg";
 
 import type { Entry } from "parse";
-import type { DataFile, Provider } from "provider";
+import type { DataFile, Provider, TimelineCategory } from "provider";
 
-class Discord implements Provider<void> {
+class Discord implements Provider {
   slug: string = "discord";
   displayName: string = "Discord";
   icon: React.Node = (<DiscordIcon />);
@@ -37,8 +37,8 @@ class Discord implements Provider<void> {
     </ol>
   );
 
-  categoryLabels: $ReadOnlyMap<void, string> = new Map();
-  timelineLabels: { [string]: [string, void] } = {};
+  timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
+  timelineLabels: { [string]: [string, string] } = {};
   settingLabels: { [string]: string } = {};
 
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {

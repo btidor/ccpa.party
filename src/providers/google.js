@@ -6,9 +6,9 @@ import { ExternalLink } from "components/Links";
 import GoogleIcon from "icons/google.svg";
 
 import type { Entry } from "parse";
-import type { DataFile, Provider } from "provider";
+import type { DataFile, Provider, TimelineCategory } from "provider";
 
-class Google implements Provider<void> {
+class Google implements Provider {
   slug: string = "google";
   displayName: string = "Google";
   icon: React.Node = (<GoogleIcon />);
@@ -35,8 +35,8 @@ class Google implements Provider<void> {
     </ol>
   );
 
-  categoryLabels: $ReadOnlyMap<void, string> = new Map();
-  timelineLabels: { [string]: [string, void] } = {};
+  timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
+  timelineLabels: { [string]: [string, string] } = {};
   settingLabels: { [string]: string } = {};
 
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {

@@ -4,9 +4,7 @@ import * as React from "react";
 
 import styles from "components/Fader.module.css";
 
-type FaderProps = {| children: React.Node |};
-
-export function Fader(props: FaderProps): React.Node {
+export function Fader(props: {| +children: React.Node |}): React.Node {
   return (
     <div className={styles.outer}>
       <AnimatePresence>{props.children}</AnimatePresence>
@@ -14,10 +12,8 @@ export function Fader(props: FaderProps): React.Node {
   );
 }
 
-// MUST also set "key"
-type FaderItemProps = {| children: React.Node |};
-
-export function FaderItem(props: FaderItemProps): React.Node {
+// Must set "key" on each instance
+export function FaderItem(props: {| +children: React.Node |}): React.Node {
   return (
     <motion.div exit={{ opacity: 0, zIndex: 1 }} className={styles.inner}>
       {props.children}

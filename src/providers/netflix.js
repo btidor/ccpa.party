@@ -6,9 +6,9 @@ import NetflixIcon from "icons/netflix.svg";
 import { ExternalLink } from "components/Links";
 
 import type { Entry } from "parse";
-import type { DataFile, Provider } from "provider";
+import type { DataFile, Provider, TimelineCategory } from "provider";
 
-class Netflix implements Provider<void> {
+class Netflix implements Provider {
   slug: string = "netflix";
   displayName: string = "Netflix";
   icon: React.Node = (<NetflixIcon />);
@@ -31,8 +31,8 @@ class Netflix implements Provider<void> {
     </ol>
   );
 
-  categoryLabels: $ReadOnlyMap<void, string> = new Map();
-  timelineLabels: { [string]: [string, void] } = {};
+  timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
+  timelineLabels: { [string]: [string, string] } = {};
   settingLabels: { [string]: string } = {};
 
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {

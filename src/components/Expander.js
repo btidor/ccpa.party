@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import * as React from "react";
 
 type Props = {|
-  children: React.Node,
-  marginTop: string | number,
-  className?: string,
+  +children: React.Node,
+  +marginTop: string | number,
+  +className?: string,
 |};
 
 // Warning! Child and grandchild components should not have top or bottom

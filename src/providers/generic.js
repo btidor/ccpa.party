@@ -4,9 +4,9 @@ import * as React from "react";
 import { autoParse } from "parse";
 
 import type { Entry } from "parse";
-import type { DataFile, Provider } from "provider";
+import type { DataFile, Provider, TimelineCategory } from "provider";
 
-class Generic implements Provider<void> {
+class Generic implements Provider {
   slug: string = "generic";
   displayName: string = "Generic";
   icon: React.Node = (<div />);
@@ -16,8 +16,8 @@ class Generic implements Provider<void> {
   waitTime: string = "a generic amount of time";
   instructions: React.Node = (<div />);
 
-  categoryLabels: $ReadOnlyMap<void, string> = new Map();
-  timelineLabels: { [string]: [string, void] } = {};
+  timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
+  timelineLabels: { [string]: [string, string] } = {};
   settingLabels: { [string]: string } = {};
 
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {

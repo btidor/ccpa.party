@@ -35,5 +35,5 @@
 
 .tile.whiteout:hover svg,
 .tile[aria-selected="true"].whiteout svg {
-  filter: brightness(0) invert(1);
+  filter: brightness(0%) invert(100%);
 }
