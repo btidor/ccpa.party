@@ -57,6 +57,7 @@ class Facebook implements Provider {
       </li>
     </ol>
   );
+
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [
     {
       char: "a",
@@ -151,7 +152,7 @@ class Facebook implements Provider {
         // TODO: handle posts
         return { type: "unknown", file };
       } else if (!file.path.endsWith(".json")) {
-        return autoParse(file, this);
+        return autoParse(file, this.timelineLabels, this.settingLabels);
       } else if (file.path === "events/your_event_responses.json") {
         const parsed = parseJSON(file);
         const root = parsed.event_responses_v2;
@@ -164,7 +165,7 @@ class Facebook implements Provider {
           )
         );
       } else {
-        return autoParse(file, this);
+        return autoParse(file, this.timelineLabels, this.settingLabels);
       }
     });
   }

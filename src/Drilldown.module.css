@@ -24,7 +24,7 @@
   height: 32px;
   flex-shrink: 0;
   padding: 0 0.5rem;
-  background-color: var(--primary-lite);
+  background-color: var(--primary-light);
 
   display: flex;
   gap: 1ch;
@@ -69,7 +69,7 @@
 .listItem:hover,
 .listItem[aria-selected="true"] {
   cursor: pointer;
-  filter: invert(100%);
+  background-color: var(--primary-light);
 }
 
 .last {
@@ -103,6 +103,10 @@
 
 .inspector pre {
   margin: 0;
+}
+
+.loading {
+  padding: 0.5rem;
 }
 
 .filePath {

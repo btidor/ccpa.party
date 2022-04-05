@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
 
-import { getLiteColor } from "provider";
+import { lightenColor } from "provider";
 
 import type { Provider } from "provider";
 
@@ -15,7 +15,7 @@ function Theme(props: Props): React.Node {
     <div
       style={{
         "--primary": props.provider.color,
-        "--primary-lite": getLiteColor(props.provider.color),
+        "--primary-light": lightenColor(props.provider.color),
       }}
     >
       {props.children}

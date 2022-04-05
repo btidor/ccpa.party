@@ -39,8 +39,7 @@ export interface Provider {
   +instructions: React.Node;
 
   +timelineCategories: $ReadOnlyArray<TimelineCategory>;
-  +timelineLabels: { [string]: [string, string] };
-  +settingLabels: { [string]: string };
+
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry>;
 }
 
@@ -64,7 +63,7 @@ ProviderRegistry.forEach((provider) =>
   (ProviderLookup: any).set(provider.slug, provider)
 );
 
-export function getLiteColor(base: string): string {
+export function lightenColor(base: string): string {
   if (!base.startsWith("#")) throw new Error("Can't parse color " + base);
   if (base.length === 4) base = base + base.slice(1);
   if (base.length !== 7) throw new Error("Can't parse color " + base);
@@ -73,6 +72,6 @@ export function getLiteColor(base: string): string {
     parseInt(base.slice(3, 5), 16),
     parseInt(base.slice(5, 7), 16),
   ];
-  const lite = parsed.map((c) => Math.min(Math.round(192 + c / 4), 255));
-  return "#" + lite.map((c) => c.toString(16)).join("");
+  const light = parsed.map((c) => Math.min(Math.round(192 + c / 4), 255));
+  return "#" + light.map((c) => c.toString(16)).join("");
 }

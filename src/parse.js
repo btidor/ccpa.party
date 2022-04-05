@@ -2,7 +2,7 @@
 import { openDB } from "idb";
 import * as React from "react";
 
-import type { DataFile, Provider } from "provider";
+import type { DataFile } from "provider";
 
 export type TimelineEntry = {|
   type: "timeline",
@@ -45,19 +45,20 @@ export function openFiles(): Promise<any> {
 
 export function autoParse(
   file: DataFile,
-  provider: Provider
+  timelineLabels: { [string]: [string, string] },
+  settingLabels: { [string]: string }
 ): $ReadOnlyArray<Entry> {
   const ext = file.path.split(".").slice(-1)[0];
   switch (ext) {
     case "json": {
       const parsed = parseJSON(file);
 
-      const settingLabel = provider.settingLabels[file.path];
+      const settingLabel = settingLabels[file.path];
       if (settingLabel) {
         return [{ type: "setting", file, label: settingLabel, value: parsed }];
       }
 
-      const pair = provider.timelineLabels[file.path];
+      const pair = timelineLabels[file.path];
       let timelineLabel, category;
       if (pair) [timelineLabel, category] = pair;
 

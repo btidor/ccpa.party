@@ -19,7 +19,6 @@ type Props = {|
 |};
 
 function Timeline(props: Props): React.Node {
-  console.warn(props);
   const { provider, filter, selected } = props;
   const navigate = useNavigate();
 
@@ -48,7 +47,9 @@ function Timeline(props: Props): React.Node {
     );
   }, [provider, filter]);
 
-  const [items, setItems] = React.useState(([]: $ReadOnlyArray<TimelineEntry>));
+  const [items, setItems] = React.useState(
+    (undefined: ?$ReadOnlyArray<TimelineEntry>)
+  );
   React.useEffect(() => {
     (async () => {
       const db = await openFiles();
@@ -76,7 +77,7 @@ function Timeline(props: Props): React.Node {
       year: "numeric",
     }).format(new Date(item.timestamp * 1000));
 
-  const groups = items.reduce((state, item) => {
+  const groups = items?.reduce((state, item) => {
     const end = state.length - 1;
     const name = groupFunc(item);
     if (state[end]?.name !== name) {
@@ -88,7 +89,7 @@ function Timeline(props: Props): React.Node {
   }, []);
 
   const renderItem = (index) => {
-    if (!items[index]) return;
+    if (!items?.[index]) return;
     const lastInGroup =
       groupFunc &&
       items[index + 1] &&
@@ -120,69 +121,65 @@ function Timeline(props: Props): React.Node {
     <Theme provider={provider}>
       <Navigation provider={provider} pageSlug="timeline" />
       <main className="thin">
-        {!items ? (
-          <React.Fragment>📊 Loading...</React.Fragment>
-        ) : (
-          <div className={styles.container} style={{ "--left-width": "60vw" }}>
-            <div className={styles.left}>
-              <div className={styles.bar}>
-                {provider.timelineCategories.map((category) => {
-                  const checked = selectedCategories.has(category.slug);
-                  return (
-                    <div className={styles.filter} key={category.slug}>
-                      <input
-                        id={category.slug}
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => {
-                          let newFilter = provider.timelineCategories
-                            .filter((cat) =>
-                              cat.slug === category.slug
-                                ? !checked
-                                : selectedCategories.has(cat.slug)
-                            )
-                            .map((c) => c.char)
-                            .join("");
-                          if (newFilter === "") newFilter = "-";
+        <div className={styles.container} style={{ "--left-width": "60vw" }}>
+          <div className={styles.left}>
+            <div className={styles.bar}>
+              {provider.timelineCategories.map((category) => {
+                const checked = selectedCategories.has(category.slug);
+                return (
+                  <div className={styles.filter} key={category.slug}>
+                    <input
+                      id={category.slug}
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => {
+                        let newFilter = provider.timelineCategories
+                          .filter((cat) =>
+                            cat.slug === category.slug
+                              ? !checked
+                              : selectedCategories.has(cat.slug)
+                          )
+                          .map((c) => c.char)
+                          .join("");
+                        if (newFilter === "") newFilter = "-";
 
-                          navigate(`/${provider.slug}/timeline:${newFilter}`);
-                        }}
-                      />
-                      <label htmlFor={category.slug}>
-                        {category.displayName}
-                      </label>
-                    </div>
-                  );
-                })}
-              </div>
-              {items.length === 0 ? (
-                <code>No Results</code>
-              ) : (
-                <GroupedVirtuoso
-                  groupCounts={groups.map((g) => g.count)}
-                  groupContent={(index) => (
-                    <div className={styles.group}>{groups[index]?.name}</div>
-                  )}
-                  itemContent={renderItem}
-                />
+                        navigate(`/${provider.slug}/timeline:${newFilter}`);
+                      }}
+                    />
+                    <label htmlFor={category.slug}>
+                      {category.displayName}
+                    </label>
+                  </div>
+                );
+              })}
+            </div>
+            {!items || items.length === 0 ? (
+              <code className={styles.loading}>
+                {items ? "😮 No Results" : "📊 Loading..."}
+              </code>
+            ) : (
+              <GroupedVirtuoso
+                groupCounts={groups?.map((g) => g.count)}
+                groupContent={(index) => (
+                  <div className={styles.group}>{groups?.[index]?.name}</div>
+                )}
+                itemContent={renderItem}
+              />
+            )}
+          </div>
+          <div className={styles.right}>
+            <div className={styles.bar}>
+              {selected !== undefined &&
+                !!items?.[selected] &&
+                `From ${items[selected].file.path}:`}
+            </div>
+            <div className={styles.inspector}>
+              {selected !== undefined && !!items?.[selected] && (
+                <pre>{JSON.stringify(items[selected].value, undefined, 2)}</pre>
               )}
             </div>
-            <div className={styles.right}>
-              <div className={styles.bar}>
-                {selected !== undefined &&
-                  !!items[selected] &&
-                  `From ${items[selected].file.path}:`}
-              </div>
-              <div className={styles.inspector}>
-                {selected !== undefined && !!items[selected] && (
-                  <pre>
-                    {JSON.stringify(items[selected].value, undefined, 2)}
-                  </pre>
-                )}
-              </div>
-            </div>
           </div>
-        )}
+        </div>
       </main>
     </Theme>
   );

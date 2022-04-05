@@ -38,8 +38,6 @@ class Discord implements Provider {
   );
 
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
-  timelineLabels: { [string]: [string, string] } = {};
-  settingLabels: { [string]: string } = {};
 
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {
     return []; // TODO

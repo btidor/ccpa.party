@@ -53,9 +53,6 @@ class Slack implements Provider {
     },
   ];
 
-  timelineLabels: { [string]: [string, string] } = {};
-  settingLabels: { [string]: string } = {};
-
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {
     const users = new Map();
     const channels = new Map();

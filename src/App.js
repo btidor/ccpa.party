@@ -61,7 +61,6 @@ function App(): React.Node {
             // params.
 
             const parts = location.pathname.split("/");
-            console.warn(parts);
             parts.shift(); // empty due to leading slash
 
             const providerName = parts.shift();

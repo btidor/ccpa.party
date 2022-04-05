@@ -1,7 +1,7 @@
 .logo {
-  padding: 0.15rem 1rem;
+  padding: 0.125rem 1rem;
 
-  font-size: 20px;
+  font-size: 19px;
   line-height: 2;
   font-variant: small-caps;
   text-decoration: none;
@@ -13,5 +13,5 @@
 
 .logo sup {
   font-variant: normal;
-  font-size: 0.7em;
+  margin-left: 0.25ch;
 }

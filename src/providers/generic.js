@@ -17,11 +17,9 @@ class Generic implements Provider {
   instructions: React.Node = (<div />);
 
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
-  timelineLabels: { [string]: [string, string] } = {};
-  settingLabels: { [string]: string } = {};
 
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {
-    return files.flatMap((file) => autoParse(file, this));
+    return files.flatMap((file) => autoParse(file, {}, {}));
   }
 }
 
