@@ -17,7 +17,7 @@ import type { Provider } from "provider";
 
 type Props = {|
   backLink: ?string,
-  selected: ?Provider,
+  selected: ?Provider<any>,
 |};
 
 const Providers = [

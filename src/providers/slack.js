@@ -12,7 +12,9 @@ import SlackIcon from "icons/slack.svg";
 import type { Entry } from "parse";
 import type { DataFile, Provider } from "provider";
 
-class Slack implements Provider {
+type Category = "message";
+
+class Slack implements Provider<Category> {
   slug: string = "slack";
   displayName: string = "Slack";
   icon: React.Node = (<SlackIcon />);
@@ -44,7 +46,11 @@ class Slack implements Provider {
     </React.Fragment>
   );
 
-  activityLabels: { [string]: string } = {};
+  categoryLabels: $ReadOnlyMap<Category, string> = new Map([
+    ["message", "Message"],
+  ]);
+
+  timelineLabels: { [string]: [string, Category] } = {};
   settingLabels: { [string]: string } = {};
 
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {
@@ -70,7 +76,8 @@ class Slack implements Provider {
     }
 
     return messages.map(({ message, file }) => ({
-      type: "activity",
+      type: "timeline",
+      subtype: "message",
       file,
       timestamp: parseInt(message.ts),
       label: this.renderMessage(

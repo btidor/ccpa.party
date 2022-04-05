@@ -20,7 +20,7 @@ export type DataFile = {|
   data: ArrayBuffer,
 |};
 
-export interface Provider {
+export interface Provider<C> {
   +slug: string;
   +displayName: string;
   +icon: React.Node;
@@ -31,12 +31,13 @@ export interface Provider {
   +waitTime: string;
   +instructions: React.Node;
 
-  +activityLabels: { [string]: string };
+  +categoryLabels: $ReadOnlyMap<C, string>;
+  +timelineLabels: { [string]: [string, C] };
   +settingLabels: { [string]: string };
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry>;
 }
 
-export const ProviderRegistry: $ReadOnlyArray<Provider> = [
+export const ProviderRegistry: $ReadOnlyArray<Provider<any>> = [
   new Amazon(),
   new Apple(),
   new Discord(),
@@ -48,12 +49,12 @@ export const ProviderRegistry: $ReadOnlyArray<Provider> = [
   new Generic(),
 ];
 
-const ProviderLookup = new Map<string, Provider>();
+const ProviderLookup = new Map<string, Provider<any>>();
 ProviderRegistry.forEach((provider) =>
   ProviderLookup.set(provider.slug, provider)
 );
 
-export function getProvider(slug: string): Provider {
+export function getProvider(slug: string): Provider<any> {
   const provider = ProviderLookup.get(slug);
   if (provider === undefined) {
     throw new Error(`No such provider: ${slug}`);

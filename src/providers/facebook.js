@@ -9,7 +9,9 @@ import FacebookIcon from "icons/facebook.svg";
 import type { Entry } from "parse";
 import type { DataFile, Provider } from "provider";
 
-class Facebook implements Provider {
+type Category = "activity" | "content" | "notification" | "security";
+
+class Facebook implements Provider<Category> {
   slug: string = "facebook";
   displayName: string = "Facebook";
   icon: React.Node = (<FacebookIcon />);
@@ -58,31 +60,55 @@ class Facebook implements Provider {
     </ol>
   );
 
-  activityLabels: { [string]: string } = {
-    "apps_and_websites_off_of_facebook/apps_and_websites.json":
+  categoryLabels: $ReadOnlyMap<Category, string> = new Map([
+    ["activity", "Activity"],
+    ["content", "Content"],
+    ["notification", "Notifications"],
+    ["security", "Security Log"],
+  ]);
+
+  timelineLabels: { [string]: [string, Category] } = {
+    "apps_and_websites_off_of_facebook/apps_and_websites.json": [
       "Added/Removed App",
-    "comments_and_reactions/posts_and_comments.json": "Comment",
-    "comments_and_reactions/comments.json": "Comment",
-    "events/event_invitations.json": "Invited to Event",
-    "friends_and_followers/friend_requests_received.json":
+      "activity",
+    ],
+    "comments_and_reactions/posts_and_comments.json": ["Comment", "content"],
+    "comments_and_reactions/comments.json": ["Comment", "content"],
+    "events/event_invitations.json": ["Invited to Event", "activity"],
+    "friends_and_followers/friend_requests_received.json": [
       "Received Friend Request",
-    "friends_and_followers/friends.json": "Became Friends",
-    "friends_and_followers/rejected_friend_requests.json":
+      "activity",
+    ],
+    "friends_and_followers/friends.json": ["Became Friends", "activity"],
+    "friends_and_followers/rejected_friend_requests.json": [
       "Rejected Friend Request",
-    "friends_and_followers/removed_friends.json": "Un-Friended",
-    "groups/your_comments_in_groups.json": "Groups",
-    "groups/your_group_membership_activity.json": "Groups",
-    "groups/your_groups.json": "Joined Group",
-    "groups/your_posts_in_groups.json": "Groups",
-    "notifications/notifications.json": "Notification",
-    "pages/pages_you've_unfollowed.json": "Unfollowed Page",
-    "polls/polls_you_voted_on.json": "Polls",
-    "search/your_search_history.json": "Search",
-    "security_and_login_information/account_activity.json": "Security Log",
-    "security_and_login_information/email_address_verifications.json":
+      "activity",
+    ],
+    "friends_and_followers/removed_friends.json": ["Un-Friended", "activity"],
+    "groups/your_comments_in_groups.json": ["Groups", "content"],
+    "groups/your_group_membership_activity.json": ["Groups", "activity"],
+    "groups/your_groups.json": ["Joined Group", "activity"],
+    "groups/your_posts_in_groups.json": ["Groups", "content"],
+    "notifications/notifications.json": ["Notification", "notification"],
+    "pages/pages_you've_unfollowed.json": ["Unfollowed Page", "activity"],
+    "polls/polls_you_voted_on.json": ["Polls", "content"],
+    "search/your_search_history.json": ["Search", "activity"],
+    "security_and_login_information/account_activity.json": [
       "Security Log",
-    "security_and_login_information/logins_and_logouts.json": "Security Log",
-    "security_and_login_information/ip_address_activity.json": "Security Log",
+      "security",
+    ],
+    "security_and_login_information/email_address_verifications.json": [
+      "Security Log",
+      "security",
+    ],
+    "security_and_login_information/logins_and_logouts.json": [
+      "Security Log",
+      "security",
+    ],
+    "security_and_login_information/ip_address_activity.json": [
+      "Security Log",
+      "security",
+    ],
   };
 
   settingLabels: { [string]: string } = {
@@ -114,10 +140,10 @@ class Facebook implements Provider {
         const root = parsed.event_responses_v2;
         return (
           root.events_joined.map((e) =>
-            discoverEntry(file, e, "Event [Going]")
+            discoverEntry(file, e, "Event [Going]", "activity")
           ) +
           root.events_declined.map((e) =>
-            discoverEntry(file, e, "Event [Declined]")
+            discoverEntry(file, e, "Event [Declined]", "activity")
           )
         );
       } else {

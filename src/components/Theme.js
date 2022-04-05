@@ -6,7 +6,7 @@ import { getLiteColor } from "provider";
 import type { Provider } from "provider";
 
 type Props = {|
-  provider: Provider,
+  provider: Provider<any>,
   children: React.Node,
 |};
 

@@ -8,17 +8,13 @@ import Theme from "components/Theme";
 import { openFiles } from "parse";
 import { getProvider } from "provider";
 
-import type { ActivityEntry } from "parse";
+import type { TimelineEntry } from "parse";
 
-const categories = [
-  { title: "Activity", filter: (e) => e.type === "activity" },
-];
-
-function Activity(): React.Node {
+function Timeline(): React.Node {
   const params = useParams();
   const provider = getProvider(params.provider);
 
-  const [items, setItems] = React.useState(([]: $ReadOnlyArray<ActivityEntry>));
+  const [items, setItems] = React.useState(([]: $ReadOnlyArray<TimelineEntry>));
   React.useEffect(() => {
     (async () => {
       const db = await openFiles();
@@ -30,18 +26,23 @@ function Activity(): React.Node {
 
       const items = (provider
         .parse(files)
-        .filter((e) => e.type === "activity"): any);
+        .filter((e) => e.type === "timeline"): any);
       items.sort((a, b) => b.timestamp - a.timestamp);
       setItems(items);
     })();
   }, [provider]);
+
+  const categories = [...provider.categoryLabels.entries()].map(([k, v]) => ({
+    title: v,
+    filter: (e) => e.subtype === k,
+  }));
 
   return (
     <Theme provider={provider}>
       <Navigation provider={provider} />
       <main className="thin">
         <Drilldown
-          baseLink={`/${provider.slug}/activity`}
+          baseLink={`/${provider.slug}/timeline`}
           categories={categories}
           drilldownTitle={(item) => `From ${item.file.path}:`}
           grouper={(item) =>
@@ -65,4 +66,4 @@ function Activity(): React.Node {
   );
 }
 
-export default Activity;
+export default Timeline;

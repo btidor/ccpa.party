@@ -25,9 +25,11 @@ function Drilldown<T, U>(props: Props<T, U>): React.Node {
   const [filters, setFilters] = React.useState(categories || []);
   const id = typeof selected === "string" ? parseInt(selected) : selected;
 
-  const filtered = items
-    ? items.filter((i) => filters.some((f) => f.filter(i)))
-    : [];
+  const filtered = categories
+    ? items
+      ? items.filter((i) => filters.some((f) => f.filter(i)))
+      : []
+    : items || [];
 
   let groups;
   if (grouper) {
@@ -84,12 +86,17 @@ function Drilldown<T, U>(props: Props<T, U>): React.Node {
               categories.map((category) => (
                 <button
                   className={
-                    filters.includes(category) ? styles.selected : undefined
+                    filters.some((f) => f.title === category.title)
+                      ? styles.selected
+                      : undefined
                   }
                   key={category.title}
                   onClick={() => {
-                    const updated = filters.filter((f) => f !== category);
-                    if (!filters.includes(category)) updated.push(category);
+                    const updated = filters.filter(
+                      (f) => f.title !== category.title
+                    );
+                    if (!filters.some((f) => f.title === category.title))
+                      updated.push(category);
                     setFilters(updated);
                   }}
                 >
@@ -111,10 +118,14 @@ function Drilldown<T, U>(props: Props<T, U>): React.Node {
         </div>
         <div className={styles.right}>
           <div className={styles.bar}>
-            {id && !!items[id] && props.drilldownTitle(items[id])}
+            {id !== undefined &&
+              !!filtered[id] &&
+              props.drilldownTitle(filtered[id])}
           </div>
           <div className={styles.inspector}>
-            {id && !!items[id] && props.renderDrilldown(items[id])}
+            {id !== undefined &&
+              !!filtered[id] &&
+              props.renderDrilldown(filtered[id])}
           </div>
         </div>
       </div>

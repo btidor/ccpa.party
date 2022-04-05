@@ -2,7 +2,7 @@
 import * as React from "react";
 import { Routes, Route } from "react-router-dom";
 
-import Activity from "Activity";
+import Timeline from "Timeline";
 import Files from "Files";
 import Home from "Home";
 
@@ -45,8 +45,8 @@ function App(): React.Node {
         <Route path="/:provider/import" element={<Home import />} />
         <Route path="/:provider/files" element={<Files />} />
         <Route path="/:provider/files/:id" element={<Files />} />
-        <Route path="/:provider/activity" element={<Activity />} />
-        <Route path="/:provider/activity/:id" element={<Activity />} />
+        <Route path="/:provider/timeline" element={<Timeline />} />
+        <Route path="/:provider/timeline/:id" element={<Timeline />} />
         <Route
           path="*"
           element={

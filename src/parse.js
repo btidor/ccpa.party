@@ -4,8 +4,9 @@ import * as React from "react";
 
 import type { DataFile, Provider } from "provider";
 
-export type ActivityEntry = {|
-  type: "activity",
+export type TimelineEntry = {|
+  type: "timeline",
+  subtype: string,
   file: DataFile,
   timestamp: number,
   label: React.Node,
@@ -29,7 +30,7 @@ export type UnknownEntry = {|
   file: DataFile,
 |};
 
-export type Entry = ActivityEntry | MediaEntry | SettingEntry | UnknownEntry;
+export type Entry = TimelineEntry | MediaEntry | SettingEntry | UnknownEntry;
 
 export function openFiles(): Promise<any> {
   return openDB("import", 1, {
@@ -44,7 +45,7 @@ export function openFiles(): Promise<any> {
 
 export function autoParse(
   file: DataFile,
-  provider: Provider
+  provider: Provider<any>
 ): $ReadOnlyArray<Entry> {
   const ext = file.path.split(".").slice(-1)[0];
   switch (ext) {
@@ -56,15 +57,20 @@ export function autoParse(
         return [{ type: "setting", file, label: settingLabel, value: parsed }];
       }
 
-      const activityLabel = provider.activityLabels[file.path];
+      const pair = provider.timelineLabels[file.path];
+      let timelineLabel, category;
+      if (pair) [timelineLabel, category] = pair;
+
       if (Array.isArray(parsed)) {
-        return parsed.map((entry) => discoverEntry(file, entry, activityLabel));
+        return parsed.map((entry) =>
+          discoverEntry(file, entry, timelineLabel, category)
+        );
       }
 
       const keys = Object.keys(parsed);
       if (keys.length === 1 && Array.isArray(parsed[keys[0]])) {
         return parsed[keys[0]].map((entry) =>
-          discoverEntry(file, entry, activityLabel)
+          discoverEntry(file, entry, timelineLabel, category)
         );
       }
 
@@ -81,7 +87,8 @@ export function autoParse(
 export function discoverEntry(
   file: DataFile,
   obj: any,
-  activityLabel: ?string
+  timelineLabel: ?string,
+  subtype: string
 ): Entry {
   const label =
     obj.name ||
@@ -103,12 +110,13 @@ export function discoverEntry(
 
   if (timestamp) {
     return {
-      type: "activity",
+      type: "timeline",
+      subtype,
       timestamp,
       file,
       label: (
         <React.Fragment>
-          ({activityLabel || "unknown: " + file.path}) {label}
+          ({timelineLabel || "unknown: " + file.path}) {label}
         </React.Fragment>
       ),
       value: obj,

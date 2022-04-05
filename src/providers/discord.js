@@ -8,7 +8,7 @@ import DiscordIcon from "icons/discord.svg";
 import type { Entry } from "parse";
 import type { DataFile, Provider } from "provider";
 
-class Discord implements Provider {
+class Discord implements Provider<void> {
   slug: string = "discord";
   displayName: string = "Discord";
   icon: React.Node = (<DiscordIcon />);
@@ -37,7 +37,8 @@ class Discord implements Provider {
     </ol>
   );
 
-  activityLabels: { [string]: string } = {};
+  categoryLabels: $ReadOnlyMap<void, string> = new Map();
+  timelineLabels: { [string]: [string, void] } = {};
   settingLabels: { [string]: string } = {};
 
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {

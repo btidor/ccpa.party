@@ -8,7 +8,7 @@ import AmazonIcon from "icons/amazon.svg";
 import type { Entry } from "parse";
 import type { DataFile, Provider } from "provider";
 
-class Amazon implements Provider {
+class Amazon implements Provider<void> {
   slug: string = "amazon";
   displayName: string = "Amazon";
   icon: React.Node = (<AmazonIcon />);
@@ -37,7 +37,8 @@ class Amazon implements Provider {
     </ol>
   );
 
-  activityLabels: { [string]: string } = {};
+  categoryLabels: $ReadOnlyMap<void, string> = new Map();
+  timelineLabels: { [string]: [string, void] } = {};
   settingLabels: { [string]: string } = {};
 
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {

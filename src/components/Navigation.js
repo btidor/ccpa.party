@@ -11,21 +11,21 @@ import styles from "components/Navigation.module.css";
 import type { Provider } from "provider";
 
 const links = [
-  { label: "Activity", to: "activity" },
+  { label: "Timeline", to: "timeline" },
   { label: "Files", to: "files" },
 ];
 
 const importTag = "__import__";
 
 type Props = {|
-  provider: Provider,
+  provider: Provider<any>,
 |};
 
 function Navigation(props: Props): React.Node {
   const navigate = useNavigate();
   const location = useLocation();
   const [providers, setProviders] = React.useState(
-    (undefined: ?$ReadOnlyArray<Provider>)
+    (undefined: ?$ReadOnlyArray<Provider<any>>)
   );
 
   React.useEffect(() => {

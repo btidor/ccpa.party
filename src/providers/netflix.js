@@ -8,7 +8,7 @@ import { ExternalLink } from "components/Links";
 import type { Entry } from "parse";
 import type { DataFile, Provider } from "provider";
 
-class Netflix implements Provider {
+class Netflix implements Provider<void> {
   slug: string = "netflix";
   displayName: string = "Netflix";
   icon: React.Node = (<NetflixIcon />);
@@ -31,7 +31,8 @@ class Netflix implements Provider {
     </ol>
   );
 
-  activityLabels: { [string]: string } = {};
+  categoryLabels: $ReadOnlyMap<void, string> = new Map();
+  timelineLabels: { [string]: [string, void] } = {};
   settingLabels: { [string]: string } = {};
 
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {

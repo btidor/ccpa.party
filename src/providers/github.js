@@ -8,7 +8,7 @@ import GitHubIcon from "icons/github.svg";
 import type { Entry } from "parse";
 import type { DataFile, Provider } from "provider";
 
-class GitHub implements Provider {
+class GitHub implements Provider<void> {
   slug: string = "github";
   displayName: string = "GitHub";
   icon: React.Node = (<GitHubIcon />);
@@ -32,7 +32,8 @@ class GitHub implements Provider {
     </ol>
   );
 
-  activityLabels: { [string]: string } = {};
+  categoryLabels: $ReadOnlyMap<void, string> = new Map();
+  timelineLabels: { [string]: [string, void] } = {};
   settingLabels: { [string]: string } = {};
 
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {

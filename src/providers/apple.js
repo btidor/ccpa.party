@@ -8,7 +8,7 @@ import AppleIcon from "icons/apple.svg";
 import type { Entry } from "parse";
 import type { DataFile, Provider } from "provider";
 
-class Apple implements Provider {
+class Apple implements Provider<void> {
   slug: string = "apple";
   displayName: string = "Apple";
   icon: React.Node = (<AppleIcon />);
@@ -37,7 +37,8 @@ class Apple implements Provider {
     </ol>
   );
 
-  activityLabels: { [string]: string } = {};
+  categoryLabels: $ReadOnlyMap<void, string> = new Map();
+  timelineLabels: { [string]: [string, void] } = {};
   settingLabels: { [string]: string } = {};
 
   parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {
