@@ -60,3 +60,16 @@ export function getProvider(slug: string): Provider {
   }
   return provider;
 }
+
+export function getLiteColor(base: string): string {
+  if (!base.startsWith("#")) throw new Error("Can't parse color " + base);
+  if (base.length === 4) base = base + base.slice(1);
+  if (base.length !== 7) throw new Error("Can't parse color " + base);
+  const parsed = [
+    parseInt(base.slice(1, 3), 16),
+    parseInt(base.slice(3, 5), 16),
+    parseInt(base.slice(5, 7), 16),
+  ];
+  const lite = parsed.map((c) => Math.min(Math.round(192 + c / 4), 255));
+  return "#" + lite.map((c) => c.toString(16)).join("");
+}

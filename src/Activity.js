@@ -10,6 +10,10 @@ import { getProvider } from "provider";
 
 import type { ActivityEntry } from "parse";
 
+const categories = [
+  { title: "Activity", filter: (e) => e.type === "activity" },
+];
+
 function Activity(): React.Node {
   const params = useParams();
   const provider = getProvider(params.provider);
@@ -38,6 +42,8 @@ function Activity(): React.Node {
       <main className="thin">
         <Drilldown
           baseLink={`/${provider.slug}/activity`}
+          categories={categories}
+          drilldownTitle={(item) => `From ${item.file.path}:`}
           grouper={(item) =>
             new Intl.DateTimeFormat("en-US", {
               weekday: "long",
@@ -50,10 +56,7 @@ function Activity(): React.Node {
           listWidth="60vw"
           renderRow={(item) => item.label}
           renderDrilldown={(item) => (
-            <pre>
-              From {item.file.path}:{"\n"}
-              {JSON.stringify(item.value, undefined, 2)}
-            </pre>
+            <pre>{JSON.stringify(item.value, undefined, 2)}</pre>
           )}
           selected={params.id}
         />

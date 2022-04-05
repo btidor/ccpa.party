@@ -5,8 +5,12 @@ import { GroupedVirtuoso, Virtuoso } from "react-virtuoso";
 
 import styles from "components/Drilldown.module.css";
 
+type Category<T> = {| title: string, filter: (T) => boolean |};
+
 type Props<T, U> = {|
   baseLink: string,
+  categories?: $ReadOnlyArray<Category<T>>,
+  drilldownTitle: (T) => string,
   items: ?$ReadOnlyArray<T>,
   grouper?: (T) => U,
   listWidth: string,
@@ -17,39 +21,17 @@ type Props<T, U> = {|
 
 function Drilldown<T, U>(props: Props<T, U>): React.Node {
   const navigate = useNavigate();
-  const { grouper, items, selected } = props;
+  const { categories, grouper, items, selected } = props;
+  const [filters, setFilters] = React.useState(categories || []);
   const id = typeof selected === "string" ? parseInt(selected) : selected;
 
-  const renderItem = (index) => {
-    if (!items || !items[index]) return;
-    const lastInGroup =
-      grouper &&
-      items[index + 1] &&
-      grouper(items[index]) !== grouper(items[index + 1]);
-    return (
-      <React.Fragment>
-        <div
-          onClick={() =>
-            navigate(
-              props.baseLink + (id === index ? "" : `/${index.toString()}`)
-            )
-          }
-          className={
-            styles.listItem + (!items[index + 1] ? " " + styles.last : "")
-          }
-          role="row"
-          aria-selected={id === index}
-        >
-          {props.renderRow(items[index])}
-        </div>
-        {lastInGroup && <hr className={styles.divider} />}
-      </React.Fragment>
-    );
-  };
+  const filtered = items
+    ? items.filter((i) => filters.some((f) => f.filter(i)))
+    : [];
 
   let groups;
-  if (items && grouper) {
-    groups = items.reduce((state, item) => {
+  if (grouper) {
+    groups = filtered.reduce((state, item) => {
       const end = state.length - 1;
       const name = grouper(item);
       if (state[end]?.name !== name) {
@@ -61,15 +43,60 @@ function Drilldown<T, U>(props: Props<T, U>): React.Node {
     }, []);
   }
 
+  const renderItem = (index) => {
+    if (!filtered[index]) return;
+    const lastInGroup =
+      grouper &&
+      filtered[index + 1] &&
+      grouper(filtered[index]) !== grouper(filtered[index + 1]);
+    return (
+      <React.Fragment>
+        <div
+          onClick={() =>
+            navigate(
+              props.baseLink + (id === index ? "" : `/${index.toString()}`)
+            )
+          }
+          className={
+            styles.listItem + (!filtered[index + 1] ? " " + styles.last : "")
+          }
+          role="row"
+          aria-selected={id === index}
+        >
+          {props.renderRow(filtered[index])}
+        </div>
+        {lastInGroup && <hr className={styles.divider} />}
+      </React.Fragment>
+    );
+  };
+
   if (!items) {
     return <React.Fragment>📊 Loading...</React.Fragment>;
   } else {
     return (
       <div
-        className={styles.drilldown}
-        style={{ "--list-width": props.listWidth }}
+        className={styles.container}
+        style={{ "--left-width": props.listWidth }}
       >
-        <div className={styles.list}>
+        <div className={styles.left}>
+          <div className={styles.bar}>
+            {categories &&
+              categories.map((category) => (
+                <button
+                  className={
+                    filters.includes(category) ? styles.selected : undefined
+                  }
+                  key={category.title}
+                  onClick={() => {
+                    const updated = filters.filter((f) => f !== category);
+                    if (!filters.includes(category)) updated.push(category);
+                    setFilters(updated);
+                  }}
+                >
+                  {category.title}
+                </button>
+              ))}
+          </div>
           {groups ? (
             <GroupedVirtuoso
               groupCounts={groups.map((g) => g.count)}
@@ -82,8 +109,13 @@ function Drilldown<T, U>(props: Props<T, U>): React.Node {
             <Virtuoso totalCount={items.length} itemContent={renderItem} />
           )}
         </div>
-        <div className={styles.inspector}>
-          {id && !!items[id] && props.renderDrilldown(items[id])}
+        <div className={styles.right}>
+          <div className={styles.bar}>
+            {id && !!items[id] && props.drilldownTitle(items[id])}
+          </div>
+          <div className={styles.inspector}>
+            {id && !!items[id] && props.renderDrilldown(items[id])}
+          </div>
         </div>
       </div>
     );

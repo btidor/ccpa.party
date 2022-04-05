@@ -35,6 +35,7 @@ function Files(): React.Node {
       <main className="thin">
         <Drilldown
           baseLink={`/${provider.slug}/files`}
+          drilldownTitle={(item) => item.path}
           items={items}
           listWidth="30vw"
           renderRow={(item) => <div className={styles.row}>{item.path}</div>}
