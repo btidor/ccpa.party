@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { GroupedVirtuoso } from "react-virtuoso";
+import { Virtuoso } from "react-virtuoso";
 
 import Navigation from "components/Navigation";
 import Theme from "components/Theme";
@@ -17,6 +17,23 @@ type Props = {|
   +filter?: string,
   +selected?: number,
 |};
+
+function grouper(item: TimelineEntry): [string, string] {
+  const date = new Date(item.timestamp * 1000);
+  const display = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+  const iso =
+    date.getFullYear().toString() +
+    "-" +
+    (date.getMonth() + 1).toString().padStart(2, "0") +
+    "-" +
+    date.getDate().toString().padStart(2, "0");
+  return [display, iso];
+}
 
 function Timeline(props: Props): React.Node {
   const { provider, filter, selected } = props;
@@ -50,6 +67,7 @@ function Timeline(props: Props): React.Node {
   const [items, setItems] = React.useState(
     (undefined: ?$ReadOnlyArray<TimelineEntry>)
   );
+  const [start, setStart] = React.useState(0);
   React.useEffect(() => {
     (async () => {
       const db = await openFiles();
@@ -59,43 +77,49 @@ function Timeline(props: Props): React.Node {
         provider.slug
       );
 
-      const items = (provider
-        .parse(files)
-        .filter(
-          (e) => e.type === "timeline" && selectedCategories.has(e.category)
-        ): any);
-      items.sort((a, b) => b.timestamp - a.timestamp);
+      const parsed = ((provider.parse(files): any).filter(
+        (e) => e.type === "timeline" && selectedCategories.has(e.category)
+      ): Array<TimelineEntry>);
+      parsed.sort((a, b) => b.timestamp - a.timestamp);
+
+      const items = [];
+      let lastGroup;
+      for (const entry of parsed) {
+        if (!lastGroup) {
+          lastGroup = grouper(entry);
+          items.push({
+            type: "group",
+            label: lastGroup[0],
+            value: lastGroup[1],
+            first: true,
+          });
+        } else if (grouper(entry)[1] !== lastGroup[1]) {
+          lastGroup = grouper(entry);
+          items.push({
+            type: "group",
+            label: lastGroup[0],
+            value: lastGroup[1],
+          });
+        }
+        items.push(entry);
+      }
       setItems(items);
     })();
   }, [provider, selectedCategories]);
 
-  const groupFunc = (item) =>
-    new Intl.DateTimeFormat("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    }).format(new Date(item.timestamp * 1000));
-
-  const groups = items?.reduce((state, item) => {
-    const end = state.length - 1;
-    const name = groupFunc(item);
-    if (state[end]?.name !== name) {
-      state.push({ name, count: 1 });
-    } else {
-      state[end].count++;
-    }
-    return state;
-  }, []);
-
   const renderItem = (index) => {
     if (!items?.[index]) return;
-    const lastInGroup =
-      groupFunc &&
-      items[index + 1] &&
-      groupFunc(items[index]) !== groupFunc(items[index + 1]);
-    return (
-      <React.Fragment>
+    if (items[index].type === "group") {
+      return (
+        <React.Fragment>
+          {!items[index].first && <hr className={styles.divider} />}
+          <div className={styles.group} role="row">
+            {items[index].label}
+          </div>
+        </React.Fragment>
+      );
+    } else {
+      return (
         <div
           onClick={() =>
             filter &&
@@ -104,18 +128,24 @@ function Timeline(props: Props): React.Node {
                 (selected === index ? "" : `@${index.toString()}`)
             )
           }
-          className={
-            styles.listItem + (!items[index + 1] ? " " + styles.last : "")
-          }
+          className={styles.listItem}
           role="row"
           aria-selected={selected === index}
         >
           {items[index].label}
         </div>
-        {lastInGroup && <hr className={styles.divider} />}
-      </React.Fragment>
-    );
+      );
+    }
   };
+
+  const virtuoso = React.useRef<any>();
+  const [loaded, setLoaded] = React.useState(false);
+  React.useEffect(() => {
+    if (!loaded && virtuoso.current) {
+      if (selected) virtuoso.current.scrollToIndex(selected);
+      setLoaded(true);
+    }
+  }, [items, selected, loaded, virtuoso]);
 
   return (
     <Theme provider={provider}>
@@ -152,31 +182,63 @@ function Timeline(props: Props): React.Node {
                   </div>
                 );
               })}
+              <div className={styles.grow}></div>
+              <div className={styles.activeGroup}>
+                {(() => {
+                  if (!items || !items[start]) return;
+                  const [label, value] =
+                    items[start].type === "timeline"
+                      ? grouper(items[start])
+                      : [items[start].label, items[start].value];
+                  return (
+                    <React.Fragment>
+                      <label>
+                        {label}
+                        <input
+                          type="date"
+                          value={value}
+                          onChange={(e) => {
+                            let target = 0;
+                            for (const [index, item] of items.entries()) {
+                              if (item.type !== "group") continue;
+                              if (item.value < e.target.value) break;
+                              target = index;
+                            }
+                            virtuoso.current.scrollToIndex(target);
+                          }}
+                        />
+                      </label>
+                    </React.Fragment>
+                  );
+                })()}
+              </div>
             </div>
             {!items || items.length === 0 ? (
               <code className={styles.loading}>
                 {items ? "😮 No Results" : "📊 Loading..."}
               </code>
             ) : (
-              <GroupedVirtuoso
-                groupCounts={groups?.map((g) => g.count)}
-                groupContent={(index) => (
-                  <div className={styles.group}>{groups?.[index]?.name}</div>
-                )}
+              <Virtuoso
+                ref={virtuoso}
+                totalCount={items.length}
                 itemContent={renderItem}
+                rangeChanged={(range) => setStart(range.startIndex)}
               />
             )}
           </div>
           <div className={styles.right}>
             <div className={styles.bar}>
               {selected !== undefined &&
-                !!items?.[selected] &&
+                items?.[selected]?.type === "timeline" &&
                 `From ${items[selected].file.path}:`}
             </div>
             <div className={styles.inspector}>
-              {selected !== undefined && !!items?.[selected] && (
-                <pre>{JSON.stringify(items[selected].value, undefined, 2)}</pre>
-              )}
+              {selected !== undefined &&
+                items?.[selected]?.type === "timeline" && (
+                  <pre>
+                    {JSON.stringify(items[selected].value, undefined, 2)}
+                  </pre>
+                )}
             </div>
           </div>
         </div>
