@@ -2,11 +2,11 @@
 import * as React from "react";
 
 import { ExternalLink } from "components/Links";
-import { autoParse, discoverEntry, parseJSON } from "parse";
+import { autoParse, discoverEntry, parseJSON } from "database";
 
 import FacebookIcon from "icons/facebook.svg";
 
-import type { DataFile, TimelineEntry } from "parse";
+import type { DataFile, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
 class Facebook implements Provider {
@@ -153,14 +153,13 @@ class Facebook implements Provider {
     } else if (file.path === "events/your_event_responses.json") {
       const parsed = parseJSON(file);
       const root = parsed.event_responses_v2;
-      return (
-        root.events_joined.map((e) =>
-          discoverEntry(file, e, "Event [Going]", "activity")
-        ) +
-        root.events_declined.map((e) =>
-          discoverEntry(file, e, "Event [Declined]", "activity")
-        )
-      );
+      return root.events_joined
+        .map((e) => discoverEntry(file, e, "Event [Going]", "activity"))
+        .concat(
+          root.events_declined.map((e) =>
+            discoverEntry(file, e, "Event [Declined]", "activity")
+          )
+        );
     } else {
       return autoParse(file, this.timelineLabels, this.settingLabels);
     }

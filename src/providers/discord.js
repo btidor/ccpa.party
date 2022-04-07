@@ -5,7 +5,7 @@ import { ExternalLink } from "components/Links";
 
 import DiscordIcon from "icons/discord.svg";
 
-import type { DataFile, TimelineEntry } from "parse";
+import type { DataFile, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
 class Discord implements Provider {

@@ -5,11 +5,11 @@ import { Virtuoso } from "react-virtuoso";
 
 import Navigation from "components/Navigation";
 import Theme from "components/Theme";
-import { openFiles } from "parse";
+import { Database } from "database";
 
 import styles from "Drilldown.module.css";
 
-import type { DataFile } from "parse";
+import type { DataFile } from "database";
 import type { Provider } from "provider";
 
 type Props = {|
@@ -27,23 +27,13 @@ function Files(props: Props): React.Node {
   const [item, setItem] = React.useState((undefined: ?DataFile));
   React.useEffect(() => {
     (async () => {
-      const db = await openFiles();
-      const files = await db.getAllFromIndex(
-        "files",
-        "provider",
-        provider.slug
-      );
+      const db = new Database();
+      const files = await db.getFilesForProvider(provider);
       setItems(files);
 
       selected &&
         files[selected] &&
-        setItem(
-          await db.get("fileData", [
-            provider.slug,
-            files[selected].archive,
-            files[selected].path,
-          ])
-        );
+        setItem(await db.getFileWithData(files[selected]));
     })();
   }, [provider, selected]);
 

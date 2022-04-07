@@ -5,11 +5,11 @@ import { Virtuoso } from "react-virtuoso";
 
 import Navigation from "components/Navigation";
 import Theme from "components/Theme";
-import { openFiles } from "parse";
+import { Database } from "database";
 
 import styles from "Drilldown.module.css";
 
-import type { TimelineEntry } from "parse";
+import type { TimelineEntry } from "database";
 import type { Provider } from "provider";
 
 type Props = {|
@@ -61,18 +61,17 @@ function Timeline(props: Props): React.Node {
   const [start, setStart] = React.useState(0);
   React.useEffect(() => {
     (async () => {
-      const db = await openFiles();
-      const parsed = ((
-        await db.getAllFromIndex("parsed", "provider", provider.slug)
-      ).filter((e) =>
+      const db = new Database();
+      const parsed = ((await db.getParsedsForProvider(provider)).filter((e) =>
         selectedCategories.has(e.category)
       ): Array<TimelineEntry>);
       parsed.sort((a, b) => b.timestamp - a.timestamp);
 
       const metadata = new Map(
-        (await db.getAllFromIndex("metadata", "provider", provider.slug)).map(
-          (e) => [e.key, e.value]
-        )
+        (await db.getMetadatasForProvider(provider)).map((e) => [
+          e.key,
+          e.value,
+        ])
       );
       setMetadata(metadata);
 

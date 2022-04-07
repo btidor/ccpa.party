@@ -10,7 +10,7 @@ import Numeral from "components/Numeral";
 import ProviderList from "components/ProviderList";
 
 import Import from "Import";
-import { openFiles } from "parse";
+import { Database } from "database";
 
 import styles from "Home.module.css";
 
@@ -32,13 +32,11 @@ function Home(props: Props): React.Node {
   React.useEffect(() => {
     provider &&
       (async () => {
-        const db = await openFiles();
-        const exists = await db.getFromIndex(
-          "files",
-          "provider",
-          provider.slug
+        const db = new Database();
+        const exists = await db.getFilesForProvider(provider);
+        setInspectLink(
+          `/${provider.slug}/` + (exists.length ? "files" : "import")
         );
-        setInspectLink(`/${provider.slug}/` + (exists ? "files" : "import"));
       })();
   }, [provider]);
 

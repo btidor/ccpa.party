@@ -3,7 +3,7 @@ import * as React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import Logo from "components/Logo";
-import { openFiles } from "parse";
+import { Database } from "database";
 import { ProviderRegistry } from "provider";
 
 import styles from "components/Navigation.module.css";
@@ -32,9 +32,9 @@ function Navigation(props: Props): React.Node {
 
   React.useEffect(() => {
     (async () => {
-      const db = await openFiles();
+      const db = new Database();
       const active = new Set<string>();
-      const files = await db.getAll("files");
+      const files = await db.getAllFiles();
       files.forEach((file) => active.add(file.provider));
       setProviders(
         ProviderRegistry.filter((provider) => active.has(provider.slug))

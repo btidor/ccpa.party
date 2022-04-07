@@ -11,7 +11,7 @@ import Google from "providers/google";
 import Netflix from "providers/netflix";
 import Slack from "providers/slack";
 
-import type { DataFile, MetadataEntry, TimelineEntry } from "parse";
+import type { DataFile, MetadataEntry, TimelineEntry } from "database";
 
 export type TimelineCategory = {|
   +slug: string,

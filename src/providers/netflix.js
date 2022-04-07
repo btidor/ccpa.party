@@ -5,7 +5,7 @@ import NetflixIcon from "icons/netflix.svg";
 
 import { ExternalLink } from "components/Links";
 
-import type { DataFile, TimelineEntry } from "parse";
+import type { DataFile, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
 class Netflix implements Provider {

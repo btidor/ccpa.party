@@ -3,11 +3,11 @@ import * as React from "react";
 import { unzip } from "unzipit";
 
 import { InternalLink } from "components/Links";
-import { openFiles } from "parse";
+import { Database } from "database";
 
 import styles from "Import.module.css";
 
-import type { DataFile } from "parse";
+import type { DataFile } from "database";
 import type { Provider } from "provider";
 
 type Props = {| +provider: Provider |};
@@ -33,7 +33,7 @@ function Import(props: Props): React.Node {
 
     setStatus("Importing...");
     const start = Date.now();
-    const db = await openFiles();
+    const db = new Database();
 
     let total = 0;
     for (const file of files) {
@@ -61,16 +61,13 @@ function Import(props: Props): React.Node {
             archive,
             path: rpath,
           }: DataFile);
-          db.put("files", dataFile);
-          db.put("fileData", { ...dataFile, data });
+          await db.putFile({ ...dataFile, data });
 
           const parsed = provider.parse({ ...dataFile, data });
           if (!Array.isArray(parsed) && parsed.type === "metadata") {
-            db.put("metadata", { ...parsed, provider: provider.slug });
+            await db.putMetadata(provider, parsed);
           } else {
-            for (const entry of parsed) {
-              db.put("parsed", { ...entry, provider: provider.slug });
-            }
+            db.putParseds(provider, parsed);
           }
         }
       }

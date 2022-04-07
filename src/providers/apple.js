@@ -5,7 +5,7 @@ import { ExternalLink } from "components/Links";
 
 import AppleIcon from "icons/apple.svg";
 
-import type { DataFile, TimelineEntry } from "parse";
+import type { DataFile, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
 class Apple implements Provider {

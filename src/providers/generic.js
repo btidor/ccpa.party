@@ -1,9 +1,9 @@
 // @flow
 import * as React from "react";
 
-import { autoParse } from "parse";
+import { autoParse } from "database";
 
-import type { DataFile, TimelineEntry } from "parse";
+import type { DataFile, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
 class Generic implements Provider {

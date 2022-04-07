@@ -3,13 +3,13 @@ import EmojiMap from "emoji-name-map";
 import * as React from "react";
 
 import { ExternalLink } from "components/Links";
-import { getDay, parseJSON } from "parse";
+import { getDay, parseJSON } from "database";
 
 import styles from "providers/slack.module.css";
 
 import SlackIcon from "icons/slack.svg";
 
-import type { DataFile, MetadataEntry, TimelineEntry } from "parse";
+import type { DataFile, MetadataEntry, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
 class Slack implements Provider {
@@ -82,7 +82,7 @@ class Slack implements Provider {
             timestamp: parseInt(log.date),
             day: getDay(parseInt(log.date)),
             context: null,
-            value: JSON.stringify(log),
+            value: log,
           }: TimelineEntry)
       );
     } else {
@@ -95,7 +95,7 @@ class Slack implements Provider {
             timestamp: parseInt(message.ts),
             day: getDay(parseInt(message.ts)),
             context: file.path.split("/")[0],
-            value: JSON.stringify(message),
+            value: message,
           }: TimelineEntry)
       );
     }
@@ -105,7 +105,7 @@ class Slack implements Provider {
     entry: TimelineEntry,
     metadata: $ReadOnlyMap<string, any>
   ): React.Node {
-    const message = JSON.parse(entry.value);
+    const message = entry.value;
     const users = (metadata.get("users"): ?$ReadOnlyMap<string, any>);
     const channels = (metadata.get("channels"): ?$ReadOnlyMap<string, any>);
 
