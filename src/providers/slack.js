@@ -3,13 +3,13 @@ import EmojiMap from "emoji-name-map";
 import * as React from "react";
 
 import { ExternalLink } from "components/Links";
-import { parseJSON } from "parse";
+import { getDay, parseJSON } from "parse";
 
 import styles from "providers/slack.module.css";
 
 import SlackIcon from "icons/slack.svg";
 
-import type { Entry } from "parse";
+import type { MetadataEntry, TimelineEntry } from "parse";
 import type { DataFile, Provider, TimelineCategory } from "provider";
 
 class Slack implements Provider {
@@ -51,54 +51,72 @@ class Slack implements Provider {
       displayName: "Messages",
       defaultEnabled: true,
     },
+    {
+      char: "i",
+      slug: "integration",
+      displayName: "Integration Logs",
+      defaultEnabled: false,
+    },
   ];
 
-  parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {
-    const users = new Map();
-    const channels = new Map();
-    const messages = [];
-    for (const file of files) {
-      if (file.path === "users.json") {
-        for (const user of parseJSON(file)) {
-          users.set(user.id, user);
-        }
-      } else if (file.path === "channels.json") {
-        for (const channel of parseJSON(file)) {
-          channels.set(channel.id, channel);
-        }
-      } else if (file.path === "integration_logs.json") {
-        // Skip
-      } else {
-        for (const message of parseJSON(file)) {
-          messages.push({ message, file });
-        }
+  parse(file: DataFile): $ReadOnlyArray<TimelineEntry> | MetadataEntry {
+    if (file.path === "users.json") {
+      const users = new Map();
+      for (const user of parseJSON(file)) {
+        users.set(user.id, user);
       }
+      return { type: "metadata", key: "users", value: users };
+    } else if (file.path === "channels.json") {
+      const channels = new Map();
+      for (const channel of parseJSON(file)) {
+        channels.set(channel.id, channel);
+      }
+      return { type: "metadata", key: "channels", value: channels };
+    } else if (file.path === "integration_logs.json") {
+      return parseJSON(file).map(
+        (log) =>
+          ({
+            type: "timeline",
+            file: file.path,
+            category: "integration",
+            timestamp: parseInt(log.date),
+            day: getDay(parseInt(log.date)),
+            context: null,
+            value: log,
+          }: TimelineEntry)
+      );
+    } else {
+      return parseJSON(file).map(
+        (message) =>
+          ({
+            type: "timeline",
+            file: file.path,
+            category: "message",
+            timestamp: parseInt(message.ts),
+            day: getDay(parseInt(message.ts)),
+            context: file.path.split("/")[0],
+            value: message,
+          }: TimelineEntry)
+      );
     }
-
-    return messages.map(({ message, file }) => ({
-      type: "timeline",
-      category: "message",
-      file,
-      timestamp: parseInt(message.ts),
-      label: this.renderMessage(
-        message,
-        file.path.split("/")[0],
-        users,
-        channels
-      ),
-      value: message,
-    }));
   }
 
-  renderMessage(
-    message: any,
-    channelName: string,
-    users: Map<string, any>,
-    channels: Map<string, any>
+  render(
+    entry: TimelineEntry,
+    metadata: $ReadOnlyMap<string, any>
   ): React.Node {
-    let name = "unknown";
+    const message = entry.value;
+    const users = (metadata.get("users"): ?$ReadOnlyMap<string, any>);
+    const channels = (metadata.get("channels"): ?$ReadOnlyMap<string, any>);
+
+    if (!users || !channels) throw new Error("Failed to load metadata");
+
+    const channelName =
+      entry.context || channels.get(message.channel)?.name || "unknown";
+
+    let name = message.user_name || "unknown";
     let style = {};
-    const user = users.get(message.user);
+    const user = users.get(message.user || message.user_id);
     if (!!user) {
       name = user.profile.display_name || user.profile.real_name;
       if (user.color) style = { color: `#${user.color}` };
@@ -114,6 +132,16 @@ class Slack implements Provider {
     }
     if (message.subtype === "channel_join") {
       text = `joined #${channelName}`;
+      messageClass = styles.system;
+    }
+    if (entry.category === "integration") {
+      const verb = message.change_type;
+      const name = message.app_type || message.service_type;
+      if (verb && name) {
+        text = `${verb} integration ${name}`;
+      } else {
+        text = JSON.stringify(message);
+      }
       messageClass = styles.system;
     }
     let key = 0;
@@ -173,7 +201,7 @@ class Slack implements Provider {
           </a>,
         ];
       } else {
-        console.warn(element.type);
+        // TODO: handle additional elements
         return [
           <span key={key} className={styles.unknown}>
             {element.type}

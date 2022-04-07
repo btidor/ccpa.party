@@ -5,7 +5,7 @@ import { ExternalLink } from "components/Links";
 
 import GitHubIcon from "icons/github.svg";
 
-import type { Entry } from "parse";
+import type { TimelineEntry } from "parse";
 import type { DataFile, Provider, TimelineCategory } from "provider";
 
 class GitHub implements Provider {
@@ -34,8 +34,12 @@ class GitHub implements Provider {
 
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
 
-  parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {
+  parse(files: DataFile): $ReadOnlyArray<TimelineEntry> {
     return []; // TODO
+  }
+
+  render(entry: TimelineEntry): React.Node {
+    return <React.Fragment></React.Fragment>; // TODO
   }
 }
 

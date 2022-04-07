@@ -1,44 +1,41 @@
 //@flow
 import { openDB } from "idb";
-import * as React from "react";
 
 import type { DataFile } from "provider";
 
+export type MetadataEntry = {|
+  type: "metadata",
+  key: string,
+  value: any,
+|};
+
 export type TimelineEntry = {|
   type: "timeline",
+  file: string,
   category: string,
-  file: DataFile,
   timestamp: number,
-  label: React.Node,
+  day: string,
+  context: any,
   value: any,
 |};
-
-export type MediaEntry = {|
-  type: "media",
-  file: DataFile,
-|};
-
-export type SettingEntry = {|
-  type: "setting",
-  file: DataFile,
-  label: string,
-  value: any,
-|};
-
-export type UnknownEntry = {|
-  type: "unknown",
-  file: DataFile,
-|};
-
-export type Entry = TimelineEntry | MediaEntry | SettingEntry | UnknownEntry;
 
 export function openFiles(): Promise<any> {
   return openDB("import", 1, {
     async upgrade(db) {
-      const store = db.createObjectStore("files", {
+      const files = db.createObjectStore("files", {
         keyPath: ["archive", "path"],
       });
-      store.createIndex("provider", "provider", { unique: false });
+      files.createIndex("provider", "provider", { unique: false });
+
+      const parsed = db.createObjectStore("parsed", {
+        autoIncrement: true,
+      });
+      parsed.createIndex("provider", "provider", { unique: false });
+
+      const metadata = db.createObjectStore("metadata", {
+        keyPath: ["provider", "key"],
+      });
+      metadata.createIndex("provider", "provider", { unique: false });
     },
   });
 }
@@ -47,7 +44,7 @@ export function autoParse(
   file: DataFile,
   timelineLabels: { [string]: [string, string] },
   settingLabels: { [string]: string }
-): $ReadOnlyArray<Entry> {
+): $ReadOnlyArray<TimelineEntry> {
   const ext = file.path.split(".").slice(-1)[0];
   switch (ext) {
     case "json": {
@@ -55,7 +52,7 @@ export function autoParse(
 
       const settingLabel = settingLabels[file.path];
       if (settingLabel) {
-        return [{ type: "setting", file, label: settingLabel, value: parsed }];
+        return []; // TODO: setting
       }
 
       const pair = timelineLabels[file.path];
@@ -63,24 +60,21 @@ export function autoParse(
       if (pair) [timelineLabel, category] = pair;
 
       if (Array.isArray(parsed)) {
-        return parsed.map((entry) =>
-          discoverEntry(file, entry, timelineLabel, category)
-        );
+        return parsed
+          .map((entry) => discoverEntry(file, entry, timelineLabel, category))
+          .filter((x) => x);
       }
 
       const keys = Object.keys(parsed);
       if (keys.length === 1 && Array.isArray(parsed[keys[0]])) {
-        return parsed[keys[0]].map((entry) =>
-          discoverEntry(file, entry, timelineLabel, category)
-        );
+        return parsed[keys[0]]
+          .map((entry) => discoverEntry(file, entry, timelineLabel, category))
+          .filter((x) => x);
       }
-
-      console.warn("TODO", file.path);
-      return [{ type: "unknown", file }];
+      return []; // TODO: unknown
     }
     default: {
-      // TODO: handle CSVs and plain text
-      return [{ type: "media", file }];
+      return []; // TODO: media
     }
   }
 }
@@ -90,7 +84,7 @@ export function discoverEntry(
   obj: any,
   timelineLabel: ?string,
   category: string
-): Entry {
+): ?TimelineEntry {
   const label =
     obj.name ||
     obj.title ||
@@ -109,27 +103,17 @@ export function discoverEntry(
     obj.removed_timestamp;
   if (timestamp > 9999999999) timestamp /= 1000;
 
-  if (timestamp) {
-    return {
-      type: "timeline",
-      category,
-      timestamp,
-      file,
-      label: (
-        <React.Fragment>
-          ({timelineLabel || "unknown: " + file.path}) {label}
-        </React.Fragment>
-      ),
-      value: obj,
-    };
-  } else {
-    return {
-      type: "setting",
-      file,
-      label,
-      value: obj,
-    };
-  }
+  return timestamp
+    ? {
+        type: "timeline",
+        file: file.path,
+        category,
+        timestamp,
+        day: getDay(timestamp),
+        context: [timelineLabel || "unknown: " + file.path, label],
+        value: obj,
+      }
+    : undefined; // TODO
 }
 
 export function parseJSON(file: DataFile): any {
@@ -138,4 +122,15 @@ export function parseJSON(file: DataFile): any {
   // $FlowFixMe[prop-missing]
   text = text.replaceAll("\\u00e2\\u0080\\u0099", "'");
   return JSON.parse(text);
+}
+
+export function getDay(timestamp: number): string {
+  const date = new Date(timestamp * 1000);
+  return (
+    date.getFullYear().toString() +
+    "-" +
+    (date.getMonth() + 1).toString().padStart(2, "0") +
+    "-" +
+    date.getDate().toString().padStart(2, "0")
+  );
 }

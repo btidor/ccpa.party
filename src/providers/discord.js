@@ -5,7 +5,7 @@ import { ExternalLink } from "components/Links";
 
 import DiscordIcon from "icons/discord.svg";
 
-import type { Entry } from "parse";
+import type { TimelineEntry } from "parse";
 import type { DataFile, Provider, TimelineCategory } from "provider";
 
 class Discord implements Provider {
@@ -39,8 +39,12 @@ class Discord implements Provider {
 
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
 
-  parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {
+  parse(files: DataFile): $ReadOnlyArray<TimelineEntry> {
     return []; // TODO
+  }
+
+  render(entry: TimelineEntry): React.Node {
+    return <React.Fragment></React.Fragment>; // TODO
   }
 }
 

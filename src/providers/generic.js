@@ -3,7 +3,7 @@ import * as React from "react";
 
 import { autoParse } from "parse";
 
-import type { Entry } from "parse";
+import type { TimelineEntry } from "parse";
 import type { DataFile, Provider, TimelineCategory } from "provider";
 
 class Generic implements Provider {
@@ -18,8 +18,16 @@ class Generic implements Provider {
 
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
 
-  parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {
-    return files.flatMap((file) => autoParse(file, {}, {}));
+  parse(file: DataFile): $ReadOnlyArray<TimelineEntry> {
+    return autoParse(file, {}, {});
+  }
+
+  render(entry: TimelineEntry): React.Node {
+    return (
+      <React.Fragment>
+        ({entry.context[0]}) {entry.context[1]}
+      </React.Fragment>
+    );
   }
 }
 

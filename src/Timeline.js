@@ -18,22 +18,12 @@ type Props = {|
   +selected?: number,
 |};
 
-function grouper(item: TimelineEntry): [string, string] {
-  const date = new Date(item.timestamp * 1000);
-  const display = new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-  const iso =
-    date.getFullYear().toString() +
-    "-" +
-    (date.getMonth() + 1).toString().padStart(2, "0") +
-    "-" +
-    date.getDate().toString().padStart(2, "0");
-  return [display, iso];
-}
+const VerboseDateFormat = new Intl.DateTimeFormat("en-US", {
+  weekday: "long",
+  month: "long",
+  day: "numeric",
+  year: "numeric",
+});
 
 function Timeline(props: Props): React.Node {
   const { provider, filter, selected } = props;
@@ -67,39 +57,35 @@ function Timeline(props: Props): React.Node {
   const [items, setItems] = React.useState(
     (undefined: ?$ReadOnlyArray<TimelineEntry>)
   );
+  const [metadata, setMetadata] = React.useState(new Map<string, any>());
   const [start, setStart] = React.useState(0);
   React.useEffect(() => {
     (async () => {
       const db = await openFiles();
-      const files = await db.getAllFromIndex(
-        "files",
-        "provider",
-        provider.slug
-      );
-
-      const parsed = ((provider.parse(files): any).filter(
-        (e) => e.type === "timeline" && selectedCategories.has(e.category)
+      const parsed = ((
+        await db.getAllFromIndex("parsed", "provider", provider.slug)
+      ).filter((e) =>
+        selectedCategories.has(e.category)
       ): Array<TimelineEntry>);
       parsed.sort((a, b) => b.timestamp - a.timestamp);
+
+      const metadata = new Map(
+        (await db.getAllFromIndex("metadata", "provider", provider.slug)).map(
+          (e) => [e.key, e.value]
+        )
+      );
+      setMetadata(metadata);
 
       const items = [];
       let lastGroup;
       for (const entry of parsed) {
-        if (!lastGroup) {
-          lastGroup = grouper(entry);
+        if (entry.day !== lastGroup) {
           items.push({
             type: "group",
-            label: lastGroup[0],
-            value: lastGroup[1],
-            first: true,
+            value: entry.day,
+            first: lastGroup === undefined,
           });
-        } else if (grouper(entry)[1] !== lastGroup[1]) {
-          lastGroup = grouper(entry);
-          items.push({
-            type: "group",
-            label: lastGroup[0],
-            value: lastGroup[1],
-          });
+          lastGroup = entry.day;
         }
         items.push(entry);
       }
@@ -114,7 +100,7 @@ function Timeline(props: Props): React.Node {
         <React.Fragment>
           {!items[index].first && <hr className={styles.divider} />}
           <div className={styles.group} role="row">
-            {items[index].label}
+            {VerboseDateFormat.format(new Date(items[index].value))}
           </div>
         </React.Fragment>
       );
@@ -132,7 +118,7 @@ function Timeline(props: Props): React.Node {
           role="row"
           aria-selected={selected === index}
         >
-          {items[index].label}
+          {provider.render(items[index], metadata)}
         </div>
       );
     }
@@ -186,14 +172,14 @@ function Timeline(props: Props): React.Node {
               <div className={styles.activeGroup}>
                 {(() => {
                   if (!items || !items[start]) return;
-                  const [label, value] =
+                  const value =
                     items[start].type === "timeline"
-                      ? grouper(items[start])
-                      : [items[start].label, items[start].value];
+                      ? items[start].day
+                      : items[start].value;
                   return (
                     <React.Fragment>
                       <label>
-                        {label}
+                        {VerboseDateFormat.format(new Date(value))}
                         <input
                           type="date"
                           value={value}
@@ -230,7 +216,7 @@ function Timeline(props: Props): React.Node {
             <div className={styles.bar}>
               {selected !== undefined &&
                 items?.[selected]?.type === "timeline" &&
-                `From ${items[selected].file.path}:`}
+                `From ${items[selected].file}:`}
             </div>
             <div className={styles.inspector}>
               {selected !== undefined &&

@@ -10,6 +10,7 @@ import Numeral from "components/Numeral";
 import ProviderList from "components/ProviderList";
 
 import Import from "Import";
+import { openFiles } from "parse";
 
 import styles from "Home.module.css";
 
@@ -24,6 +25,23 @@ type Props =
 
 function Home(props: Props): React.Node {
   const { provider, screen } = props;
+  const [inspectLink, setInspectLink] = React.useState(
+    provider && `/${provider.slug}/import`
+  );
+
+  React.useEffect(() => {
+    provider &&
+      (async () => {
+        const db = await openFiles();
+        const exists = await db.getFromIndex(
+          "files",
+          "provider",
+          provider.slug
+        );
+        setInspectLink(`/${provider.slug}/` + (exists ? "files" : "import"));
+      })();
+  }, [provider]);
+
   return (
     <main className={styles.home}>
       <div className={styles.providerList}>
@@ -61,8 +79,8 @@ function Home(props: Props): React.Node {
               </li>
               <li>
                 <Numeral>3</Numeral>
-                {provider ? (
-                  <InternalLink to={`/${provider.slug}/import`}>
+                {provider && inspectLink ? (
+                  <InternalLink to={inspectLink}>
                     Inspect your data with ccpa.party
                   </InternalLink>
                 ) : (

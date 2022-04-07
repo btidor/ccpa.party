@@ -5,7 +5,7 @@ import NetflixIcon from "icons/netflix.svg";
 
 import { ExternalLink } from "components/Links";
 
-import type { Entry } from "parse";
+import type { TimelineEntry } from "parse";
 import type { DataFile, Provider, TimelineCategory } from "provider";
 
 class Netflix implements Provider {
@@ -33,8 +33,12 @@ class Netflix implements Provider {
 
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
 
-  parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {
+  parse(files: DataFile): $ReadOnlyArray<TimelineEntry> {
     return []; // TODO
+  }
+
+  render(entry: TimelineEntry): React.Node {
+    return <React.Fragment></React.Fragment>; // TODO
   }
 }
 

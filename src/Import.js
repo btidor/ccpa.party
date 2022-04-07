@@ -20,6 +20,7 @@ function Import(props: Props): React.Node {
       archive: string,
       path?: string,
       file: File | ArrayBuffer,
+      zip?: any,
     |}> = [];
     for (let i = 0; i < event.target.files.length; i++) {
       const file = event.target.files.item(i);
@@ -32,34 +33,59 @@ function Import(props: Props): React.Node {
     setStatus("Importing...");
     const start = Date.now();
     const db = await openFiles();
-    for (const { archive, path, file } of files) {
-      const zip = await unzip(file);
-      for (const entry of (Object.values(zip.entries): any)) {
+
+    let total = 0;
+    for (const file of files) {
+      file.zip = await unzip(file.file);
+      total += Object.keys(file.zip.entries).length;
+    }
+
+    let processed = 0;
+    for (const { archive, path, zip } of files) {
+      for (const entry of (Object.values(zip?.entries || []): any)) {
+        setStatus(
+          `Importing... (${processed.toLocaleString(
+            "en-US"
+          )} of ${total.toLocaleString("en-US")})`
+        );
+        processed++;
         if (entry.isDirectory) continue;
         const rpath = [path, entry.name].filter((x) => x).join("/");
         const data = await entry.arrayBuffer();
         if (entry.name.endsWith(".zip")) {
           files.push({ archive, path: rpath, file: data });
         } else {
-          db.put(
-            "files",
-            ({
-              archive,
-              path: rpath,
-              provider: provider.slug,
-              data,
-            }: DataFile)
-          );
+          const dataFile = ({
+            archive,
+            path: rpath,
+            provider: provider.slug,
+            data,
+          }: DataFile);
+          db.put("files", dataFile);
+
+          const parsed = provider.parse(dataFile);
+          if (!Array.isArray(parsed) && parsed.type === "metadata") {
+            db.put("metadata", { ...parsed, provider: provider.slug });
+          } else {
+            for (const entry of parsed) {
+              db.put("parsed", { ...entry, provider: provider.slug });
+            }
+          }
         }
       }
     }
     setStatus(
       <React.Fragment>
-        <div className={styles.message}>Import complete!</div>{" "}
+        <div className={styles.message}>
+          Import complete! (
+          {((Date.now() - start) / 1000).toLocaleString("en-US", {
+            maximumSignificantDigits: 2,
+          })}
+          s)
+        </div>{" "}
         <InternalLink to={`/${provider.slug}/files`}>View results</InternalLink>
       </React.Fragment>
     );
-    console.warn(`Time: ${(Date.now() - start) / 1000}s`);
   }
 
   return (

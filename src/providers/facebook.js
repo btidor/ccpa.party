@@ -6,7 +6,7 @@ import { autoParse, discoverEntry, parseJSON } from "parse";
 
 import FacebookIcon from "icons/facebook.svg";
 
-import type { Entry } from "parse";
+import type { TimelineEntry } from "parse";
 import type { DataFile, Provider, TimelineCategory } from "provider";
 
 class Facebook implements Provider {
@@ -143,31 +143,35 @@ class Facebook implements Provider {
     "voting_location_and_reminders/voting_reminders.json": "Voting Reminders",
   };
 
-  parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry> {
-    return files.flatMap((file) => {
-      if (file.path.startsWith("messages/")) {
-        // TODO: handle messages
-        return { type: "unknown", file };
-      } else if (file.path.startsWith("posts/")) {
-        // TODO: handle posts
-        return { type: "unknown", file };
-      } else if (!file.path.endsWith(".json")) {
-        return autoParse(file, this.timelineLabels, this.settingLabels);
-      } else if (file.path === "events/your_event_responses.json") {
-        const parsed = parseJSON(file);
-        const root = parsed.event_responses_v2;
-        return (
-          root.events_joined.map((e) =>
-            discoverEntry(file, e, "Event [Going]", "activity")
-          ) +
-          root.events_declined.map((e) =>
-            discoverEntry(file, e, "Event [Declined]", "activity")
-          )
-        );
-      } else {
-        return autoParse(file, this.timelineLabels, this.settingLabels);
-      }
-    });
+  parse(file: DataFile): $ReadOnlyArray<TimelineEntry> {
+    if (file.path.startsWith("messages/")) {
+      return []; // TODO: handle messages
+    } else if (file.path.startsWith("posts/")) {
+      return []; // TODO: handle posts
+    } else if (!file.path.endsWith(".json")) {
+      return autoParse(file, this.timelineLabels, this.settingLabels);
+    } else if (file.path === "events/your_event_responses.json") {
+      const parsed = parseJSON(file);
+      const root = parsed.event_responses_v2;
+      return (
+        root.events_joined.map((e) =>
+          discoverEntry(file, e, "Event [Going]", "activity")
+        ) +
+        root.events_declined.map((e) =>
+          discoverEntry(file, e, "Event [Declined]", "activity")
+        )
+      );
+    } else {
+      return autoParse(file, this.timelineLabels, this.settingLabels);
+    }
+  }
+
+  render(entry: TimelineEntry): React.Node {
+    return (
+      <React.Fragment>
+        ({entry.context[0]}) {entry.context[1]}
+      </React.Fragment>
+    );
   }
 }
 

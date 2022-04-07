@@ -11,7 +11,7 @@ import Google from "providers/google";
 import Netflix from "providers/netflix";
 import Slack from "providers/slack";
 
-import type { Entry } from "parse";
+import type { MetadataEntry, TimelineEntry } from "parse";
 
 export type DataFile = {|
   +archive: string,
@@ -40,7 +40,8 @@ export interface Provider {
 
   +timelineCategories: $ReadOnlyArray<TimelineCategory>;
 
-  parse(files: $ReadOnlyArray<DataFile>): $ReadOnlyArray<Entry>;
+  parse(file: DataFile): $ReadOnlyArray<TimelineEntry> | MetadataEntry;
+  render(entry: TimelineEntry, metadata: $ReadOnlyMap<string, any>): React.Node;
 }
 
 export const ProviderRegistry: $ReadOnlyArray<Provider> = [

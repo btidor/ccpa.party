@@ -34,10 +34,8 @@ function Navigation(props: Props): React.Node {
     (async () => {
       const db = await openFiles();
       const active = new Set<string>();
-      if (db.objectStoreNames.contains("files")) {
-        const files = await db.getAll("files");
-        files.forEach((file) => active.add(file.provider));
-      }
+      const files = await db.getAll("files");
+      files.forEach((file) => active.add(file.provider));
       setProviders(
         ProviderRegistry.filter((provider) => active.has(provider.slug))
       );
