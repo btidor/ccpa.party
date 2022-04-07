@@ -15,7 +15,7 @@ import type { Provider } from "provider";
 type Props = {|
   +provider: Provider,
   +filter?: string,
-  +selected?: number,
+  +selected?: string,
 |};
 
 type Group = {| +type: "group", value: string, first?: boolean |};
@@ -62,15 +62,11 @@ function Timeline(props: Props): React.Node {
   );
   const [metadata, setMetadata] = React.useState(new Map<string, any>());
   const [range, setRange] = React.useState([0, 0]);
-  const [hydrated, setHydrated] = React.useState(
-    new Map<number, ?TimelineEntry>()
-  );
   React.useEffect(() => {
     (async () => {
-      const parsed = ((await db.getTimelineEntriesForProvider(provider)).filter(
-        (e) => selectedCategories.has(e.category)
-      ): Array<TimelineEntryKey>);
-      parsed.sort((a, b) => b.timestamp - a.timestamp);
+      const parsed = ((await db.getTimelineEntriesForProvider(provider))
+        .filter((e) => selectedCategories.has(e.category))
+        .reverse(): Array<TimelineEntryKey>);
 
       const metadata = new Map(
         (await db.getMetadatasForProvider(provider)).map((e) => [
@@ -97,23 +93,48 @@ function Timeline(props: Props): React.Node {
     })();
   }, [db, provider, selectedCategories]);
 
+  const [hydration, setHydration] = React.useState(
+    new Map<number, ?TimelineEntry>()
+  );
+  const [drilldownItem, setDrilldownItem] = React.useState(
+    (undefined: ?TimelineEntry)
+  );
   React.useEffect(() => {
     (async () => {
-      const hydrated = new Map<number, ?TimelineEntry>();
+      const hydration = new Map<number, ?TimelineEntry>();
       const [start, end] = range;
       for (let i = start - 10; i <= end + 10; i++) {
         const item = items?.[i];
         if (!item || item.type !== "timeline") continue;
-        hydrated.set(i, await db.hydrateTimelineEntry(item));
+        hydration.set(i, await db.hydrateTimelineEntry(item));
       }
-      const sitem = selected && items?.[selected];
-      selected &&
-        sitem &&
-        sitem.type === "timeline" &&
-        hydrated.set(selected, await db.hydrateTimelineEntry(sitem));
-      setHydrated(hydrated);
+      setHydration(hydration);
+
+      if (selected) {
+        const drilldownItem = await db.getTimelineEntryBySlug(
+          provider,
+          selected
+        );
+        if (
+          !drilldownItem ||
+          !selectedCategories.has(drilldownItem?.category)
+        ) {
+          filter &&
+            navigate(`/${provider.slug}/timeline:${filter}`, { replace: true });
+        }
+        setDrilldownItem(drilldownItem);
+      }
     })();
-  }, [db, items, range, selected]);
+  }, [
+    db,
+    filter,
+    items,
+    navigate,
+    provider,
+    range,
+    selected,
+    selectedCategories,
+  ]);
 
   const renderItem = (index) => {
     const item = (items?.[index]: ?(TimelineEntryKey | Group));
@@ -128,22 +149,23 @@ function Timeline(props: Props): React.Node {
         </React.Fragment>
       );
     } else {
-      const hitem = hydrated.get(index);
+      const hydrated = hydration.get(index);
       return (
         <div
           onClick={() =>
+            hydrated &&
             filter &&
             navigate(
               `/${provider.slug}/timeline:${filter}` +
-                (selected === index ? "" : `@${index.toString()}`)
+                (selected === hydrated.slug ? "" : `@${hydrated.slug}`)
             )
           }
           className={styles.listItem}
           role="row"
-          aria-selected={selected === index}
+          aria-selected={hydrated && selected === hydrated.slug}
         >
-          {hitem ? (
-            provider.render(hitem, metadata)
+          {hydrated ? (
+            provider.render(hydrated, metadata)
           ) : (
             <code className={styles.loading}>Loading...</code>
           )}
@@ -155,11 +177,14 @@ function Timeline(props: Props): React.Node {
   const virtuoso = React.useRef<any>();
   const [loaded, setLoaded] = React.useState(false);
   React.useEffect(() => {
-    if (!loaded && virtuoso.current) {
-      if (selected) virtuoso.current.scrollToIndex(selected);
+    if (!loaded && virtuoso.current && items) {
+      const index =
+        selected &&
+        items.findIndex((e) => e.type === "timeline" && e.slug === selected);
+      index && virtuoso.current.scrollToIndex(index - 3);
       setLoaded(true);
     }
-  }, [items, selected, loaded, virtuoso]);
+  }, [items, loaded, selected, virtuoso]);
 
   return (
     <Theme provider={provider}>
@@ -186,7 +211,11 @@ function Timeline(props: Props): React.Node {
                           .join("");
                         if (newFilter === "") newFilter = "-";
 
-                        navigate(`/${provider.slug}/timeline:${newFilter}`);
+                        navigate(
+                          `/${provider.slug}/timeline:${newFilter}${
+                            selected ? "@" + selected : ""
+                          }`
+                        );
                       }}
                     />
                     {category.displayName}
@@ -241,20 +270,19 @@ function Timeline(props: Props): React.Node {
           </div>
           <div className={styles.right}>
             <div className={styles.bar}>
-              {selected !== undefined &&
-                items?.[selected]?.type === "timeline" &&
-                `From ${items[selected].file}:`}
+              {selected && drilldownItem && `From ${drilldownItem.file}:`}
             </div>
             {(() => {
-              const hitem = selected && hydrated.get(selected);
-              const classes = hitem
+              const classes = drilldownItem
                 ? styles.inspector
                 : [styles.inspector, styles.loading].join(" ");
               return (
                 <div className={classes}>
                   {selected &&
-                    (hitem ? (
-                      <pre>{JSON.stringify(hitem, undefined, 2)}</pre>
+                    (drilldownItem ? (
+                      <pre>
+                        {JSON.stringify(drilldownItem.value, undefined, 2)}
+                      </pre>
                     ) : (
                       <code>📊 Loading...</code>
                     ))}

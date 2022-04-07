@@ -105,18 +105,12 @@ function App(): React.Node {
               return <Home screen="import" provider={provider} />;
             } else if (pageSlug === "files") {
               // URL: `/:provider/files(@selected)?`
-              let selected = !!matches[3]
-                ? parseInt(matches[3].slice(1))
-                : undefined;
-              if (Number.isNaN(selected)) return do404();
+              let selected = !!matches[3] ? matches[3].slice(1) : undefined;
               return <Files provider={provider} selected={selected} />;
             } else if (pageSlug === "timeline") {
               // URL: `/:provider/timeline(:filter)?(@selected)?`
               let filter = !!matches[2] ? matches[2].slice(1) : undefined;
-              let selected = !!matches[3]
-                ? parseInt(matches[3].slice(1))
-                : undefined;
-              if (Number.isNaN(selected)) return do404();
+              let selected = !!matches[3] ? matches[3].slice(1) : undefined;
               return (
                 <Timeline
                   provider={provider}

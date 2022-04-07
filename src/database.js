@@ -1,5 +1,6 @@
 //@flow
 import { openDB } from "idb";
+import Hashes from "jshashes";
 
 import type { Provider } from "provider";
 
@@ -24,14 +25,14 @@ export type MetadataEntry = {|
 export type TimelineEntryKey = {|
   +type: "timeline",
   +provider: string,
-  +file: string,
-  +category: string,
-  +timestamp: number,
   +day: string,
+  +slug: string,
+  +category: string,
 |};
 
 export type TimelineEntry = {|
   ...TimelineEntryKey,
+  +file: string,
   +context: any,
   +value: { [string]: any },
 |};
@@ -39,6 +40,8 @@ export type TimelineEntry = {|
 const filesStore = "files";
 const timelineStore = "timeline";
 const metadataStore = "metadata";
+
+const MD5 = new Hashes.MD5();
 
 // When searching by provider we need to query the primary key index. If we
 // instead create a secondary index for provider lookups, queries are somehow
@@ -57,7 +60,7 @@ export class Database {
           keyPath: ["provider", "archive", "path"],
         });
         db.createObjectStore(timelineStore, {
-          keyPath: ["provider", "category", "timestamp", "day", "file"],
+          keyPath: ["provider", "slug", "day", "category"],
         });
         db.createObjectStore(metadataStore, {
           keyPath: ["provider", "key"],
@@ -109,14 +112,13 @@ export class Database {
   ): Promise<$ReadOnlyArray<TimelineEntryKey>> {
     const db = await this.#idb;
     return (await db.getAllKeys(timelineStore, providerRange(provider))).map(
-      ([provider, category, timestamp, day, file]) =>
+      ([provider, slug, day, category]) =>
         ({
           type: "timeline",
           provider,
-          category,
-          timestamp,
+          slug,
           day,
-          file,
+          category,
         }: TimelineEntryKey)
     );
   }
@@ -134,11 +136,22 @@ export class Database {
     const db = await this.#idb;
     return await db.get(timelineStore, [
       entry.provider,
-      entry.category,
-      entry.timestamp,
+      entry.slug,
       entry.day,
-      entry.file,
+      entry.category,
     ]);
+  }
+
+  async getTimelineEntryBySlug(
+    provider: Provider,
+    slug: string
+  ): Promise<?TimelineEntry> {
+    const db = await this.#idb;
+    return await db.get(
+      timelineStore,
+      // $FlowFixMe[prop-missing]
+      IDBKeyRange.bound([provider.slug, slug], [provider.slug, slug + " "])
+    );
   }
 }
 
@@ -211,8 +224,7 @@ export function discoverEntry(
         provider: file.provider,
         file: file.path,
         category,
-        timestamp,
-        day: getDay(timestamp),
+        ...getSlugAndDay(timestamp, obj),
         context: [timelineLabel || "unknown: " + file.path, label],
         value: obj,
       }
@@ -227,13 +239,23 @@ export function parseJSON(file: DataFile): any {
   return JSON.parse(text);
 }
 
-export function getDay(timestamp: number): string {
+export function getSlugAndDay(
+  timestamp: number,
+  value: any
+): {|
+  slug: string,
+  day: string,
+|} {
+  const hash = MD5.hex(JSON.stringify(value), true);
+  const slug =
+    parseInt(timestamp).toString(16).padStart(8, "0") + hash.slice(0, 4);
+
   const date = new Date(timestamp * 1000);
-  return (
+  const day =
     date.getFullYear().toString() +
     "-" +
     (date.getMonth() + 1).toString().padStart(2, "0") +
     "-" +
-    date.getDate().toString().padStart(2, "0")
-  );
+    date.getDate().toString().padStart(2, "0");
+  return { slug, day };
 }

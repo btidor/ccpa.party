@@ -3,7 +3,7 @@ import EmojiMap from "emoji-name-map";
 import * as React from "react";
 
 import { ExternalLink } from "components/Links";
-import { getDay, parseJSON } from "database";
+import { getSlugAndDay, parseJSON } from "database";
 
 import styles from "providers/slack.module.css";
 
@@ -90,8 +90,7 @@ class Slack implements Provider {
             provider: file.provider,
             file: file.path,
             category: "integration",
-            timestamp: parseInt(log.date),
-            day: getDay(parseInt(log.date)),
+            ...getSlugAndDay(parseInt(log.ts), log),
             context: null,
             value: log,
           }: TimelineEntry)
@@ -104,8 +103,7 @@ class Slack implements Provider {
             provider: file.provider,
             file: file.path,
             category: "message",
-            timestamp: parseInt(message.ts),
-            day: getDay(parseInt(message.ts)),
+            ...getSlugAndDay(parseInt(message.ts), message),
             context: file.path.split("/")[0],
             value: message,
           }: TimelineEntry)

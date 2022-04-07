@@ -10,6 +10,7 @@
     "emoji-name-map": "^1.2.9",
     "framer-motion": "^6.2.8",
     "idb": "^7.0.0",
+    "jshashes": "^1.0.8",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^6.2.2",
