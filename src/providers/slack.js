@@ -65,18 +65,29 @@ class Slack implements Provider {
       for (const user of parseJSON(file)) {
         users.set(user.id, user);
       }
-      return { type: "metadata", key: "users", value: users };
+      return {
+        type: "metadata",
+        provider: file.provider,
+        key: "users",
+        value: users,
+      };
     } else if (file.path === "channels.json") {
       const channels = new Map();
       for (const channel of parseJSON(file)) {
         channels.set(channel.id, channel);
       }
-      return { type: "metadata", key: "channels", value: channels };
+      return {
+        type: "metadata",
+        provider: file.provider,
+        key: "channels",
+        value: channels,
+      };
     } else if (file.path === "integration_logs.json") {
       return parseJSON(file).map(
         (log) =>
           ({
             type: "timeline",
+            provider: file.provider,
             file: file.path,
             category: "integration",
             timestamp: parseInt(log.date),
@@ -90,6 +101,7 @@ class Slack implements Provider {
         (message) =>
           ({
             type: "timeline",
+            provider: file.provider,
             file: file.path,
             category: "message",
             timestamp: parseInt(message.ts),

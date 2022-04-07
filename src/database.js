@@ -1,5 +1,4 @@
 //@flow
-import { initBackend } from "absurd-sql/dist/indexeddb-main-thread";
 import { openDB } from "idb";
 
 import type { Provider } from "provider";
@@ -13,12 +12,14 @@ export type DataFile = {|
 
 export type MetadataEntry = {|
   +type: "metadata",
+  +provider: string,
   +key: string,
   +value: any,
 |};
 
 export type TimelineEntry = {|
   +type: "timeline",
+  +provider: string,
   +file: string,
   +category: string,
   +timestamp: number,
@@ -27,119 +28,99 @@ export type TimelineEntry = {|
   +value: { [string]: any },
 |};
 
+const filesStore = "files";
+const fileContentsStore = "fileContents";
+const timelineStore = "timeline";
+const metadataStore = "metadata";
+
+const providerIndex = "provider";
+
 export class Database {
   #idb: Promise<any>;
-  #worker: Worker;
-
-  #messages: Map<string, (any) => void>;
 
   constructor() {
     this.#idb = openDB("import", 1, {
       async upgrade(db) {
-        const files = db.createObjectStore("files", {
+        const files = db.createObjectStore(filesStore, {
           keyPath: ["provider", "archive", "path"],
         });
-        files.createIndex("provider", "provider", { unique: false });
+        files.createIndex(providerIndex, "provider", { unique: false });
 
-        db.createObjectStore("fileData", {
+        db.createObjectStore(fileContentsStore, {
           keyPath: ["provider", "archive", "path"],
         });
 
-        const parsed = db.createObjectStore("parsed", {
+        const timeline = db.createObjectStore(timelineStore, {
           autoIncrement: true,
         });
-        parsed.createIndex("provider", "provider", { unique: false });
+        timeline.createIndex(providerIndex, "provider", { unique: false });
 
-        const metadata = db.createObjectStore("metadata", {
+        const metadata = db.createObjectStore(metadataStore, {
           keyPath: ["provider", "key"],
         });
-        metadata.createIndex("provider", "provider", { unique: false });
+        metadata.createIndex(providerIndex, "provider", { unique: false });
       },
-    });
-
-    // $FlowFixMe[incompatible-call]
-    this.#worker = new Worker(new URL("worker.js", import.meta.url));
-    // This is only required because Safari doesn't support nested
-    // workers. This installs a handler that will proxy creating web
-    // workers through the main thread
-    initBackend(this.#worker);
-
-    this.#messages = new Map();
-    this.#worker.onmessage = (message) => {
-      const { id, type, response } = (message.data: any);
-      const resolve = this.#messages.get(id);
-      if (resolve) resolve(response);
-      else if (typeof type === "string" && type.startsWith("__absurd")) return;
-      else console.warn("Received unknown response from worker", message);
-    };
-  }
-
-  #message(command: string, params?: any): Promise<any> {
-    return new Promise((resolve) => {
-      const id = Math.random().toString();
-      this.#messages.set(id, (result) => {
-        this.#messages.delete(id);
-        resolve(result);
-      });
-      this.#worker.postMessage({
-        id,
-        command,
-        params,
-      });
     });
   }
 
   async getAllFiles(): Promise<$ReadOnlyArray<DataFile>> {
     const db = await this.#idb;
-    return await db.getAll("files");
+    return await db.getAll(filesStore);
   }
 
   async getFilesForProvider(
     provider: Provider
   ): Promise<$ReadOnlyArray<DataFile>> {
     const db = await this.#idb;
-    return await db.getAllFromIndex("files", "provider", provider.slug);
+    return await db.getAllFromIndex(filesStore, providerIndex, provider.slug);
   }
 
   async getFileWithData(file: DataFile): Promise<?DataFile> {
     const db = await this.#idb;
-    return await db.get("fileData", [file.provider, file.archive, file.path]);
+    return await db.get(fileContentsStore, [
+      file.provider,
+      file.archive,
+      file.path,
+    ]);
   }
 
   async putFile(file: DataFile): Promise<void> {
     const db = await this.#idb;
     const { data, ...rest } = file;
-    await db.put("files", rest);
-    await db.put("fileData", file);
+    await db.put(filesStore, rest);
+    await db.put(fileContentsStore, file);
   }
 
   async getMetadatasForProvider(
     provider: Provider
   ): Promise<$ReadOnlyArray<MetadataEntry>> {
     const db = await this.#idb;
-    return await db.getAllFromIndex("metadata", "provider", provider.slug);
+    return await db.getAllFromIndex(
+      metadataStore,
+      providerIndex,
+      provider.slug
+    );
   }
 
-  async putMetadata(
-    provider: Provider,
-    metadata: MetadataEntry
-  ): Promise<void> {
+  async putMetadata(metadata: MetadataEntry): Promise<void> {
     const db = await this.#idb;
-    const { type, ...rest } = metadata;
-    await db.put("metadata", { ...rest, provider: provider.slug });
+    await db.put(metadataStore, metadata);
   }
 
-  async getParsedsForProvider(
+  async getTimelineEntriesForProvider(
     provider: Provider
   ): Promise<$ReadOnlyArray<TimelineEntry>> {
-    return this.#message("getParsedsForProvider", provider.slug);
+    const db = await this.#idb;
+    return await db.getAllFromIndex(timelineStore, providerIndex);
   }
 
-  async putParseds(
-    provider: Provider,
+  async putTimelineEntries(
     entries: $ReadOnlyArray<TimelineEntry>
   ): Promise<void> {
-    await this.#message("putParseds", [provider.slug, entries]);
+    const db = await this.#idb;
+    for (const entry of entries) {
+      await db.put(timelineStore, entry);
+    }
   }
 }
 
@@ -209,6 +190,7 @@ export function discoverEntry(
   return timestamp
     ? {
         type: "timeline",
+        provider: file.provider,
         file: file.path,
         category,
         timestamp,

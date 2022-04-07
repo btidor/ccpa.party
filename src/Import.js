@@ -65,9 +65,9 @@ function Import(props: Props): React.Node {
 
           const parsed = provider.parse({ ...dataFile, data });
           if (!Array.isArray(parsed) && parsed.type === "metadata") {
-            await db.putMetadata(provider, parsed);
+            await db.putMetadata(parsed);
           } else {
-            db.putParseds(provider, parsed);
+            db.putTimelineEntries(parsed);
           }
         }
       }

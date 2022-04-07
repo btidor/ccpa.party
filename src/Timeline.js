@@ -62,8 +62,8 @@ function Timeline(props: Props): React.Node {
   React.useEffect(() => {
     (async () => {
       const db = new Database();
-      const parsed = ((await db.getParsedsForProvider(provider)).filter((e) =>
-        selectedCategories.has(e.category)
+      const parsed = ((await db.getTimelineEntriesForProvider(provider)).filter(
+        (e) => selectedCategories.has(e.category)
       ): Array<TimelineEntry>);
       parsed.sort((a, b) => b.timestamp - a.timestamp);
 
