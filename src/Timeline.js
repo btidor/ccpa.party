@@ -9,7 +9,7 @@ import { Database } from "database";
 
 import styles from "Drilldown.module.css";
 
-import type { TimelineEntry } from "database";
+import type { TimelineEntry, TimelineEntryKey } from "database";
 import type { Provider } from "provider";
 
 type Props = {|
@@ -17,6 +17,8 @@ type Props = {|
   +filter?: string,
   +selected?: number,
 |};
+
+type Group = {| +type: "group", value: string, first?: boolean |};
 
 const VerboseDateFormat = new Intl.DateTimeFormat("en-US", {
   weekday: "long",
@@ -28,6 +30,7 @@ const VerboseDateFormat = new Intl.DateTimeFormat("en-US", {
 function Timeline(props: Props): React.Node {
   const { provider, filter, selected } = props;
   const navigate = useNavigate();
+  const db = React.useMemo(() => new Database(), []);
 
   React.useEffect(() => {
     if (!filter) {
@@ -55,16 +58,18 @@ function Timeline(props: Props): React.Node {
   }, [provider, filter]);
 
   const [items, setItems] = React.useState(
-    (undefined: ?$ReadOnlyArray<TimelineEntry>)
+    (undefined: ?$ReadOnlyArray<TimelineEntryKey | Group>)
   );
   const [metadata, setMetadata] = React.useState(new Map<string, any>());
-  const [start, setStart] = React.useState(0);
+  const [range, setRange] = React.useState([0, 0]);
+  const [hydrated, setHydrated] = React.useState(
+    new Map<number, ?TimelineEntry>()
+  );
   React.useEffect(() => {
     (async () => {
-      const db = new Database();
       const parsed = ((await db.getTimelineEntriesForProvider(provider)).filter(
         (e) => selectedCategories.has(e.category)
-      ): Array<TimelineEntry>);
+      ): Array<TimelineEntryKey>);
       parsed.sort((a, b) => b.timestamp - a.timestamp);
 
       const metadata = new Map(
@@ -75,7 +80,7 @@ function Timeline(props: Props): React.Node {
       );
       setMetadata(metadata);
 
-      const items = [];
+      const items = ([]: Array<TimelineEntryKey | Group>);
       let lastGroup;
       for (const entry of parsed) {
         if (entry.day !== lastGroup) {
@@ -88,22 +93,42 @@ function Timeline(props: Props): React.Node {
         }
         items.push(entry);
       }
-      setItems(items);
+      setItems((items: $ReadOnlyArray<TimelineEntryKey | Group>));
     })();
-  }, [provider, selectedCategories]);
+  }, [db, provider, selectedCategories]);
+
+  React.useEffect(() => {
+    (async () => {
+      const hydrated = new Map<number, ?TimelineEntry>();
+      const [start, end] = range;
+      for (let i = start - 10; i <= end + 10; i++) {
+        const item = items?.[i];
+        if (!item || item.type !== "timeline") continue;
+        hydrated.set(i, await db.hydrateTimelineEntry(item));
+      }
+      const sitem = selected && items?.[selected];
+      selected &&
+        sitem &&
+        sitem.type === "timeline" &&
+        hydrated.set(selected, await db.hydrateTimelineEntry(sitem));
+      setHydrated(hydrated);
+    })();
+  }, [db, items, range, selected]);
 
   const renderItem = (index) => {
-    if (!items?.[index]) return;
-    if (items[index].type === "group") {
+    const item = (items?.[index]: ?(TimelineEntryKey | Group));
+    if (!item) return;
+    if (item.type === "group") {
       return (
         <React.Fragment>
-          {!items[index].first && <hr className={styles.divider} />}
+          {!item.first && <hr className={styles.divider} />}
           <div className={styles.group} role="row">
-            {VerboseDateFormat.format(new Date(items[index].value))}
+            {VerboseDateFormat.format(new Date(item.value))}
           </div>
         </React.Fragment>
       );
     } else {
+      const hitem = hydrated.get(index);
       return (
         <div
           onClick={() =>
@@ -117,7 +142,11 @@ function Timeline(props: Props): React.Node {
           role="row"
           aria-selected={selected === index}
         >
-          {provider.render(items[index], metadata)}
+          {hitem ? (
+            provider.render(hitem, metadata)
+          ) : (
+            <code className={styles.loading}>Loading...</code>
+          )}
         </div>
       );
     }
@@ -142,9 +171,8 @@ function Timeline(props: Props): React.Node {
               {provider.timelineCategories.map((category) => {
                 const checked = selectedCategories.has(category.slug);
                 return (
-                  <div className={styles.filter} key={category.slug}>
+                  <label className={styles.filter} key={category.slug}>
                     <input
-                      id={category.slug}
                       type="checkbox"
                       checked={checked}
                       onChange={() => {
@@ -161,20 +189,18 @@ function Timeline(props: Props): React.Node {
                         navigate(`/${provider.slug}/timeline:${newFilter}`);
                       }}
                     />
-                    <label htmlFor={category.slug}>
-                      {category.displayName}
-                    </label>
-                  </div>
+                    {category.displayName}
+                  </label>
                 );
               })}
               <div className={styles.grow}></div>
               <div className={styles.activeGroup}>
                 {(() => {
-                  if (!items || !items[start]) return;
+                  if (!items || !items[range[0]]) return;
                   const value =
-                    items[start].type === "timeline"
-                      ? items[start].day
-                      : items[start].value;
+                    items[range[0]].type === "timeline"
+                      ? items[range[0]].day
+                      : items[range[0]].value;
                   return (
                     <React.Fragment>
                       <label>
@@ -207,7 +233,9 @@ function Timeline(props: Props): React.Node {
                 ref={virtuoso}
                 totalCount={items.length}
                 itemContent={renderItem}
-                rangeChanged={(range) => setStart(range.startIndex)}
+                rangeChanged={(range) =>
+                  setRange([range.startIndex, range.endIndex])
+                }
               />
             )}
           </div>
@@ -217,14 +245,22 @@ function Timeline(props: Props): React.Node {
                 items?.[selected]?.type === "timeline" &&
                 `From ${items[selected].file}:`}
             </div>
-            <div className={styles.inspector}>
-              {selected !== undefined &&
-                items?.[selected]?.type === "timeline" && (
-                  <pre>
-                    {JSON.stringify(items[selected].value, undefined, 2)}
-                  </pre>
-                )}
-            </div>
+            {(() => {
+              const hitem = selected && hydrated.get(selected);
+              const classes = hitem
+                ? styles.inspector
+                : [styles.inspector, styles.loading].join(" ");
+              return (
+                <div className={classes}>
+                  {selected &&
+                    (hitem ? (
+                      <pre>{JSON.stringify(hitem, undefined, 2)}</pre>
+                    ) : (
+                      <code>📊 Loading...</code>
+                    ))}
+                </div>
+              );
+            })()}
           </div>
         </div>
       </main>

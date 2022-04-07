@@ -60,10 +60,11 @@ function Import(props: Props): React.Node {
             provider: provider.slug,
             archive,
             path: rpath,
+            data,
           }: DataFile);
-          await db.putFile({ ...dataFile, data });
+          await db.putFile(dataFile);
 
-          const parsed = provider.parse({ ...dataFile, data });
+          const parsed = provider.parse(dataFile);
           if (!Array.isArray(parsed) && parsed.type === "metadata") {
             await db.putMetadata(parsed);
           } else {

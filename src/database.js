@@ -3,11 +3,15 @@ import { openDB } from "idb";
 
 import type { Provider } from "provider";
 
-export type DataFile = {|
+export type DataFileKey = {|
   +provider: string,
   +archive: string,
   +path: string,
-  +data?: ArrayBuffer,
+|};
+
+export type DataFile = {|
+  ...DataFileKey,
+  +data: ArrayBuffer,
 |};
 
 export type MetadataEntry = {|
@@ -17,23 +21,31 @@ export type MetadataEntry = {|
   +value: any,
 |};
 
-export type TimelineEntry = {|
+export type TimelineEntryKey = {|
   +type: "timeline",
   +provider: string,
   +file: string,
   +category: string,
   +timestamp: number,
   +day: string,
+|};
+
+export type TimelineEntry = {|
+  ...TimelineEntryKey,
   +context: any,
   +value: { [string]: any },
 |};
 
 const filesStore = "files";
-const fileContentsStore = "fileContents";
 const timelineStore = "timeline";
 const metadataStore = "metadata";
 
-const providerIndex = "provider";
+// When searching by provider we need to query the primary key index. If we
+// instead create a secondary index for provider lookups, queries are somehow
+// O(n) in the size of the entire table.
+const providerRange = (provider) =>
+  // $FlowFixMe[prop-missing]
+  IDBKeyRange.bound([provider.slug], [provider.slug + " "]);
 
 export class Database {
   #idb: Promise<any>;
@@ -41,65 +53,50 @@ export class Database {
   constructor() {
     this.#idb = openDB("import", 1, {
       async upgrade(db) {
-        const files = db.createObjectStore(filesStore, {
+        db.createObjectStore(filesStore, {
           keyPath: ["provider", "archive", "path"],
         });
-        files.createIndex(providerIndex, "provider", { unique: false });
-
-        db.createObjectStore(fileContentsStore, {
-          keyPath: ["provider", "archive", "path"],
+        db.createObjectStore(timelineStore, {
+          keyPath: ["provider", "category", "timestamp", "day", "file"],
         });
-
-        const timeline = db.createObjectStore(timelineStore, {
-          autoIncrement: true,
-        });
-        timeline.createIndex(providerIndex, "provider", { unique: false });
-
-        const metadata = db.createObjectStore(metadataStore, {
+        db.createObjectStore(metadataStore, {
           keyPath: ["provider", "key"],
         });
-        metadata.createIndex(providerIndex, "provider", { unique: false });
       },
     });
   }
 
-  async getAllFiles(): Promise<$ReadOnlyArray<DataFile>> {
+  async getAllFiles(): Promise<$ReadOnlyArray<DataFileKey>> {
     const db = await this.#idb;
-    return await db.getAll(filesStore);
+    return (await db.getAllKeys(filesStore)).map(
+      ([provider, archive, path]) => ({ provider, archive, path }: DataFileKey)
+    );
   }
 
   async getFilesForProvider(
     provider: Provider
-  ): Promise<$ReadOnlyArray<DataFile>> {
+  ): Promise<$ReadOnlyArray<DataFileKey>> {
     const db = await this.#idb;
-    return await db.getAllFromIndex(filesStore, providerIndex, provider.slug);
+    return (await db.getAllKeys(filesStore, providerRange(provider))).map(
+      ([provider, archive, path]) => ({ provider, archive, path }: DataFileKey)
+    );
   }
 
-  async getFileWithData(file: DataFile): Promise<?DataFile> {
+  async hydrateFile(file: DataFileKey): Promise<?DataFile> {
     const db = await this.#idb;
-    return await db.get(fileContentsStore, [
-      file.provider,
-      file.archive,
-      file.path,
-    ]);
+    return await db.get(filesStore, [file.provider, file.archive, file.path]);
   }
 
   async putFile(file: DataFile): Promise<void> {
     const db = await this.#idb;
-    const { data, ...rest } = file;
-    await db.put(filesStore, rest);
-    await db.put(fileContentsStore, file);
+    await db.put(filesStore, file);
   }
 
   async getMetadatasForProvider(
     provider: Provider
   ): Promise<$ReadOnlyArray<MetadataEntry>> {
     const db = await this.#idb;
-    return await db.getAllFromIndex(
-      metadataStore,
-      providerIndex,
-      provider.slug
-    );
+    return await db.getAll(metadataStore, providerRange(provider));
   }
 
   async putMetadata(metadata: MetadataEntry): Promise<void> {
@@ -109,9 +106,19 @@ export class Database {
 
   async getTimelineEntriesForProvider(
     provider: Provider
-  ): Promise<$ReadOnlyArray<TimelineEntry>> {
+  ): Promise<$ReadOnlyArray<TimelineEntryKey>> {
     const db = await this.#idb;
-    return await db.getAllFromIndex(timelineStore, providerIndex);
+    return (await db.getAllKeys(timelineStore, providerRange(provider))).map(
+      ([provider, category, timestamp, day, file]) =>
+        ({
+          type: "timeline",
+          provider,
+          category,
+          timestamp,
+          day,
+          file,
+        }: TimelineEntryKey)
+    );
   }
 
   async putTimelineEntries(
@@ -121,6 +128,17 @@ export class Database {
     for (const entry of entries) {
       await db.put(timelineStore, entry);
     }
+  }
+
+  async hydrateTimelineEntry(entry: TimelineEntryKey): Promise<?TimelineEntry> {
+    const db = await this.#idb;
+    return await db.get(timelineStore, [
+      entry.provider,
+      entry.category,
+      entry.timestamp,
+      entry.day,
+      entry.file,
+    ]);
   }
 }
 

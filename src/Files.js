@@ -33,7 +33,7 @@ function Files(props: Props): React.Node {
 
       selected &&
         files[selected] &&
-        setItem(await db.getFileWithData(files[selected]));
+        setItem(await db.hydrateFile(files[selected]));
     })();
   }, [provider, selected]);
 
@@ -75,11 +75,16 @@ function Files(props: Props): React.Node {
             <div className={styles.bar}>
               {selected !== undefined && items?.[selected]?.path}
             </div>
-            <div className={styles.inspector}>
+            <div
+              className={
+                selected && item
+                  ? styles.inspector
+                  : [styles.inspector, styles.loading].join(" ")
+              }
+            >
               {(() => {
                 if (!selected) return;
-                if (!item)
-                  return <code className={styles.loading}>📊 Loading...</code>;
+                if (!item) return <code>📊 Loading...</code>;
 
                 const ext = item.path.split(".").slice(-1)[0];
                 switch (ext) {

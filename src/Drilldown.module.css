@@ -40,21 +40,17 @@
 }
 
 .filter {
-  margin: 0 1ch;
+  display: inline-block;
+  height: 100%;
 }
 
-.filter input[type="checkbox"] {
-  margin: 0;
+.filter input {
+  margin: 0 1ch;
   filter: grayscale(100%);
 }
 
-.filter label {
-  padding: 0 0 0 1ch;
-}
-
 .filter,
-.filter input,
-.filter label {
+.filter input {
   cursor: pointer;
 }
 
@@ -141,6 +137,10 @@
 
 .loading {
   padding: 0.5rem;
+}
+
+.inspector.loading {
+  padding: 0 0.5rem;
 }
 
 .filePath {
