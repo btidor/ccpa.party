@@ -5,8 +5,8 @@ import { ExternalLink } from "components/Links";
 
 import GitHubIcon from "icons/github.svg";
 
-import type { TimelineEntry } from "parse";
-import type { DataFile, Provider, TimelineCategory } from "provider";
+import type { DataFile, TimelineEntry } from "parse";
+import type { Provider, TimelineCategory } from "provider";
 
 class GitHub implements Provider {
   slug: string = "github";

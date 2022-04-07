@@ -9,7 +9,8 @@ import { openFiles } from "parse";
 
 import styles from "Drilldown.module.css";
 
-import type { DataFile, Provider } from "provider";
+import type { DataFile } from "parse";
+import type { Provider } from "provider";
 
 type Props = {|
   +provider: Provider,
@@ -23,6 +24,7 @@ function Files(props: Props): React.Node {
   const [items, setItems] = React.useState(
     (undefined: ?$ReadOnlyArray<DataFile>)
   );
+  const [item, setItem] = React.useState((undefined: ?DataFile));
   React.useEffect(() => {
     (async () => {
       const db = await openFiles();
@@ -32,8 +34,18 @@ function Files(props: Props): React.Node {
         provider.slug
       );
       setItems(files);
+
+      selected &&
+        files[selected] &&
+        setItem(
+          await db.get("fileData", [
+            provider.slug,
+            files[selected].archive,
+            files[selected].path,
+          ])
+        );
     })();
-  }, [provider]);
+  }, [provider, selected]);
 
   const renderItem = (index) => {
     if (!items?.[index]) return;
@@ -75,8 +87,9 @@ function Files(props: Props): React.Node {
             </div>
             <div className={styles.inspector}>
               {(() => {
-                const item = selected && items?.[selected];
-                if (!item) return;
+                if (!selected) return;
+                if (!item)
+                  return <code className={styles.loading}>📊 Loading...</code>;
 
                 const ext = item.path.split(".").slice(-1)[0];
                 switch (ext) {

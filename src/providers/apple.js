@@ -5,8 +5,8 @@ import { ExternalLink } from "components/Links";
 
 import AppleIcon from "icons/apple.svg";
 
-import type { TimelineEntry } from "parse";
-import type { DataFile, Provider, TimelineCategory } from "provider";
+import type { DataFile, TimelineEntry } from "parse";
+import type { Provider, TimelineCategory } from "provider";
 
 class Apple implements Provider {
   slug: string = "apple";

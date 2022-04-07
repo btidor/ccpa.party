@@ -6,8 +6,8 @@ import { autoParse, discoverEntry, parseJSON } from "parse";
 
 import FacebookIcon from "icons/facebook.svg";
 
-import type { TimelineEntry } from "parse";
-import type { DataFile, Provider, TimelineCategory } from "provider";
+import type { DataFile, TimelineEntry } from "parse";
+import type { Provider, TimelineCategory } from "provider";
 
 class Facebook implements Provider {
   slug: string = "facebook";

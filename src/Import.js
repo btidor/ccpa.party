@@ -7,7 +7,8 @@ import { openFiles } from "parse";
 
 import styles from "Import.module.css";
 
-import type { DataFile, Provider } from "provider";
+import type { DataFile } from "parse";
+import type { Provider } from "provider";
 
 type Props = {| +provider: Provider |};
 
@@ -56,14 +57,14 @@ function Import(props: Props): React.Node {
           files.push({ archive, path: rpath, file: data });
         } else {
           const dataFile = ({
+            provider: provider.slug,
             archive,
             path: rpath,
-            provider: provider.slug,
-            data,
           }: DataFile);
           db.put("files", dataFile);
+          db.put("fileData", { ...dataFile, data });
 
-          const parsed = provider.parse(dataFile);
+          const parsed = provider.parse({ ...dataFile, data });
           if (!Array.isArray(parsed) && parsed.type === "metadata") {
             db.put("metadata", { ...parsed, provider: provider.slug });
           } else {

@@ -1,7 +1,12 @@
 //@flow
 import { openDB } from "idb";
 
-import type { DataFile } from "provider";
+export type DataFile = {|
+  +provider: string,
+  +archive: string,
+  +path: string,
+  +data?: ArrayBuffer,
+|};
 
 export type MetadataEntry = {|
   type: "metadata",
@@ -16,16 +21,20 @@ export type TimelineEntry = {|
   timestamp: number,
   day: string,
   context: any,
-  value: any,
+  value: string,
 |};
 
 export function openFiles(): Promise<any> {
   return openDB("import", 1, {
     async upgrade(db) {
       const files = db.createObjectStore("files", {
-        keyPath: ["archive", "path"],
+        keyPath: ["provider", "archive", "path"],
       });
       files.createIndex("provider", "provider", { unique: false });
+
+      db.createObjectStore("fileData", {
+        keyPath: ["provider", "archive", "path"],
+      });
 
       const parsed = db.createObjectStore("parsed", {
         autoIncrement: true,
@@ -111,7 +120,7 @@ export function discoverEntry(
         timestamp,
         day: getDay(timestamp),
         context: [timelineLabel || "unknown: " + file.path, label],
-        value: obj,
+        value: JSON.stringify(obj),
       }
     : undefined; // TODO
 }

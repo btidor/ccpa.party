@@ -9,8 +9,8 @@ import styles from "providers/slack.module.css";
 
 import SlackIcon from "icons/slack.svg";
 
-import type { MetadataEntry, TimelineEntry } from "parse";
-import type { DataFile, Provider, TimelineCategory } from "provider";
+import type { DataFile, MetadataEntry, TimelineEntry } from "parse";
+import type { Provider, TimelineCategory } from "provider";
 
 class Slack implements Provider {
   slug: string = "slack";
@@ -82,7 +82,7 @@ class Slack implements Provider {
             timestamp: parseInt(log.date),
             day: getDay(parseInt(log.date)),
             context: null,
-            value: log,
+            value: JSON.stringify(log),
           }: TimelineEntry)
       );
     } else {
@@ -95,7 +95,7 @@ class Slack implements Provider {
             timestamp: parseInt(message.ts),
             day: getDay(parseInt(message.ts)),
             context: file.path.split("/")[0],
-            value: message,
+            value: JSON.stringify(message),
           }: TimelineEntry)
       );
     }
@@ -105,7 +105,7 @@ class Slack implements Provider {
     entry: TimelineEntry,
     metadata: $ReadOnlyMap<string, any>
   ): React.Node {
-    const message = entry.value;
+    const message = JSON.parse(entry.value);
     const users = (metadata.get("users"): ?$ReadOnlyMap<string, any>);
     const channels = (metadata.get("channels"): ?$ReadOnlyMap<string, any>);
 

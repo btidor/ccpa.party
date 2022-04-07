@@ -3,8 +3,8 @@ import * as React from "react";
 
 import { autoParse } from "parse";
 
-import type { TimelineEntry } from "parse";
-import type { DataFile, Provider, TimelineCategory } from "provider";
+import type { DataFile, TimelineEntry } from "parse";
+import type { Provider, TimelineCategory } from "provider";
 
 class Generic implements Provider {
   slug: string = "generic";

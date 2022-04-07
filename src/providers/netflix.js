@@ -5,8 +5,8 @@ import NetflixIcon from "icons/netflix.svg";
 
 import { ExternalLink } from "components/Links";
 
-import type { TimelineEntry } from "parse";
-import type { DataFile, Provider, TimelineCategory } from "provider";
+import type { DataFile, TimelineEntry } from "parse";
+import type { Provider, TimelineCategory } from "provider";
 
 class Netflix implements Provider {
   slug: string = "netflix";

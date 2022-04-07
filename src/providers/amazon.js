@@ -5,8 +5,8 @@ import { ExternalLink } from "components/Links";
 
 import AmazonIcon from "icons/amazon.svg";
 
-import type { TimelineEntry } from "parse";
-import type { DataFile, Provider, TimelineCategory } from "provider";
+import type { DataFile, TimelineEntry } from "parse";
+import type { Provider, TimelineCategory } from "provider";
 
 class Amazon implements Provider {
   slug: string = "amazon";
