@@ -40,15 +40,17 @@ function Import(props: Props): React.Node {
       file.zip = await unzip(file.file);
       total += Object.keys(file.zip.entries).length;
     }
+    const fmtTotal = total.toLocaleString("en-US");
 
     let processed = 0;
     for (const { archive, path, zip } of files) {
       for (const entry of (Object.values(zip?.entries || []): any)) {
-        setStatus(
-          `Importing... (${processed.toLocaleString(
-            "en-US"
-          )} of ${total.toLocaleString("en-US")})`
-        );
+        if (processed % 23 === 0) {
+          // Surprisingly, toLocaleString is showing up in profiling...
+          setStatus(
+            `Importing... (${processed.toLocaleString("en-US")} of ${fmtTotal})`
+          );
+        }
         processed++;
         if (entry.isDirectory) continue;
         const rpath = [path, entry.name].filter((x) => x).join("/");
