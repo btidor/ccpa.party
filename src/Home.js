@@ -25,19 +25,16 @@ type Props =
 
 function Home(props: Props): React.Node {
   const { provider, screen } = props;
-  const [inspectLink, setInspectLink] = React.useState(
-    provider && `/${provider.slug}/import`
-  );
+  const [activeProviders, setActiveProviders] = React.useState(undefined);
 
   React.useEffect(() => {
-    provider &&
-      (async () => {
-        const db = new Database();
-        const exists = await db.getFilesForProvider(provider);
-        setInspectLink(
-          `/${provider.slug}/` + (exists.length ? "files" : "import")
-        );
-      })();
+    (async () => {
+      const db = new Database();
+      const activeProviders = new Set<string>();
+      const files = await db.getAllFiles();
+      files.forEach((file) => activeProviders.add(file.provider));
+      setActiveProviders(activeProviders);
+    })();
   }, [provider]);
 
   return (
@@ -48,6 +45,7 @@ function Home(props: Props): React.Node {
           <Numeral>1</Numeral> Select a company
         </div>
         <ProviderList
+          active={provider ? undefined : activeProviders}
           selected={provider}
           backLink={screen === "import" ? undefined : "/"}
         />
@@ -77,8 +75,8 @@ function Home(props: Props): React.Node {
               </li>
               <li>
                 <Numeral>3</Numeral>
-                {provider && inspectLink ? (
-                  <InternalLink to={inspectLink}>
+                {provider ? (
+                  <InternalLink to={`/${provider.slug}/import`}>
                     Inspect your data with ccpa.party
                   </InternalLink>
                 ) : (

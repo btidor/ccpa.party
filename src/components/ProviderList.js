@@ -16,6 +16,7 @@ import styles from "components/ProviderList.module.css";
 import type { Provider } from "provider";
 
 type Props = {|
+  +active: ?$ReadOnlySet<string>,
   +backLink: ?string,
   +selected: ?Provider,
 |};
@@ -32,6 +33,7 @@ const Providers = [
 ];
 
 function ProviderList(props: Props): React.Node {
+  const { active, backLink, selected } = props;
   const [loaded, setLoaded] = React.useState(false);
   React.useEffect(() => {
     setTimeout(() => setLoaded(true));
@@ -43,18 +45,18 @@ function ProviderList(props: Props): React.Node {
         <Link
           key={provider.slug}
           to={
-            props.selected &&
-            provider.slug === props.selected.slug &&
-            props.backLink
-              ? props.backLink
-              : `/${provider.slug}`
+            provider.slug === selected?.slug && backLink
+              ? backLink
+              : `/${provider.slug}${
+                  active?.has(provider.slug) ? "/timeline" : ""
+                }`
           }
           style={{ "--primary": provider.color }}
           className={
             styles.tile + " " + (provider.fullColor ? "" : styles.whiteout)
           }
           aria-selected={
-            props.selected && provider.slug === props.selected.slug
+            provider.slug === selected?.slug || active?.has(provider.slug)
           }
         >
           {provider.icon} <span>{provider.displayName}</span>
