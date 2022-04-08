@@ -9,6 +9,7 @@ import styles from "Import.module.css";
 
 import type { DataFile } from "database";
 import type { Provider } from "provider";
+import { ShieldLockIcon } from "@primer/octicons-react";
 
 type Props = {| +provider: Provider |};
 
@@ -84,20 +85,26 @@ function Import(props: Props): React.Node {
           })}
           s)
         </div>{" "}
-        <InternalLink to={`/${provider.slug}/files`}>View results</InternalLink>
+        <InternalLink to={`/${provider.slug}/timeline`}>
+          View results
+        </InternalLink>
       </React.Fragment>
     );
   }
 
   return (
     <div className={styles.import}>
-      <div>Import from {provider.displayName}</div>
+      <h2>Import from {provider.displayName}</h2>
       <input
         type="file"
         multiple
         accept=".zip,application/zip"
         onChange={importFiles}
       />
+      <div className={styles.shield}>
+        <ShieldLockIcon /> Data is processed locally and never leaves your
+        computer
+      </div>
       <div>{status}</div>
     </div>
   );
