@@ -90,7 +90,7 @@ class Slack implements Provider {
             provider: file.provider,
             file: file.path,
             category: "integration",
-            ...getSlugAndDay(parseInt(log.ts), log),
+            ...getSlugAndDay(parseInt(log.date), log),
             context: null,
             value: log,
           }: TimelineEntry)

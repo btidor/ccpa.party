@@ -1,6 +1,6 @@
 //@flow
 import { openDB } from "idb";
-import Hashes from "jshashes";
+import MurmurHash3 from "imurmurhash";
 
 import type { Provider } from "provider";
 
@@ -40,8 +40,6 @@ export type TimelineEntry = {|
 const filesStore = "files";
 const timelineStore = "timeline";
 const metadataStore = "metadata";
-
-const MD5 = new Hashes.MD5();
 
 // When searching by provider we need to query the primary key index. If we
 // instead create a secondary index for provider lookups, queries are somehow
@@ -246,9 +244,10 @@ export function getSlugAndDay(
   slug: string,
   day: string,
 |} {
-  const hash = MD5.hex(JSON.stringify(value), true);
+  const hash = MurmurHash3(JSON.stringify(value));
   const slug =
-    parseInt(timestamp).toString(16).padStart(8, "0") + hash.slice(0, 4);
+    parseInt(timestamp).toString(16).padStart(8, "0") +
+    hash.result().toString(16).padStart(8, "0");
 
   const date = new Date(timestamp * 1000);
   const day =
