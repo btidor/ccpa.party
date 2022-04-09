@@ -43,14 +43,143 @@ class Discord implements Provider {
     </ol>
   );
 
-  timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
+  timelineCategories: $ReadOnlyArray<TimelineCategory> = [
+    {
+      char: "a",
+      slug: "activity",
+      displayName: "Activity",
+      defaultEnabled: false,
+    },
+    {
+      char: "m",
+      slug: "message",
+      displayName: "Sent Messages",
+      defaultEnabled: true,
+    },
+  ];
 
-  parse(files: DataFile): $ReadOnlyArray<TimelineEntry> {
-    return []; // TODO
+  async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
+    if (file.path === "servers/index.json") {
+      return [
+        {
+          type: "metadata",
+          provider: file.provider,
+          key: "servers",
+          value: parseJSON(file),
+        },
+      ];
+    } else if (file.path.endsWith("channel.json")) {
+      const value = parseJSON(file);
+      return [
+        {
+          type: "metadata",
+          provider: file.provider,
+          key: `channel/${value.id}`,
+          value,
+        },
+      ];
+    } else if (file.path.endsWith("messages.csv")) {
+      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+        (row) =>
+          ({
+            type: "timeline",
+            provider: file.provider,
+            file: file.path,
+            category: "message",
+            ...getSlugAndDay(new Date(row.Timestamp).getTime() / 1000, row),
+            context: file.path.split("/")[1].slice(1),
+            value: row,
+          }: TimelineEntry)
+      );
+    } else if (file.path.startsWith("activity/")) {
+      return new TextDecoder()
+        .decode(file.data)
+        .trim()
+        .split("\n")
+        .map((line) => {
+          const row = JSON.parse(line);
+          return ({
+            type: "timeline",
+            provider: file.provider,
+            file: file.path,
+            category: "activity",
+            ...getSlugAndDay(
+              // Trim quotes from timestamp
+              new Date(row.timestamp.slice(1, -1)).getTime() / 1000,
+              row
+            ),
+            context: null,
+            value: row,
+          }: TimelineEntry);
+        });
+    }
+    return [];
   }
 
-  render(entry: TimelineEntry): React.Node {
-    return <React.Fragment></React.Fragment>; // TODO
+  render(
+    entry: TimelineEntry,
+    metadata: $ReadOnlyMap<string, any>
+  ): React.Node {
+    if (entry.category === "message") {
+      let markdown = entry.value.Contents;
+      markdown = markdown.replaceAll(
+        /<(@!?|@&|#)([0-9]+)>/g,
+        (original, type, snowflake) => {
+          if (type === "@" || type === "@!") {
+            // The users list isn't part of the export
+            return "@unknown";
+          } else if (type === "@&") {
+            // The roles list isn't part of the export
+            return "&unknown";
+          } else if (type === "#") {
+            const channel = metadata.get(`channel/${snowflake}`);
+            if (channel) return `#${channel.name}`;
+          }
+          return original;
+        }
+      );
+
+      return (
+        <React.Fragment>
+          <span className={styles.channel}>
+            {(() => {
+              const channel = metadata.get(`channel/${entry.context}`);
+              if (!channel) return "#unknown";
+              if ([1, 3].includes(channel.type)) return "DM";
+              if ([0, 2].includes(channel.type))
+                return `${channel.guild?.name} #${channel.name}`;
+              if ([10, 11, 12].includes(channel.type))
+                return `Thread: ${channel.name}`;
+              return "#unknown";
+            })()}
+          </span>
+          <ReactMarkdown
+            className={styles.markdown}
+            remarkPlugins={[remarkGfm]}
+            linkTarget="_blank"
+          >
+            {markdown}
+          </ReactMarkdown>
+          {entry.value.Attachments?.trim() && (
+            <div className={styles.pill}>Attachment</div>
+          )}
+        </React.Fragment>
+      );
+    } else {
+      const channel =
+        metadata.get(`channel/${entry.value.channel_id}`) ||
+        metadata.get(`channel/${entry.value.channel}`);
+      const server = metadata.get(`servers`)?.[entry.value.guild_id];
+      return (
+        <span className={styles.channel}>
+          {entry.value.event_type} {entry.value.type || entry.value.name}{" "}
+          {entry.value.source && ` from ${entry.value.source}`}
+          {channel
+            ? ` in ${channel.guild?.name}#${channel.name}`
+            : server && ` in ${server}`}
+        </span>
+      );
+    }
   }
 }
 
