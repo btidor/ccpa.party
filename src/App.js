@@ -90,14 +90,14 @@ function App(): React.Node {
 
             // Page is non-empty. Extract special components from page slug
             // (e.g. page:abc@123).
-            const matches = page.match(/^([^@:]+)(:[^@:]+)?(@[^@:]+)?$/);
+            const matches = page.match(/^([^@:]+)(:[^@:]*)?(@[^@:]*)?$/);
 
             // Invalid page.
-            if (!matches || !matches[1]) do404();
+            if (!matches || !matches[1]) return do404();
 
             // At this point we should not have further path components.
             // URL: `/:provider/:page`
-            if (parts.length) do404();
+            if (parts.length) return do404();
 
             const pageSlug = matches[1];
             if (pageSlug === "import") {
