@@ -89,10 +89,13 @@ function Files(props: Props): React.Node {
                 const ext = item.path.split(".").slice(-1)[0];
                 switch (ext) {
                   case "json":
-                    const parsed = JSON.parse(
-                      new TextDecoder().decode(item.data)
-                    );
-                    return <pre>{JSON.stringify(parsed, undefined, 2)}</pre>;
+                    const raw = new TextDecoder().decode(item.data);
+                    try {
+                      const parsed = JSON.parse(raw);
+                      return <pre>{JSON.stringify(parsed, undefined, 2)}</pre>;
+                    } catch {
+                      return <pre>{raw}</pre>;
+                    }
                   case "txt":
                   case "csv":
                     const text = new TextDecoder().decode(item.data);
