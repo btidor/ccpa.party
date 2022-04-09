@@ -5,7 +5,7 @@ import { ExternalLink } from "components/Links";
 
 import AmazonIcon from "icons/amazon.svg";
 
-import type { DataFile, TimelineEntry } from "database";
+import type { DataFile, Entry, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
 class Amazon implements Provider {
@@ -39,7 +39,7 @@ class Amazon implements Provider {
 
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
 
-  parse(files: DataFile): $ReadOnlyArray<TimelineEntry> {
+  async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
     return []; // TODO
   }
 

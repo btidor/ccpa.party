@@ -5,7 +5,7 @@ import { ExternalLink } from "components/Links";
 
 import GoogleIcon from "icons/google.svg";
 
-import type { DataFile, TimelineEntry } from "database";
+import type { DataFile, Entry, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
 class Google implements Provider {
@@ -37,7 +37,7 @@ class Google implements Provider {
 
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
 
-  parse(files: DataFile): $ReadOnlyArray<TimelineEntry> {
+  async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
     return []; // TODO
   }
 

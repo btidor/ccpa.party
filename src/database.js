@@ -37,6 +37,8 @@ export type TimelineEntry = {|
   +value: { [string]: any },
 |};
 
+export type Entry = MetadataEntry | TimelineEntry;
+
 const filesStore = "files";
 const timelineStore = "timeline";
 const metadataStore = "metadata";
@@ -121,13 +123,9 @@ export class Database {
     );
   }
 
-  async putTimelineEntries(
-    entries: $ReadOnlyArray<TimelineEntry>
-  ): Promise<void> {
+  async putTimelineEntry(entry: TimelineEntry): Promise<void> {
     const db = await this.#idb;
-    for (const entry of entries) {
-      await db.put(timelineStore, entry);
-    }
+    await db.put(timelineStore, entry);
   }
 
   async hydrateTimelineEntry(entry: TimelineEntryKey): Promise<?TimelineEntry> {

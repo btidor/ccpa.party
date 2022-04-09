@@ -3,7 +3,7 @@ import * as React from "react";
 
 import { autoParse } from "database";
 
-import type { DataFile, TimelineEntry } from "database";
+import type { DataFile, Entry, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
 class Generic implements Provider {
@@ -18,7 +18,7 @@ class Generic implements Provider {
 
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
 
-  parse(file: DataFile): $ReadOnlyArray<TimelineEntry> {
+  async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
     return autoParse(file, {}, {});
   }
 

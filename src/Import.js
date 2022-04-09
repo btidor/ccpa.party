@@ -67,11 +67,11 @@ function Import(props: Props): React.Node {
           }: DataFile);
           await db.putFile(dataFile);
 
-          const parsed = provider.parse(dataFile);
-          if (!Array.isArray(parsed) && parsed.type === "metadata") {
-            await db.putMetadata(parsed);
-          } else {
-            db.putTimelineEntries(parsed);
+          const parsed = await provider.parse(dataFile);
+          for (const entry of parsed) {
+            if (entry.type === "metadata") await db.putMetadata(entry);
+            else if (entry.type === "timeline")
+              await db.putTimelineEntry(entry);
           }
         }
       }

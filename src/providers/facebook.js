@@ -6,7 +6,7 @@ import { autoParse, discoverEntry, parseJSON } from "database";
 
 import FacebookIcon from "icons/facebook.svg";
 
-import type { DataFile, TimelineEntry } from "database";
+import type { DataFile, Entry, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
 class Facebook implements Provider {
@@ -143,7 +143,7 @@ class Facebook implements Provider {
     "voting_location_and_reminders/voting_reminders.json": "Voting Reminders",
   };
 
-  parse(file: DataFile): $ReadOnlyArray<TimelineEntry> {
+  async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
     if (file.path.startsWith("messages/")) {
       return []; // TODO: handle messages
     } else if (file.path.startsWith("posts/")) {

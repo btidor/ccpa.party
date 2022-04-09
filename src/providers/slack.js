@@ -9,7 +9,7 @@ import styles from "providers/slack.module.css";
 
 import SlackIcon from "icons/slack.svg";
 
-import type { DataFile, MetadataEntry, TimelineEntry } from "database";
+import type { DataFile, Entry, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
 class Slack implements Provider {
@@ -59,29 +59,33 @@ class Slack implements Provider {
     },
   ];
 
-  parse(file: DataFile): $ReadOnlyArray<TimelineEntry> | MetadataEntry {
+  async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
     if (file.path === "users.json") {
       const users = new Map();
       for (const user of parseJSON(file)) {
         users.set(user.id, user);
       }
-      return {
-        type: "metadata",
-        provider: file.provider,
-        key: "users",
-        value: users,
-      };
+      return [
+        {
+          type: "metadata",
+          provider: file.provider,
+          key: "users",
+          value: users,
+        },
+      ];
     } else if (file.path === "channels.json") {
       const channels = new Map();
       for (const channel of parseJSON(file)) {
         channels.set(channel.id, channel);
       }
-      return {
-        type: "metadata",
-        provider: file.provider,
-        key: "channels",
-        value: channels,
-      };
+      return [
+        {
+          type: "metadata",
+          provider: file.provider,
+          key: "channels",
+          value: channels,
+        },
+      ];
     } else if (file.path === "integration_logs.json") {
       return parseJSON(file).map(
         (log) =>
