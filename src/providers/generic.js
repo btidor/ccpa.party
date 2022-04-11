@@ -10,7 +10,7 @@ class Generic implements Provider {
   slug: string = "generic";
   displayName: string = "Generic";
   icon: React.Node = (<div />);
-  color: string = "#000";
+  color: string = "#000000";
 
   privacyPolicy: string = "";
   waitTime: string = "a generic amount of time";

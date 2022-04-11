@@ -12,7 +12,7 @@ class Netflix implements Provider {
   slug: string = "netflix";
   displayName: string = "Netflix";
   icon: React.Node = (<NetflixIcon />);
-  color: string = "#000";
+  color: string = "#000000";
   fullColor: boolean = true;
 
   privacyPolicy: string = "https://help.netflix.com/legal/privacy#ccpa";

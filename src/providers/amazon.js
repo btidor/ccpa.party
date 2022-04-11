@@ -12,7 +12,7 @@ class Amazon implements Provider {
   slug: string = "amazon";
   displayName: string = "Amazon";
   icon: React.Node = (<AmazonIcon />);
-  color: string = "#f90";
+  color: string = "#ff9900";
 
   privacyPolicy: string =
     "https://www.amazon.com/gp/help/customer/display.html?nodeId=GC5HB5DVMU5Y8CJ2";

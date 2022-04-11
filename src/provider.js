@@ -59,7 +59,6 @@ ProviderRegistry.forEach((provider) =>
 
 export function lightenColor(base: string): string {
   if (!base.startsWith("#")) throw new Error("Can't parse color " + base);
-  if (base.length === 4) base = base + base.slice(1);
   if (base.length !== 7) throw new Error("Can't parse color " + base);
   const parsed = [
     parseInt(base.slice(1, 3), 16),

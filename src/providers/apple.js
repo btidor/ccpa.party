@@ -12,7 +12,7 @@ class Apple implements Provider {
   slug: string = "apple";
   displayName: string = "Apple";
   icon: React.Node = (<AppleIcon />);
-  color: string = "#000";
+  color: string = "#000000";
 
   privacyPolicy: string = "https://www.apple.com/legal/privacy/california/";
   waitTime: string = "about a week";
