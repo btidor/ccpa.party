@@ -144,13 +144,15 @@ class Facebook implements Provider {
   };
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
-    if (file.path.startsWith("messages/")) {
+    if (file.path[1] === "messages") {
       return []; // TODO: handle messages
-    } else if (file.path.startsWith("posts/")) {
+    } else if (file.path[1] === "posts") {
       return []; // TODO: handle posts
-    } else if (!file.path.endsWith(".json")) {
+    } else if (!file.path.slice(-1)[0].endsWith(".json")) {
       return autoParse(file, this.timelineLabels, this.settingLabels);
-    } else if (file.path === "events/your_event_responses.json") {
+    } else if (
+      file.path.slice(1).join("/") === "events/your_event_responses.json"
+    ) {
       const parsed = parseJSON(file);
       const root = parsed.event_responses_v2;
       return root.events_joined

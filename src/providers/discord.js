@@ -59,7 +59,7 @@ class Discord implements Provider {
   ];
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
-    if (file.path === "servers/index.json") {
+    if (file.path.slice(1).join("/") === "servers/index.json") {
       return [
         {
           type: "metadata",
@@ -68,7 +68,7 @@ class Discord implements Provider {
           value: parseJSON(file),
         },
       ];
-    } else if (file.path.endsWith("channel.json")) {
+    } else if (file.path.slice(-1)[0] === "channel.json") {
       const value = parseJSON(file);
       return [
         {
@@ -78,7 +78,7 @@ class Discord implements Provider {
           value,
         },
       ];
-    } else if (file.path.endsWith("messages.csv")) {
+    } else if (file.path.slice(-1)[0] === "messages.csv") {
       return (await csv().fromString(new TextDecoder().decode(file.data))).map(
         (row) =>
           ({
@@ -87,11 +87,11 @@ class Discord implements Provider {
             file: file.path,
             category: "message",
             ...getSlugAndDay(new Date(row.Timestamp).getTime() / 1000, row),
-            context: file.path.split("/")[1].slice(1),
+            context: file.path[2].slice(1),
             value: row,
           }: TimelineEntry)
       );
-    } else if (file.path.startsWith("activity/")) {
+    } else if (file.path[1] === "activity") {
       return new TextDecoder()
         .decode(file.data)
         .trim()

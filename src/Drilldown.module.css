@@ -14,10 +14,12 @@
 .left {
   width: var(--left-width);
   border-right: 1px solid #aaa;
+  flex: none;
 }
 
 .right {
-  width: calc(100% - var(--left-width));
+  width: calc(100% - var(--left-width) - 1px);
+  flex: 1;
 }
 
 .bar {
@@ -144,8 +146,33 @@
   padding: 0 0.5rem;
 }
 
-.filePath {
+.treeDrilldown {
+  width: 100%;
+  height: 100%;
+}
+
+.treeDrilldown > div div {
+  /* stop react-arborist's horizontal scroll */
+  overflow-x: hidden !important;
+}
+
+.treeDrilldown .listItem {
   white-space: nowrap;
+  padding: 0;
+}
+
+.treeDrilldown .listItem svg {
+  padding: 0 4px;
+}
+
+.download {
+  display: block;
+  padding: 0 1em;
+}
+
+.download:hover {
+  color: white;
+  background-color: var(--primary);
 }
 
 .media {

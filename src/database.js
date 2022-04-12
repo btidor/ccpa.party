@@ -6,8 +6,7 @@ import type { Provider } from "provider";
 
 export type DataFileKey = {|
   +provider: string,
-  +archive: string,
-  +path: string,
+  +path: $ReadOnlyArray<string>,
 |};
 
 export type DataFile = {|
@@ -32,7 +31,7 @@ export type TimelineEntryKey = {|
 
 export type TimelineEntry = {|
   ...TimelineEntryKey,
-  +file: string,
+  +file: $ReadOnlyArray<string>,
   +context: any,
   +value: { [string]: any },
 |};
@@ -57,7 +56,7 @@ export class Database {
     this.#idb = openDB("import", 1, {
       async upgrade(db) {
         db.createObjectStore(filesStore, {
-          keyPath: ["provider", "archive", "path"],
+          keyPath: ["provider", "path"],
         });
         db.createObjectStore(timelineStore, {
           keyPath: ["provider", "slug", "day", "category"],
@@ -72,7 +71,7 @@ export class Database {
   async getAllFiles(): Promise<$ReadOnlyArray<DataFileKey>> {
     const db = await this.#idb;
     return (await db.getAllKeys(filesStore)).map(
-      ([provider, archive, path]) => ({ provider, archive, path }: DataFileKey)
+      ([provider, path]) => ({ provider, path }: DataFileKey)
     );
   }
 
@@ -81,13 +80,13 @@ export class Database {
   ): Promise<$ReadOnlyArray<DataFileKey>> {
     const db = await this.#idb;
     return (await db.getAllKeys(filesStore, providerRange(provider))).map(
-      ([provider, archive, path]) => ({ provider, archive, path }: DataFileKey)
+      ([provider, path]) => ({ provider, path }: DataFileKey)
     );
   }
 
   async hydrateFile(file: DataFileKey): Promise<?DataFile> {
     const db = await this.#idb;
-    return await db.get(filesStore, [file.provider, file.archive, file.path]);
+    return await db.get(filesStore, [file.provider, file.path]);
   }
 
   async putFile(file: DataFile): Promise<void> {
@@ -156,17 +155,17 @@ export function autoParse(
   timelineLabels: { [string]: [string, string] },
   settingLabels: { [string]: string }
 ): $ReadOnlyArray<TimelineEntry> {
-  const ext = file.path.split(".").slice(-1)[0];
+  const ext = file.path.slice(-1)[0].split(".").slice(-1)[0];
   switch (ext) {
     case "json": {
       const parsed = parseJSON(file);
 
-      const settingLabel = settingLabels[file.path];
+      const settingLabel = settingLabels[file.path.slice(1).join("/")];
       if (settingLabel) {
         return []; // TODO: setting
       }
 
-      const pair = timelineLabels[file.path];
+      const pair = timelineLabels[file.path.slice(1).join("/")];
       let timelineLabel, category;
       if (pair) [timelineLabel, category] = pair;
 
@@ -221,7 +220,7 @@ export function discoverEntry(
         file: file.path,
         category,
         ...getSlugAndDay(timestamp, obj),
-        context: [timelineLabel || "unknown: " + file.path, label],
+        context: [timelineLabel || "unknown: " + file.path.join("/"), label],
         value: obj,
       }
     : undefined; // TODO

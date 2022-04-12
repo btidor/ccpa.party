@@ -19,14 +19,13 @@ function Import(props: Props): React.Node {
 
   async function importFiles(event) {
     const files: Array<{|
-      archive: string,
-      path?: string,
+      path: $ReadOnlyArray<string>,
       file: File | ArrayBuffer,
       zip?: any,
     |}> = [];
     for (let i = 0; i < event.target.files.length; i++) {
       const file = event.target.files.item(i);
-      files.push({ archive: file.name, file });
+      files.push({ path: [file.name], file });
     }
     if (files.length < 1) {
       return;
@@ -44,7 +43,7 @@ function Import(props: Props): React.Node {
     const fmtTotal = total.toLocaleString("en-US");
 
     let processed = 0;
-    for (const { archive, path, zip } of files) {
+    for (const { path, zip } of files) {
       for (const entry of (Object.values(zip?.entries || []): any)) {
         if (processed % 23 === 0) {
           // Surprisingly, toLocaleString is showing up in profiling...
@@ -54,15 +53,14 @@ function Import(props: Props): React.Node {
         }
         processed++;
         if (entry.isDirectory) continue;
-        const rpath = [path, entry.name].filter((x) => x).join("/");
         const data = await entry.arrayBuffer();
+        const subpath = [...path, ...entry.name.split("/").filter((x) => x)];
         if (entry.name.endsWith(".zip")) {
-          files.push({ archive, path: rpath, file: data });
+          files.push({ path: subpath, file: data });
         } else {
           const dataFile = ({
             provider: provider.slug,
-            archive,
-            path: rpath,
+            path: subpath,
             data,
           }: DataFile);
           await db.putFile(dataFile);

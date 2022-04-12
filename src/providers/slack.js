@@ -60,7 +60,7 @@ class Slack implements Provider {
   ];
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
-    if (file.path === "users.json") {
+    if (file.path[1] === "users.json") {
       const users = new Map();
       for (const user of parseJSON(file)) {
         users.set(user.id, user);
@@ -73,7 +73,7 @@ class Slack implements Provider {
           value: users,
         },
       ];
-    } else if (file.path === "channels.json") {
+    } else if (file.path[1] === "channels.json") {
       const channels = new Map();
       for (const channel of parseJSON(file)) {
         channels.set(channel.id, channel);
@@ -86,7 +86,7 @@ class Slack implements Provider {
           value: channels,
         },
       ];
-    } else if (file.path === "integration_logs.json") {
+    } else if (file.path[1] === "integration_logs.json") {
       return parseJSON(file).map(
         (log) =>
           ({
@@ -108,7 +108,7 @@ class Slack implements Provider {
             file: file.path,
             category: "message",
             ...getSlugAndDay(parseInt(message.ts), message),
-            context: file.path.split("/")[0],
+            context: file.path[1],
             value: message,
           }: TimelineEntry)
       );

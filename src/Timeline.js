@@ -270,7 +270,9 @@ function Timeline(props: Props): React.Node {
           </div>
           <div className={styles.right}>
             <div className={styles.bar}>
-              {selected && drilldownItem && `From ${drilldownItem.file}:`}
+              {selected &&
+                drilldownItem &&
+                `From ${drilldownItem.file.join("/")}:`}
             </div>
             {(() => {
               const classes = drilldownItem
