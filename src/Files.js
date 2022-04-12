@@ -50,35 +50,6 @@ function Files(props: Props): React.Node {
     })();
   }, [provider]);
 
-  const [item, setItem] = React.useState((undefined: DataFile | void));
-  React.useEffect(() => {
-    (async () => {
-      if (!items) return;
-      if (!selected || !items[selected]) {
-        setLoaded(true);
-        return;
-      }
-      const db = new Database();
-      const item = await db.hydrateFile(items[selected]);
-      setItem(item);
-    })();
-  }, [items, selected]);
-
-  const [expanded, setExpanded] = React.useState(new Set());
-  React.useEffect(() => {
-    // When loading the page with file selected, start with the path to that
-    // file expanded.
-    if (!item || loaded) return;
-    const expanded = new Set();
-    let path = "";
-    for (const part of item.path) {
-      path += "/" + part;
-      expanded.add(path);
-    }
-    setExpanded(expanded);
-    setLoaded(true);
-  }, [item, loaded]);
-
   const fileTree = React.useMemo(() => {
     const fileTree = ({
       id: "",
@@ -116,6 +87,37 @@ function Files(props: Props): React.Node {
     }
     return fileTree;
   }, [items]);
+
+  const [item, setItem] = React.useState((undefined: DataFile | void));
+  const [expanded, setExpanded] = React.useState(new Set());
+  React.useEffect(() => {
+    (async () => {
+      if (!items) return;
+      if (!selected || !items[selected]) {
+        // By default, expand all root archives
+        setExpanded(new Set(fileTree.children.map((n) => n.id)));
+        setLoaded(true);
+        return;
+      }
+      const db = new Database();
+      const item = await db.hydrateFile(items[selected]);
+      setItem(item);
+    })();
+  }, [fileTree, items, selected]);
+
+  React.useEffect(() => {
+    // When loading the page with file selected, start with the path to that
+    // file expanded.
+    if (!item) return;
+    const expanded = new Set();
+    let path = "";
+    for (const part of item.path) {
+      path += "/" + part;
+      expanded.add(path);
+    }
+    setExpanded(expanded);
+    setLoaded(true);
+  }, [item, loaded]);
 
   return (
     <Theme provider={provider}>
