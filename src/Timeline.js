@@ -30,7 +30,11 @@ const VerboseDateFormat = new Intl.DateTimeFormat("en-US", {
 function Timeline(props: Props): React.Node {
   const { provider, filter, selected } = props;
   const navigate = useNavigate();
-  const db = React.useMemo(() => new Database(), []);
+  const [epoch, setEpoch] = React.useState(0);
+  const db = React.useMemo(
+    () => new Database(() => setEpoch(epoch + 1)),
+    [epoch]
+  );
 
   React.useEffect(() => {
     if (!filter) {
@@ -272,7 +276,7 @@ function Timeline(props: Props): React.Node {
             <div className={styles.bar}>
               {selected &&
                 drilldownItem &&
-                `From ${drilldownItem.file.join("/")}:`}
+                `From ${drilldownItem.file.slice(1).join("/")}:`}
             </div>
             {(() => {
               const classes = drilldownItem

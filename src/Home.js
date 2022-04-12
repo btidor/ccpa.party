@@ -27,15 +27,20 @@ function Home(props: Props): React.Node {
   const { provider, screen } = props;
   const [activeProviders, setActiveProviders] = React.useState(undefined);
 
+  const [epoch, setEpoch] = React.useState(0);
+  const db = React.useMemo(
+    () => new Database(() => setEpoch(epoch + 1)),
+    [epoch]
+  );
+
   React.useEffect(() => {
     (async () => {
-      const db = new Database();
       const activeProviders = new Set<string>();
       const files = await db.getAllFiles();
       files.forEach((file) => activeProviders.add(file.provider));
       setActiveProviders(activeProviders);
     })();
-  }, [provider]);
+  }, [db, provider]);
 
   return (
     <main className={styles.home}>

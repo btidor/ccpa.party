@@ -29,10 +29,11 @@ function Navigation(props: Props): React.Node {
   const [providers, setProviders] = React.useState(
     (undefined: ?$ReadOnlyArray<Provider>)
   );
+  const [epoch, setEpoch] = React.useState(0);
 
   React.useEffect(() => {
     (async () => {
-      const db = new Database();
+      const db = new Database(() => setEpoch(epoch + 1));
       const active = new Set<string>();
       const files = await db.getAllFiles();
       files.forEach((file) => active.add(file.provider));
@@ -40,7 +41,7 @@ function Navigation(props: Props): React.Node {
         ProviderRegistry.filter((provider) => active.has(provider.slug))
       );
     })();
-  }, []);
+  }, [epoch]);
 
   return (
     <header className={styles.header}>

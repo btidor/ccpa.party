@@ -38,17 +38,22 @@ function Files(props: Props): React.Node {
   const navigate = useNavigate();
   const { provider, selected } = props;
 
+  const [epoch, setEpoch] = React.useState(0);
+  const db = React.useMemo(
+    () => new Database(() => setEpoch(epoch + 1)),
+    [epoch]
+  );
+
   const [loaded, setLoaded] = React.useState(false);
   const [items, setItems] = React.useState(
     (undefined: ?$ReadOnlyArray<DataFileKey>)
   );
   React.useEffect(() => {
     (async () => {
-      const db = new Database();
       const items = await db.getFilesForProvider(provider);
       setItems(items);
     })();
-  }, [provider]);
+  }, [db, provider]);
 
   const fileTree = React.useMemo(() => {
     const fileTree = ({
@@ -99,11 +104,10 @@ function Files(props: Props): React.Node {
         setLoaded(true);
         return;
       }
-      const db = new Database();
       const item = await db.hydrateFile(items[selected]);
       setItem(item);
     })();
-  }, [fileTree, items, selected]);
+  }, [db, fileTree, items, selected]);
 
   React.useEffect(() => {
     // When loading the page with file selected, start with the path to that

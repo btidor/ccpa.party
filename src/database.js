@@ -52,7 +52,7 @@ const providerRange = (provider) =>
 export class Database {
   #idb: Promise<any>;
 
-  constructor() {
+  constructor(terminated: ?() => void) {
     this.#idb = openDB("import", 1, {
       async upgrade(db) {
         db.createObjectStore(filesStore, {
@@ -64,6 +64,9 @@ export class Database {
         db.createObjectStore(metadataStore, {
           keyPath: ["provider", "key"],
         });
+      },
+      async terminated(db) {
+        terminated?.();
       },
     });
   }

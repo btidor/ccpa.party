@@ -17,6 +17,12 @@ function Import(props: Props): React.Node {
   const { provider } = props;
   const [status, setStatus] = React.useState("");
 
+  const [epoch, setEpoch] = React.useState(0);
+  const db = React.useMemo(
+    () => new Database(() => setEpoch(epoch + 1)),
+    [epoch]
+  );
+
   async function importFiles(event) {
     const files: Array<{|
       path: $ReadOnlyArray<string>,
@@ -33,7 +39,6 @@ function Import(props: Props): React.Node {
 
     setStatus("Importing...");
     const start = Date.now();
-    const db = new Database();
 
     let total = 0;
     for (const file of files) {
