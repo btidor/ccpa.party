@@ -4,6 +4,7 @@ import { Tree } from "react-arborist";
 import { useNavigate } from "react-router-dom";
 import { AutoSizer } from "react-virtualized";
 import {
+  BeakerIcon,
   ChevronDownIcon,
   ChevronRightIcon,
   DesktopDownloadIcon,
@@ -204,6 +205,16 @@ function Files(props: Props): React.Node {
                   items?.[selected]?.path.slice(1).join("/")}
               </span>
               <div className={styles.grow}></div>
+              {item && (
+                <div
+                  className={styles.download}
+                  onClick={() => {
+                    provider.parse(item).then((e) => console.warn(e));
+                  }}
+                >
+                  <BeakerIcon />
+                </div>
+              )}
               {item && (
                 <a
                   className={styles.download}

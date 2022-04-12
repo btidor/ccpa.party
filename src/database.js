@@ -234,7 +234,13 @@ export function parseJSON(file: DataFile): any {
   // TODO: better mojibake handling
   // $FlowFixMe[prop-missing]
   text = text.replaceAll("\\u00e2\\u0080\\u0099", "'");
-  return JSON.parse(text);
+  try {
+    return JSON.parse(text);
+  } catch {
+    // Seen in some Apple *.pkpass files
+    let text = new TextDecoder("utf-16be").decode(file.data);
+    return JSON.parse(text);
+  }
 }
 
 export function getSlugAndDay(
@@ -244,6 +250,7 @@ export function getSlugAndDay(
   slug: string,
   day: string,
 |} {
+  if (isNaN(timestamp)) throw new Error("Received NaN for timestamp");
   const hash = MurmurHash3(JSON.stringify(value));
   const slug =
     parseInt(timestamp).toString(16).padStart(8, "0") +
