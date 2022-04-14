@@ -9,10 +9,17 @@ export type DataFileKey = {|
   +path: $ReadOnlyArray<string>,
 |};
 
-export type DataFile = {|
-  ...DataFileKey,
-  +data: ArrayBuffer,
-|};
+export type DataFile =
+  | {|
+      ...DataFileKey,
+      +data: ArrayBuffer,
+      +skipped: void,
+    |}
+  | {|
+      ...DataFileKey,
+      +data: void,
+      +skipped: "tooLarge",
+    |};
 
 export type MetadataEntry = {|
   +type: "metadata",
