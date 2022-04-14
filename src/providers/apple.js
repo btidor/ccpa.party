@@ -470,7 +470,7 @@ class Apple implements Provider {
         ];
       }
     }
-    return []; // TODO
+    return [];
   }
 
   render(entry: TimelineEntry): React.Node {
