@@ -50,7 +50,6 @@ function Home(props: Props): React.Node {
           <Numeral>1</Numeral> Select a company
         </div>
         <ProviderList
-          active={provider ? undefined : activeProviders}
           selected={provider}
           backLink={screen === "import" ? undefined : "/"}
         />
@@ -81,7 +80,15 @@ function Home(props: Props): React.Node {
               <li>
                 <Numeral>3</Numeral>
                 {provider ? (
-                  <InternalLink to={`/${provider.slug}/import`}>
+                  <InternalLink
+                    to={[
+                      "",
+                      provider.slug,
+                      activeProviders?.has(provider.slug)
+                        ? "timeline"
+                        : "import",
+                    ].join("/")}
+                  >
                     Inspect your data with ccpa.party
                   </InternalLink>
                 ) : (
