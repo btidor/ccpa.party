@@ -144,7 +144,7 @@ function Timeline(props: Props): React.Node {
 
   const renderItem = (index) => {
     const item = (items?.[index]: ?(TimelineEntryKey | Group));
-    if (!item) return;
+    if (!item || !items) return;
     if (item.type === "group") {
       return (
         <React.Fragment>
@@ -166,7 +166,10 @@ function Timeline(props: Props): React.Node {
                 (selected === hydrated.slug ? "" : `@${hydrated.slug}`)
             )
           }
-          className={styles.listItem}
+          className={
+            styles.listItem +
+            (index === items.length - 1 ? " " + styles.last : "")
+          }
           role="row"
           aria-selected={hydrated && selected === hydrated.slug}
         >

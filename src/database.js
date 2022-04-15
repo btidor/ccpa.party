@@ -237,7 +237,7 @@ export function discoverEntry(
         context: [timelineLabel || "unknown: " + file.path.join("/"), label],
         value: obj,
       }
-    : undefined; // TODO
+    : undefined;
 }
 
 const printableRegExp =

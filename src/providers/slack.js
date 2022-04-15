@@ -216,7 +216,6 @@ class Slack implements Provider {
           </a>,
         ];
       } else {
-        // TODO: handle additional elements
         return [
           <span key={key} className={styles.unknown}>
             {element.type}
