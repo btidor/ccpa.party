@@ -18,7 +18,7 @@
 }
 
 .tile:hover {
-  transform: translateX(7px);
+  transform: translateX(12px);
 }
 
 .tile svg {

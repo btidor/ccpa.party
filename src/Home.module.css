@@ -3,13 +3,14 @@
   font-weight: bold;
   line-height: 2rem;
   --hpadding: 10vw;
-  gap: 8vw;
 }
 
 .providerList {
   width: 300px;
-  margin: auto;
+  margin: auto 4vw auto 0;
   text-align: center;
+  padding: 1rem 4vw 0;
+  border-right: 1px solid #ccc;
 }
 
 .one {
