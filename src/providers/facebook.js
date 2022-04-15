@@ -144,6 +144,7 @@ class Facebook implements Provider {
   };
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
+    if (file.skipped) return [];
     if (file.path[1] === "messages") {
       return []; // TODO: handle messages
     } else if (file.path[1] === "posts") {
@@ -153,7 +154,7 @@ class Facebook implements Provider {
     } else if (
       file.path.slice(1).join("/") === "events/your_event_responses.json"
     ) {
-      const parsed = parseJSON(file);
+      const parsed = parseJSON(file.data);
       const root = parsed.event_responses_v2;
       return root.events_joined
         .map((e) => discoverEntry(file, e, "Event [Going]", "activity"))

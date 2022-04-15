@@ -14,7 +14,7 @@ import {
 
 import Navigation from "components/Navigation";
 import Theme from "components/Theme";
-import { Database } from "database";
+import { Database, fileSizeLimitMB, smartDecode, parseJSON } from "database";
 
 import styles from "Drilldown.module.css";
 
@@ -236,20 +236,27 @@ function Files(props: Props): React.Node {
               {(() => {
                 if (!selected) return;
                 if (!item) return <code>📊 Loading...</code>;
+                if (item.skipped)
+                  return (
+                    <code>
+                      🐘 Skipped due to {fileSizeLimitMB}MB size limit
+                    </code>
+                  );
 
                 const ext = item.path.slice(-1)[0].split(".").slice(-1)[0];
                 switch (ext) {
                   case "json":
-                    const raw = new TextDecoder().decode(item.data);
                     try {
-                      const parsed = JSON.parse(raw);
+                      const parsed = parseJSON(item.data);
                       return <pre>{JSON.stringify(parsed, undefined, 2)}</pre>;
                     } catch {
+                      const raw = smartDecode(item.data);
                       return <pre>{raw}</pre>;
                     }
-                  case "txt":
                   case "csv":
-                    const text = new TextDecoder().decode(item.data);
+                  case "txt":
+                  case "xml":
+                    const text = smartDecode(item.data);
                     return <pre>{text}</pre>;
                   default:
                     const url = URL.createObjectURL(new Blob([item.data]));

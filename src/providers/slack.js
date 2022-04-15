@@ -60,9 +60,10 @@ class Slack implements Provider {
   ];
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
+    if (file.skipped) return [];
     if (file.path[1] === "users.json") {
       const users = new Map();
-      for (const user of parseJSON(file)) {
+      for (const user of parseJSON(file.data)) {
         users.set(user.id, user);
       }
       return [
@@ -75,7 +76,7 @@ class Slack implements Provider {
       ];
     } else if (file.path[1] === "channels.json") {
       const channels = new Map();
-      for (const channel of parseJSON(file)) {
+      for (const channel of parseJSON(file.data)) {
         channels.set(channel.id, channel);
       }
       return [
@@ -87,7 +88,7 @@ class Slack implements Provider {
         },
       ];
     } else if (file.path[1] === "integration_logs.json") {
-      return parseJSON(file).map(
+      return parseJSON(file.data).map(
         (log) =>
           ({
             type: "timeline",
@@ -100,7 +101,7 @@ class Slack implements Provider {
           }: TimelineEntry)
       );
     } else {
-      return parseJSON(file).map(
+      return parseJSON(file.data).map(
         (message) =>
           ({
             type: "timeline",

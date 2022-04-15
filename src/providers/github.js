@@ -44,6 +44,7 @@ class GitHub implements Provider {
   ];
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
+    if (file.skipped) return [];
     const supportedPrefixes = [
       "commit_comments_",
       "issue_comments_",
@@ -53,7 +54,7 @@ class GitHub implements Provider {
       "repositories_",
     ];
     if (supportedPrefixes.some((p) => file.path[1].startsWith(p))) {
-      return parseJSON(file).map(
+      return parseJSON(file.data).map(
         (item) =>
           ({
             type: "timeline",

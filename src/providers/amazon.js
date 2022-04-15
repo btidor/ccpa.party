@@ -1,10 +1,9 @@
 // @flow
-import csv from "csvtojson";
 import { DateTime } from "luxon";
 import * as React from "react";
 
 import { ExternalLink } from "components/Links";
-import { getSlugAndDay, parseJSON } from "database";
+import { smartDecode, getSlugAndDay, parseCSV, parseJSON } from "database";
 
 import AmazonIcon from "icons/amazon.svg";
 
@@ -62,11 +61,12 @@ class Amazon implements Provider {
   ];
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
+    if (file.skipped) return [];
     if (
       file.path[1] === "Location" &&
       file.path[2]?.startsWith("Country of Residence")
     ) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -82,7 +82,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "account.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -98,13 +98,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "library.csv") {
-      const single = new TextDecoder().decode(file.data);
-      const double = new TextDecoder().decode(
-        // $FlowFixMe[incompatible-call]
-        // $FlowFixMe[prop-missing]
-        Uint8Array.from(single, (x) => x.charCodeAt(0))
-      );
-      return (await csv().fromString(double)).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -122,7 +116,7 @@ class Amazon implements Provider {
     } else if (
       file.path[1] === "AmazonSmile.AggregateCustomerDonation.Data.csv"
     ) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -144,7 +138,7 @@ class Amazon implements Provider {
     } else if (
       file.path[1] === "AmazonSmile.CharitySelectionHistory.Data.csv"
     ) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -167,7 +161,7 @@ class Amazon implements Provider {
       file.path[1] === "Appstore" &&
       file.path[4] === "subscription-transaction.csv"
     ) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -185,7 +179,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "Audible.CartHistory.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -198,7 +192,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "Audible.Credits.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -214,7 +208,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "Audible.DevicesActivations.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -230,7 +224,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "Audible.Library.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -246,7 +240,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "Audible.MembershipBillings.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -262,7 +256,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "Audible.MembershipEvent.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -278,7 +272,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "Audible.PurchaseHistory.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -296,7 +290,7 @@ class Amazon implements Provider {
     } else if (
       file.path[4] === "CustomerCommunicationExperience.Preferences.csv"
     ) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -318,7 +312,7 @@ class Amazon implements Provider {
       file.path[4] ===
       "CustomerCommunicationExperience.PreferencesEmailHistory.csv"
     ) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -337,7 +331,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "registration.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -353,7 +347,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "Digital Items.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -369,7 +363,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "Digital Orders.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -385,7 +379,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1].startsWith("Digital.ActionBenefit.")) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -404,7 +398,7 @@ class Amazon implements Provider {
       file.path[1].startsWith("Digital.Content.Ownership.") &&
       file.path[1].endsWith(".json")
     ) {
-      const parsed = parseJSON(file);
+      const parsed = parseJSON(file.data);
       return [
         ({
           type: "timeline",
@@ -420,7 +414,7 @@ class Amazon implements Provider {
         }: TimelineEntry),
       ];
     } else if (file.path[1] === "whispersync.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -438,7 +432,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "Digital.PrimeVideo.LocationData.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -457,7 +451,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1].startsWith("Digital.Redemption.")) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -473,7 +467,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "Beneficiaries.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -489,7 +483,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "Subscriptions.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -507,7 +501,7 @@ class Amazon implements Provider {
     } else if (
       file.path[4] === "Kindle.BooksPromotions.RewardOfferRepository.csv"
     ) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -523,7 +517,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "Kindle.Devices.ReadingSession.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -542,7 +536,7 @@ class Amazon implements Provider {
       file.path[4] ===
       "Kindle.Reach.KindleNotifications.InappNotificationEvents.csv"
     ) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -563,7 +557,7 @@ class Amazon implements Provider {
       file.path[1] ===
       "OutboundNotifications.AmazonApplicationUpdateHistory.csv"
     ) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -587,7 +581,7 @@ class Amazon implements Provider {
     } else if (
       file.path[1] === "OutboundNotifications.EmailDeliveryStatusFeedback.csv"
     ) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -611,7 +605,7 @@ class Amazon implements Provider {
     } else if (
       file.path[1] === "OutboundNotifications.NotificationEngagementEvents.csv"
     ) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -633,7 +627,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "OutboundNotifications.PushSentData.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -651,7 +645,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "OutboundNotifications.SentNotifications.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -673,7 +667,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "PaymentOptions.PaymentInstruments.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data)))
+      return (await parseCSV(file.data))
         .filter((row) => row["RegistrationDate"] !== "N/A")
         .map(
           (row) =>
@@ -694,7 +688,7 @@ class Amazon implements Provider {
             }: TimelineEntry)
         );
     } else if (file.path[4] === "WholeFoodsMarket.Orders.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -715,7 +709,7 @@ class Amazon implements Provider {
     } else if (
       file.path[4] === "PhysicalStores.WholeFoods.KeyRegistration.csv"
     ) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -734,7 +728,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "Retail.AuthenticationTokens.json") {
-      const parsed = parseJSON(file);
+      const parsed = parseJSON(file.data);
       return parsed.authenticationSessionRecords.map(
         (row) =>
           ({
@@ -751,7 +745,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[4] === "BuyerSellerMessaging.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -767,7 +761,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[4] === "Retail.CustomerProfile.Misc.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -787,7 +781,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[4] === "Retail.CustomerProfile.PrivacySettings.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -805,7 +799,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1].startsWith("Retail.CustomerReturns.")) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -830,7 +824,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1].startsWith("Retail.OrderHistory.")) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -848,7 +842,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1].startsWith("Retail.OrdersReturned.Payments.")) {
-      return (await csv().fromString(new TextDecoder().decode(file.data)))
+      return (await parseCSV(file.data))
         .filter((row) => row["RefundCompletionDate"] !== "N/A")
         .map(
           (row) =>
@@ -872,7 +866,7 @@ class Amazon implements Provider {
             }: TimelineEntry)
         );
     } else if (file.path[1].startsWith("Retail.OrdersReturned.")) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -896,7 +890,7 @@ class Amazon implements Provider {
     } else if (
       file.path[4] === "Retail.OutboundNotifications.MobileApplications.csv"
     ) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -923,10 +917,8 @@ class Amazon implements Provider {
       )
     ) {
       // Strip out footer
-      const raw = new TextDecoder()
-        .decode(file.data)
-        .replace(/\nFile Summary:[\s\S]*/g, "");
-      return (await csv().fromString(raw)).map(
+      const raw = smartDecode(file.data).replace(/\nFile Summary:[\s\S]*/g, "");
+      return (await parseCSV(raw)).map(
         (row) =>
           ({
             type: "timeline",
@@ -945,7 +937,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "Retail.Promotions.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -963,7 +955,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1].startsWith("Retail.RegionAuthority.")) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -979,7 +971,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[2] === "Retail.Reorder.DigitalDashButton.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data)))
+      return (await parseCSV(file.data))
         .slice(1) // skip documentation row
         .filter((row) => row["buttonCreationTime (GMT)"])
         .map(
@@ -1009,7 +1001,7 @@ class Amazon implements Provider {
     } else if (
       file.path[1] === "Retail.Search-Data.Retail.Customer-Engagement.csv"
     ) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -1025,7 +1017,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1].startsWith("Retail.ShoppingProfile.")) {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -1043,7 +1035,7 @@ class Amazon implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "Billing and Refunds Data.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",

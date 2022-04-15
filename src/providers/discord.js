@@ -1,11 +1,10 @@
 // @flow
-import csv from "csvtojson";
 import * as React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import { ExternalLink } from "components/Links";
-import { getSlugAndDay, parseJSON } from "database";
+import { getSlugAndDay, parseCSV, parseJSON, smartDecode } from "database";
 
 import styles from "providers/discord.module.css";
 
@@ -59,17 +58,18 @@ class Discord implements Provider {
   ];
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
+    if (file.skipped) return [];
     if (file.path.slice(1).join("/") === "servers/index.json") {
       return [
         {
           type: "metadata",
           provider: file.provider,
           key: "servers",
-          value: parseJSON(file),
+          value: parseJSON(file.data),
         },
       ];
     } else if (file.path.slice(-1)[0] === "channel.json") {
-      const value = parseJSON(file);
+      const value = parseJSON(file.data);
       return [
         {
           type: "metadata",
@@ -79,7 +79,7 @@ class Discord implements Provider {
         },
       ];
     } else if (file.path.slice(-1)[0] === "messages.csv") {
-      return (await csv().fromString(new TextDecoder().decode(file.data))).map(
+      return (await parseCSV(file.data)).map(
         (row) =>
           ({
             type: "timeline",
@@ -92,12 +92,11 @@ class Discord implements Provider {
           }: TimelineEntry)
       );
     } else if (file.path[1] === "activity") {
-      return new TextDecoder()
-        .decode(file.data)
+      return smartDecode(file.data)
         .trim()
         .split("\n")
         .map((line) => {
-          const row = JSON.parse(line);
+          const parsed = parseJSON(line);
           return ({
             type: "timeline",
             provider: file.provider,
@@ -105,11 +104,11 @@ class Discord implements Provider {
             category: "activity",
             ...getSlugAndDay(
               // Trim quotes from timestamp
-              new Date(row.timestamp.slice(1, -1)).getTime() / 1000,
-              row
+              new Date(parsed.timestamp.slice(1, -1)).getTime() / 1000,
+              parsed
             ),
             context: null,
-            value: row,
+            value: parsed,
           }: TimelineEntry);
         });
     }

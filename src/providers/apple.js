@@ -1,10 +1,9 @@
 // @flow
-import csv from "csvtojson";
 import { DateTime } from "luxon";
 import * as React from "react";
 
 import { ExternalLink } from "components/Links";
-import { getSlugAndDay, parseJSON } from "database";
+import { getSlugAndDay, parseJSON, parseCSV, smartDecode } from "database";
 
 import AppleIcon from "icons/apple.svg";
 
@@ -80,11 +79,10 @@ class Apple implements Provider {
   ];
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
+    if (file.skipped) return [];
     if (file.path[1] === "Apple ID account and device information") {
       if (file.path[2] === "Apple ID Account Information.csv") {
-        return (
-          await csv().fromString(new TextDecoder().decode(file.data))
-        ).map(
+        return (await parseCSV(file.data)).map(
           (row) =>
             ({
               type: "timeline",
@@ -102,9 +100,7 @@ class Apple implements Provider {
             }: TimelineEntry)
         );
       } else if (file.path[2] === "Apple ID Device Information.csv") {
-        return (
-          await csv().fromString(new TextDecoder().decode(file.data))
-        ).flatMap((row) => [
+        return (await parseCSV(file.data)).flatMap((row) => [
           ({
             type: "timeline",
             provider: file.provider,
@@ -135,9 +131,7 @@ class Apple implements Provider {
           }: TimelineEntry),
         ]);
       } else if (file.path[2] === "Apple ID SignOn Information.csv") {
-        return (
-          await csv().fromString(new TextDecoder().decode(file.data))
-        ).map(
+        return (await parseCSV(file.data)).map(
           (row) =>
             ({
               type: "timeline",
@@ -155,9 +149,7 @@ class Apple implements Provider {
             }: TimelineEntry)
         );
       } else if (file.path[2] === "Data & Privacy Request History.csv") {
-        return (
-          await csv().fromString(new TextDecoder().decode(file.data))
-        ).map(
+        return (await parseCSV(file.data)).map(
           (row) =>
             ({
               type: "timeline",
@@ -177,9 +169,7 @@ class Apple implements Provider {
       }
     } else if (file.path[1] === "Apple Media Services information") {
       if (file.path[2] === "Direct Top-Up Promotions.csv") {
-        return (
-          await csv().fromString(new TextDecoder().decode(file.data))
-        ).map(
+        return (await parseCSV(file.data)).map(
           (row) =>
             ({
               type: "timeline",
@@ -200,9 +190,7 @@ class Apple implements Provider {
         file.path[3] ===
         "iTunes and App-Book Re-download and Update History.csv"
       ) {
-        return (
-          await csv().fromString(new TextDecoder().decode(file.data))
-        ).map(
+        return (await parseCSV(file.data)).map(
           (row) =>
             ({
               type: "timeline",
@@ -222,7 +210,7 @@ class Apple implements Provider {
       }
     } else if (file.path[1] === "Apple Online and Retail Stores") {
       if (file.path[3] === "Online Purchase History.csv") {
-        return (await csv().fromString(new TextDecoder().decode(file.data)))
+        return (await parseCSV(file.data))
           .slice(1) // strip duplciated header
           .map(
             (row) =>
@@ -245,12 +233,11 @@ class Apple implements Provider {
     } else if (file.path[1] === "AppleCare") {
       if (file.path[4] === "AppleCare Partners Repairs and Service.csv") {
         // Strip out header and footer
-        const stripped = new TextDecoder()
-          .decode(file.data)
+        const stripped = smartDecode(file.data)
           .split("\n")
           .slice(4, -1)
           .join("\n");
-        return (await csv().fromString(stripped)).map(
+        return (await parseCSV(stripped)).map(
           (row) =>
             ({
               type: "timeline",
@@ -269,12 +256,11 @@ class Apple implements Provider {
         );
       } else if (file.path[4] === "AppleCare Repairs and Service.csv") {
         // Strip out footer
-        const stripped = new TextDecoder()
-          .decode(file.data)
+        const stripped = smartDecode(file.data)
           .split("\n")
           .slice(0, -1)
           .join("\n");
-        return (await csv().fromString(stripped)).map(
+        return (await parseCSV(stripped)).map(
           (row) =>
             ({
               type: "timeline",
@@ -293,12 +279,11 @@ class Apple implements Provider {
         );
       } else if (file.path[4] === "AppleCare Cases.csv") {
         // Strip out footer
-        const stripped = new TextDecoder()
-          .decode(file.data)
+        const stripped = smartDecode(file.data)
           .split("\n")
           .slice(0, -3)
           .join("\n");
-        return (await csv().fromString(stripped)).map(
+        return (await parseCSV(stripped)).map(
           (row) =>
             ({
               type: "timeline",
@@ -314,9 +299,9 @@ class Apple implements Provider {
             }: TimelineEntry)
         );
       } else if (file.path[4] === "AppleCare Device Details.csv") {
-        const parts = new TextDecoder().decode(file.data).split(/\n\n+/);
+        const parts = smartDecode(file.data).split(/\n\n+/);
         return [
-          ...(await csv().fromString(parts[0])).map(
+          ...(await parseCSV(parts[0])).map(
             (row) =>
               ({
                 type: "timeline",
@@ -331,7 +316,7 @@ class Apple implements Provider {
                 value: row,
               }: TimelineEntry)
           ),
-          ...(await csv().fromString(parts[1])).map(
+          ...(await parseCSV(parts[1])).map(
             (row) =>
               ({
                 type: "timeline",
@@ -346,7 +331,7 @@ class Apple implements Provider {
                 value: row,
               }: TimelineEntry)
           ),
-          ...(await csv().fromString(parts[2])).map(
+          ...(await parseCSV(parts[2])).map(
             (row) =>
               ({
                 type: "timeline",
@@ -367,9 +352,7 @@ class Apple implements Provider {
       if (
         file.path[2] === "Device Registration History Pre iOS8 and Yosemite.csv"
       ) {
-        return (
-          await csv().fromString(new TextDecoder().decode(file.data))
-        ).map(
+        return (await parseCSV(file.data)).map(
           (row) =>
             ({
               type: "timeline",
@@ -387,7 +370,7 @@ class Apple implements Provider {
             }: TimelineEntry)
         );
       } else if (file.path[2] === "Marketing Communications Delivery.csv") {
-        return (await csv().fromString(new TextDecoder().decode(file.data)))
+        return (await parseCSV(file.data))
           .slice(1) // strip duplciated header
           .map(
             (row) =>
@@ -407,9 +390,7 @@ class Apple implements Provider {
               }: TimelineEntry)
           );
       } else if (file.path[2] === "Marketing Communications Response.csv") {
-        return (
-          await csv().fromString(new TextDecoder().decode(file.data))
-        ).map(
+        return (await parseCSV(file.data)).map(
           (row) =>
             ({
               type: "timeline",
@@ -429,9 +410,7 @@ class Apple implements Provider {
       }
     } else if (file.path[1] === "Wallet Activity") {
       if (file.path[2] === "Apple Pay Cards.csv") {
-        return (
-          await csv().fromString(new TextDecoder().decode(file.data))
-        ).map(
+        return (await parseCSV(file.data)).map(
           (row) =>
             ({
               type: "timeline",
@@ -451,7 +430,7 @@ class Apple implements Provider {
       }
     } else if (file.path[1] === "iCloud Drive") {
       if (file.path[4] === "UbiquitousCards" && file.path[6] === "pass.json") {
-        const parsed = parseJSON(file);
+        const parsed = parseJSON(file.data);
         return [
           ({
             type: "timeline",
