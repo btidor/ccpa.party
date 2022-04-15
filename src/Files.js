@@ -12,9 +12,10 @@ import {
   FileZipIcon,
 } from "@primer/octicons-react";
 
+import FilePreview from "components/FilePreview";
 import Navigation from "components/Navigation";
 import Theme from "components/Theme";
-import { Database, fileSizeLimitMB, smartDecode, parseJSON } from "database";
+import { Database, fileSizeLimitMB } from "database";
 
 import styles from "Drilldown.module.css";
 
@@ -133,7 +134,7 @@ function Files(props: Props): React.Node {
           <div className={styles.left}>
             <div className={styles.bar}></div>
             {!loaded || !items || items.length === 0 ? (
-              <code className={styles.loading}>
+              <code className={styles.placeholder}>
                 {loaded ? "😮 No Results" : "📊 Loading..."}
               </code>
             ) : (
@@ -226,95 +227,17 @@ function Files(props: Props): React.Node {
                 </a>
               )}
             </div>
-            <div className={styles.inspector}>
-              {(() => {
-                if (!selected) return;
-                if (!item)
-                  return <code className={styles.loading}>📊 Loading...</code>;
-                if (item.skipped)
-                  return (
-                    <code className={styles.loading}>
-                      🐘 Not imported due to {fileSizeLimitMB}MB size limit
-                    </code>
-                  );
-                if (item.data.byteLength === 0)
-                  return (
-                    <code className={styles.loading}>
-                      🥛 This file is empty
-                    </code>
-                  );
-
-                const filenameParts = item.path.slice(-1)[0].split(".");
-                const ext =
-                  filenameParts.length < 2
-                    ? undefined
-                    : filenameParts.slice(-1)[0];
-                switch (ext) {
-                  case "json": {
-                    try {
-                      const parsed = parseJSON(item.data);
-                      return <pre>{JSON.stringify(parsed, undefined, 2)}</pre>;
-                    } catch {
-                      const raw = smartDecode(item.data);
-                      return <pre>{raw}</pre>;
-                    }
-                  }
-                  case "csv":
-                  case "txt":
-                  case undefined: // eg. "README"
-                  case "xml": {
-                    const text = smartDecode(item.data);
-                    return <pre>{text}</pre>;
-                  }
-                  case "pdf": {
-                    const url = URL.createObjectURL(new Blob([item.data]));
-                    return (
-                      <object data={url} type="application/pdf">
-                        <code className={styles.loading}>
-                          🙅 Could not display PDF
-                        </code>
-                      </object>
-                    );
-                  }
-                  case "htm":
-                  case "html": {
-                    const url = URL.createObjectURL(new Blob([item.data]));
-                    return (
-                      <iframe
-                        src={url}
-                        sandbox=""
-                        title={filenameParts.join(".")}
-                      ></iframe>
-                    );
-                  }
-                  case "avif":
-                  case "gif":
-                  case "jpg":
-                  case "jpeg":
-                  case "png":
-                  case "svg":
-                  case "webp": {
-                    const url = URL.createObjectURL(new Blob([item.data]));
-                    return (
-                      <React.Fragment>
-                        <img
-                          src={url}
-                          alt={filenameParts.join(".")}
-                          className={styles.media}
-                        />
-                      </React.Fragment>
-                    );
-                  }
-                  default: {
-                    return (
-                      <code className={styles.loading}>
-                        😕 Unknown file type
-                      </code>
-                    );
-                  }
-                }
-              })()}
-            </div>
+            {!selected ? undefined : item?.skipped ? (
+              <FilePreview>
+                {`🐘 Not imported due to ${fileSizeLimitMB}MB size limit`}
+              </FilePreview>
+            ) : item?.data.byteLength === 0 ? (
+              <FilePreview>🥛 File is empty</FilePreview>
+            ) : (
+              <FilePreview filename={item?.path.slice(-1)[0]}>
+                {item?.data}
+              </FilePreview>
+            )}
           </div>
         </div>
       </main>

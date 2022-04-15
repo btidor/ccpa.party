@@ -3,6 +3,7 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 
+import FilePreview from "components/FilePreview";
 import Navigation from "components/Navigation";
 import Theme from "components/Theme";
 import { Database } from "database";
@@ -179,7 +180,7 @@ function Timeline(props: Props): React.Node {
           {hydrated ? (
             provider.render(hydrated, metadata)
           ) : (
-            <code className={styles.loading}>Loading...</code>
+            <code className={styles.placeholder}>Loading...</code>
           )}
         </div>
       );
@@ -266,7 +267,7 @@ function Timeline(props: Props): React.Node {
               </div>
             </div>
             {!items || items.length === 0 ? (
-              <code className={styles.loading}>
+              <code className={styles.placeholder}>
                 {items ? "😮 No Results" : "📊 Loading..."}
               </code>
             ) : (
@@ -286,23 +287,7 @@ function Timeline(props: Props): React.Node {
                 drilldownItem &&
                 `From ${drilldownItem.file.slice(1).join("/")}:`}
             </div>
-            {(() => {
-              const classes = drilldownItem
-                ? styles.inspector
-                : [styles.inspector, styles.loading].join(" ");
-              return (
-                <div className={classes}>
-                  {selected &&
-                    (drilldownItem ? (
-                      <pre>
-                        {JSON.stringify(drilldownItem.value, undefined, 2)}
-                      </pre>
-                    ) : (
-                      <code>📊 Loading...</code>
-                    ))}
-                </div>
-              );
-            })()}
+            {selected && <FilePreview>{drilldownItem?.value}</FilePreview>}
           </div>
         </div>
       </main>
