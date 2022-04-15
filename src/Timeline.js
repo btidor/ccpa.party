@@ -68,9 +68,11 @@ function Timeline(props: Props): React.Node {
   const [range, setRange] = React.useState([0, 0]);
   React.useEffect(() => {
     (async () => {
-      const parsed = ((await db.getTimelineEntriesForProvider(provider))
+      const all = await db.getTimelineEntriesForProvider(provider);
+      if (all.length === 0) navigate(`/${provider.slug}/import`);
+      const parsed = all
         .filter((e) => selectedCategories.has(e.category))
-        .reverse(): Array<TimelineEntryKey>);
+        .reverse();
 
       const metadata = new Map(
         (await db.getMetadatasForProvider(provider)).map((e) => [
@@ -95,7 +97,7 @@ function Timeline(props: Props): React.Node {
       }
       setItems((items: $ReadOnlyArray<TimelineEntryKey | Group>));
     })();
-  }, [db, provider, selectedCategories]);
+  }, [db, navigate, provider, selectedCategories]);
 
   const [hydration, setHydration] = React.useState(
     new Map<number, ?TimelineEntry>()

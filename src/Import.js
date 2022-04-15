@@ -5,7 +5,7 @@ import untar from "js-untar";
 import { unzip } from "unzipit";
 
 import { InternalLink } from "components/Links";
-import { Database } from "database";
+import { Database, fileSizeLimitMB } from "database";
 
 import styles from "Import.module.css";
 
@@ -48,12 +48,14 @@ function Import(props: Props): React.Node {
       data: ArrayBuffer
     ): Promise<?ImportFile> => {
       if (processed % 23 === 0) {
-        setStatus(`Importing... (${processed.toLocaleString("en-US")})`);
+        setStatus(`Importing ${processed.toLocaleString("en-US")} items...`);
       }
-      processed++;
-      if (path.slice(-1)[0].endsWith(".zip")) {
+      if (
+        path.slice(-1)[0].endsWith(".zip") ||
+        path.slice(-1)[0].endsWith(".tar.gz")
+      ) {
         return ({ path, data: () => Promise.resolve(data) }: ImportFile);
-      } else if (data.byteLength > 2 << 22) {
+      } else if (data.byteLength > (2 << 20) * fileSizeLimitMB) {
         const dataFile = ({
           provider: provider.slug,
           path,
@@ -61,6 +63,7 @@ function Import(props: Props): React.Node {
           skipped: "tooLarge",
         }: DataFile);
         await db.putFile(dataFile);
+        processed++;
         return;
       } else {
         const dataFile = ({
@@ -74,6 +77,7 @@ function Import(props: Props): React.Node {
         for (const entry of parsed) {
           if (entry.type === "metadata") await db.putMetadata(entry);
           else if (entry.type === "timeline") await db.putTimelineEntry(entry);
+          processed++;
         }
         return;
       }
@@ -103,6 +107,8 @@ function Import(props: Props): React.Node {
           const next = await processEntry(subpath, entry.buffer);
           if (next) files.push(next);
         }
+      } else {
+        throw new Error("Unknown archive: " + path.slice(-1)[0]);
       }
     }
 

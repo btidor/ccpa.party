@@ -52,9 +52,10 @@ function Files(props: Props): React.Node {
   React.useEffect(() => {
     (async () => {
       const items = await db.getFilesForProvider(provider);
+      if (items.length === 0) navigate(`/${provider.slug}/import`);
       setItems(items);
     })();
-  }, [db, provider]);
+  }, [db, navigate, provider]);
 
   const fileTree = React.useMemo(() => {
     const fileTree = ({
@@ -227,7 +228,7 @@ function Files(props: Props): React.Node {
             </div>
             <div
               className={
-                selected && item
+                selected && item && !item.skipped
                   ? styles.inspector
                   : [styles.inspector, styles.loading].join(" ")
               }
