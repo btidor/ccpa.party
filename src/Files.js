@@ -226,26 +226,31 @@ function Files(props: Props): React.Node {
                 </a>
               )}
             </div>
-            <div
-              className={
-                selected && item && !item.skipped
-                  ? styles.inspector
-                  : [styles.inspector, styles.loading].join(" ")
-              }
-            >
+            <div className={styles.inspector}>
               {(() => {
                 if (!selected) return;
-                if (!item) return <code>📊 Loading...</code>;
+                if (!item)
+                  return <code className={styles.loading}>📊 Loading...</code>;
                 if (item.skipped)
                   return (
-                    <code>
-                      🐘 Skipped due to {fileSizeLimitMB}MB size limit
+                    <code className={styles.loading}>
+                      🐘 Not imported due to {fileSizeLimitMB}MB size limit
+                    </code>
+                  );
+                if (item.data.byteLength === 0)
+                  return (
+                    <code className={styles.loading}>
+                      🥛 This file is empty
                     </code>
                   );
 
-                const ext = item.path.slice(-1)[0].split(".").slice(-1)[0];
+                const filenameParts = item.path.slice(-1)[0].split(".");
+                const ext =
+                  filenameParts.length < 2
+                    ? undefined
+                    : filenameParts.slice(-1)[0];
                 switch (ext) {
-                  case "json":
+                  case "json": {
                     try {
                       const parsed = parseJSON(item.data);
                       return <pre>{JSON.stringify(parsed, undefined, 2)}</pre>;
@@ -253,18 +258,60 @@ function Files(props: Props): React.Node {
                       const raw = smartDecode(item.data);
                       return <pre>{raw}</pre>;
                     }
+                  }
                   case "csv":
                   case "txt":
-                  case "xml":
+                  case undefined: // eg. "README"
+                  case "xml": {
                     const text = smartDecode(item.data);
                     return <pre>{text}</pre>;
-                  default:
+                  }
+                  case "pdf": {
+                    const url = URL.createObjectURL(new Blob([item.data]));
+                    return (
+                      <object data={url} type="application/pdf">
+                        <code className={styles.loading}>
+                          🙅 Could not display PDF
+                        </code>
+                      </object>
+                    );
+                  }
+                  case "htm":
+                  case "html": {
+                    const url = URL.createObjectURL(new Blob([item.data]));
+                    return (
+                      <iframe
+                        src={url}
+                        sandbox=""
+                        title={filenameParts.join(".")}
+                      ></iframe>
+                    );
+                  }
+                  case "avif":
+                  case "gif":
+                  case "jpg":
+                  case "jpeg":
+                  case "png":
+                  case "svg":
+                  case "webp": {
                     const url = URL.createObjectURL(new Blob([item.data]));
                     return (
                       <React.Fragment>
-                        <img src={url} alt="" className={styles.media} />
+                        <img
+                          src={url}
+                          alt={filenameParts.join(".")}
+                          className={styles.media}
+                        />
                       </React.Fragment>
                     );
+                  }
+                  default: {
+                    return (
+                      <code className={styles.loading}>
+                        😕 Unknown file type
+                      </code>
+                    );
+                  }
                 }
               })()}
             </div>

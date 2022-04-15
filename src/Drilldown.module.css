@@ -135,21 +135,48 @@
 }
 
 .inspector {
+  box-sizing: border-box;
+  position: relative;
+  width: 100%;
   height: 100%;
-  overflow-y: scroll;
-  padding: 0.5rem;
+  overflow: hidden;
 }
 
 .inspector pre {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+
   margin: 0;
+  padding: 0.5rem;
+  overflow: scroll;
+}
+
+.inspector object,
+.inspector iframe {
+  width: 100%;
+  height: 100%;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.inspector img {
+  padding: 0.5rem;
+  box-sizing: border-box;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .loading {
   padding: 0.5rem;
-}
-
-.inspector.loading {
-  padding: 0 0.5rem;
 }
 
 .treeDrilldown {

@@ -69,7 +69,10 @@ function Timeline(props: Props): React.Node {
   React.useEffect(() => {
     (async () => {
       const all = await db.getTimelineEntriesForProvider(provider);
-      if (all.length === 0) navigate(`/${provider.slug}/import`);
+      if (all.length === 0) {
+        const files = await db.getFilesForProvider(provider);
+        if (files.length === 0) navigate(`/${provider.slug}/import`);
+      }
       const parsed = all
         .filter((e) => selectedCategories.has(e.category))
         .reverse();
