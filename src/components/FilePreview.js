@@ -52,6 +52,7 @@ function displayFile(data: ArrayBuffer, filename: string): React.Node {
     case "pdf": {
       const url = URL.createObjectURL(new Blob([data]));
       return (
+        // TODO: if file is actually HTML, this could be dangerous!
         <object data={url} type="application/pdf">
           <code className={styles.placeholder}>🙅 Could not display PDF</code>
         </object>
@@ -59,6 +60,7 @@ function displayFile(data: ArrayBuffer, filename: string): React.Node {
     }
     case "htm":
     case "html": {
+      // TODO: block network requests!
       const url = URL.createObjectURL(new Blob([data]));
       return <iframe src={url} sandbox="" title={filename}></iframe>;
     }
