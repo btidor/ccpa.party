@@ -4,7 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { BeakerIcon, DesktopDownloadIcon } from "@primer/octicons-react";
 
 import FilePreview from "components/FilePreview";
+import FileTree from "components/FileTree";
 import Navigation from "components/Navigation";
+import Placeholder from "components/Placeholder";
 import Theme from "components/Theme";
 import { Database, fileSizeLimitMB } from "database";
 
@@ -12,7 +14,6 @@ import styles from "Drilldown.module.css";
 
 import type { DataFileKey, DataFile } from "database";
 import type { Provider } from "provider";
-import FileTree from "components/FileTree";
 
 type Props = {|
   +provider: Provider,
@@ -59,7 +60,7 @@ function Files(props: Props): React.Node {
           <div className={styles.left}>
             <div className={styles.bar}></div>
             {!items || items.length === 0 ? (
-              <code className={styles.placeholder}>📊 Loading...</code>
+              <Placeholder />
             ) : (
               <FileTree
                 selected={selected}

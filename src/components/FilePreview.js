@@ -1,6 +1,7 @@
 // @flow
 import * as React from "react";
 
+import Placeholder from "components/Placeholder";
 import { smartDecode, parseJSON } from "database";
 
 import styles from "components/FilePreview.module.css";
@@ -14,19 +15,16 @@ type Props = {|
   +filename?: string,
 |};
 
-const loadingMessage = "📊 Loading...";
 const emptyMessage = "🥛 File is empty";
-
-function placeholder(message: string): React.Node {
-  return <code className={styles.placeholder}>{message}</code>;
-}
+const pdfFallbackMessage = "🙅 Could not display PDF";
+const unknownMessage = "😕 Unknown file type";
 
 function displayText(data: ArrayBuffer): React.Node {
   try {
     const raw = smartDecode(data);
     return <pre>{raw}</pre>;
   } catch {
-    return placeholder("🥗 Unable to decode text");
+    return <Placeholder>🥗 Unable to decode text</Placeholder>;
   }
 }
 
@@ -54,7 +52,7 @@ function displayFile(data: ArrayBuffer, filename: string): React.Node {
       return (
         // TODO: if file is actually HTML, this could be dangerous!
         <object data={url} type="application/pdf">
-          <code className={styles.placeholder}>🙅 Could not display PDF</code>
+          <Placeholder>{pdfFallbackMessage}</Placeholder>
         </object>
       );
     }
@@ -75,7 +73,7 @@ function displayFile(data: ArrayBuffer, filename: string): React.Node {
       return <img src={url} alt={filename} className={styles.media} />;
     }
     default: {
-      return placeholder("😕 Unknown file type");
+      return <Placeholder>{unknownMessage}</Placeholder>;
     }
   }
 }
@@ -85,11 +83,13 @@ function FilePreview(props: Props): React.Node {
 
   let node;
   if (children === undefined || typeof children === "string") {
-    node = placeholder(children || loadingMessage);
+    node = <Placeholder>{children}</Placeholder>;
   } else if (children instanceof ArrayBuffer) {
-    node = children.byteLength
-      ? displayFile(children, filename || "")
-      : placeholder(emptyMessage);
+    node = children.byteLength ? (
+      displayFile(children, filename || "")
+    ) : (
+      <Placeholder>{emptyMessage}</Placeholder>
+    );
   } else {
     node = <pre>{JSON.stringify(children, undefined, 2)}</pre>;
   }

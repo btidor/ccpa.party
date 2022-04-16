@@ -5,6 +5,7 @@ import { Virtuoso } from "react-virtuoso";
 
 import FilePreview from "components/FilePreview";
 import Navigation from "components/Navigation";
+import Placeholder from "components/Placeholder";
 import Theme from "components/Theme";
 import { Database } from "database";
 
@@ -177,11 +178,7 @@ function Timeline(props: Props): React.Node {
           role="row"
           aria-selected={hydrated && selected === hydrated.slug}
         >
-          {hydrated ? (
-            provider.render(hydrated, metadata)
-          ) : (
-            <code className={styles.placeholder}>Loading...</code>
-          )}
+          {hydrated ? provider.render(hydrated, metadata) : <Placeholder />}
         </div>
       );
     }
@@ -267,9 +264,7 @@ function Timeline(props: Props): React.Node {
               </div>
             </div>
             {!items || items.length === 0 ? (
-              <code className={styles.placeholder}>
-                {items ? "😮 No Results" : "📊 Loading..."}
-              </code>
+              <Placeholder>{items ? "😮 No Results" : undefined}</Placeholder>
             ) : (
               <Virtuoso
                 ref={virtuoso}
