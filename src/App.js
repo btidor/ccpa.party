@@ -105,6 +105,7 @@ function App(): React.Node {
               return <Home screen="import" provider={provider} />;
             } else if (pageSlug === "files") {
               // URL: `/:provider/files(@selected)?`
+              if (matches[2]) return do404();
               let selected = !!matches[3] ? matches[3].slice(1) : undefined;
               return <Files provider={provider} selected={selected} />;
             } else if (pageSlug === "timeline") {

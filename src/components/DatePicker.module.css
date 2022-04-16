@@ -1,0 +1,32 @@
+.picker {
+  width: 17vw;
+
+  color: white;
+  background-color: var(--primary);
+  text-align: center;
+
+  position: relative;
+}
+
+.picker label {
+  background-color: inherit;
+  display: block;
+  width: 100%;
+}
+
+.picker label:hover {
+  cursor: pointer;
+  filter: brightness(90%);
+}
+
+.picker input {
+  position: absolute;
+  top: 12px;
+  left: -13px;
+  width: 1px;
+
+  color: transparent;
+  background: none;
+  border: none;
+  filter: opacity(0);
+}

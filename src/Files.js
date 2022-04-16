@@ -1,6 +1,6 @@
 // @flow
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { BeakerIcon, DesktopDownloadIcon } from "@primer/octicons-react";
 
 import FilePreview from "components/FilePreview";
@@ -20,6 +20,30 @@ type Props = {|
   +selected?: number,
 |};
 
+const FileParseAction = (props: {|
+  +file: DataFile,
+  +provider: Provider,
+|}): React.Node => (
+  <div
+    className={styles.action}
+    onClick={() => {
+      props.provider.parse(props.file).then((e) => console.warn(e));
+    }}
+  >
+    <BeakerIcon />
+  </div>
+);
+
+const FileDownloadAction = (props: {| +file: DataFile |}): React.Node => (
+  <a
+    className={styles.action}
+    download={props.file.path.slice(-1)[0]}
+    href={URL.createObjectURL(new Blob([props.file.data]))}
+  >
+    <DesktopDownloadIcon />
+  </a>
+);
+
 function Files(props: Props): React.Node {
   const navigate = useNavigate();
   const { provider, selected } = props;
@@ -34,15 +58,21 @@ function Files(props: Props): React.Node {
     (undefined: ?$ReadOnlyArray<DataFileKey>)
   );
   React.useEffect(() => {
+    // When `provider` changes, immediately unset `items`. This prevents
+    // components like FileTree from performing their initialization with
+    // incorrect data (e.g. expanding the wrong root).
+    setItems();
     (async () => {
-      const items = await db.getFilesForProvider(provider);
-      if (items.length === 0) navigate(`/${provider.slug}/import`);
-      setItems(items);
+      setItems(await db.getFilesForProvider(provider));
     })();
-  }, [db, navigate, provider]);
+  }, [db, provider]);
 
   const [item, setItem] = React.useState((undefined: DataFile | void));
   React.useEffect(() => {
+    // When `items` or `selected` changes, *don't* immediately unset `item`.
+    // Rather than flashing a loading message, we allow the previous item to
+    // ghost in the drilldown pane for a few moments while the next item is
+    // loaded.
     (async () => {
       setItem(
         selected && items?.[selected]
@@ -51,6 +81,10 @@ function Files(props: Props): React.Node {
       );
     })();
   }, [db, items, selected]);
+
+  if (items?.length === 0) {
+    return <Navigate to={`/${provider.slug}/import`} />;
+  }
 
   return (
     <Theme provider={provider}>
@@ -63,6 +97,7 @@ function Files(props: Props): React.Node {
               <Placeholder />
             ) : (
               <FileTree
+                items={items}
                 selected={selected}
                 onSelect={(index) =>
                   navigate(
@@ -70,9 +105,7 @@ function Files(props: Props): React.Node {
                       (selected === index ? "" : `@${index}`)
                   )
                 }
-              >
-                {items}
-              </FileTree>
+              />
             )}
           </div>
           <div className={styles.right}>
@@ -82,25 +115,8 @@ function Files(props: Props): React.Node {
                   items?.[selected]?.path.slice(1).join("/")}
               </span>
               <div className={styles.grow}></div>
-              {item && (
-                <div
-                  className={styles.download}
-                  onClick={() => {
-                    provider.parse(item).then((e) => console.warn(e));
-                  }}
-                >
-                  <BeakerIcon />
-                </div>
-              )}
-              {item && (
-                <a
-                  className={styles.download}
-                  download={item.path.slice(-1)[0]}
-                  href={URL.createObjectURL(new Blob([item.data]))}
-                >
-                  <DesktopDownloadIcon />
-                </a>
-              )}
+              {item && <FileParseAction file={item} provider={provider} />}
+              {item && <FileDownloadAction file={item} />}
             </div>
             {!selected ? undefined : item?.skipped ? (
               <FilePreview>

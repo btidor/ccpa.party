@@ -14,8 +14,8 @@ import styles from "components/FileTree.module.css";
 import type { DataFileKey } from "database";
 
 type Props = {|
-  +children: $ReadOnlyArray<DataFileKey>,
-  +selected: ?number, // index into children
+  +items: $ReadOnlyArray<DataFileKey>,
+  +selected: ?number, // index into items
   +onSelect: (number) => void,
 |};
 
@@ -67,16 +67,16 @@ function fileListToTree(items: $ReadOnlyArray<DataFileKey>): TreeNode {
 }
 
 function FileTree(props: Props): React.Node {
-  const { children, onSelect, selected } = props;
+  const { items, onSelect, selected } = props;
 
-  const tree = React.useMemo(() => fileListToTree(children), [children]);
+  const tree = React.useMemo(() => fileListToTree(items), [items]);
 
   const defaultExpandedSet = React.useMemo((): $ReadOnlySet<string> => {
-    if (selected && children[selected]) {
+    if (selected && items[selected]) {
       // Expand path to default file
       const expanded = new Set();
       let path = "";
-      for (const part of children[selected].path) {
+      for (const part of items[selected].path) {
         path += "/" + part;
         expanded.add(path);
       }
@@ -85,7 +85,7 @@ function FileTree(props: Props): React.Node {
       // Expand all root archives
       return new Set(tree.children.map((n) => n.id));
     }
-  }, [children, selected, tree]);
+  }, [items, selected, tree]);
   const [expanded, setExpanded] = React.useState(defaultExpandedSet);
 
   return (

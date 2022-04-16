@@ -44,109 +44,18 @@
   user-select: text;
 }
 
-.filter {
-  display: inline-block;
-  height: 100%;
-}
-
-.filter input {
-  margin: 0 1ch;
-  filter: grayscale(100%);
-}
-
-.filter,
-.filter input {
-  cursor: pointer;
-}
-
 .grow {
   flex: 1;
 }
 
-.activeGroup {
-  width: 17vw;
-
-  color: white;
-  background-color: var(--primary);
-  text-align: center;
-
-  position: relative;
-}
-
-.activeGroup label {
-  background-color: inherit;
-  display: block;
-  width: 100%;
-}
-
-.activeGroup label:hover {
-  cursor: pointer;
-  filter: brightness(90%);
-}
-
-.activeGroup input {
-  position: absolute;
-  top: 12px;
-  left: -13px;
-  width: 1px;
-
-  color: transparent;
-  background: none;
-  border: none;
-  filter: opacity(0);
-}
-
-.listItem {
-  background-color: white;
-  padding: 0 0.5rem;
-  overflow-x: hidden;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.listItem:hover,
-.listItem[aria-selected="true"] {
-  cursor: pointer;
-  background-color: var(--primary-light);
-}
-
-.last {
-  margin: 0 0 0.5rem 0;
-}
-
-.divider {
-  margin: 1em 5% 0;
-  padding: 0;
-  border: none;
-  border-bottom: 1px solid var(--primary);
-}
-
-.group {
-  width: 15vw;
-  margin: 0 auto 0.5em;
-  padding: 0.1em 1em 0.2em;
-  text-align: center;
-  font-size: 13px;
-  line-height: 1.5;
-
-  color: white;
-  background-color: var(--primary);
-  border-radius: 0 0 4px 4px;
-}
-
-.download {
+.action {
   color: black;
   display: block;
   padding: 0 1em;
   cursor: pointer;
 }
 
-.download:hover {
+.action:hover {
   color: white;
   background-color: var(--primary);
-}
-
-.media {
-  display: block;
-  max-width: 100%;
 }

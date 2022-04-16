@@ -4,7 +4,7 @@ import * as React from "react";
 import styles from "components/Placeholder.module.css";
 
 type Props = {|
-  children?: string,
+  +children?: string,
 |};
 
 const loadingMessage = "📊 Loading...";

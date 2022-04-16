@@ -81,16 +81,14 @@ export class Database {
     });
   }
 
-  async getAllFiles(): Promise<$ReadOnlyArray<DataFileKey>> {
+  async getAllFiles(): Promise<Array<DataFileKey>> {
     const db = await this.#idb;
     return (await db.getAllKeys(filesStore)).map(
       ([provider, path]) => ({ provider, path }: DataFileKey)
     );
   }
 
-  async getFilesForProvider(
-    provider: Provider
-  ): Promise<$ReadOnlyArray<DataFileKey>> {
+  async getFilesForProvider(provider: Provider): Promise<Array<DataFileKey>> {
     const db = await this.#idb;
     return (await db.getAllKeys(filesStore, providerRange(provider))).map(
       ([provider, path]) => ({ provider, path }: DataFileKey)
@@ -109,7 +107,7 @@ export class Database {
 
   async getMetadatasForProvider(
     provider: Provider
-  ): Promise<$ReadOnlyArray<MetadataEntry>> {
+  ): Promise<Array<MetadataEntry>> {
     const db = await this.#idb;
     return await db.getAll(metadataStore, providerRange(provider));
   }
@@ -121,7 +119,7 @@ export class Database {
 
   async getTimelineEntriesForProvider(
     provider: Provider
-  ): Promise<$ReadOnlyArray<TimelineEntryKey>> {
+  ): Promise<Array<TimelineEntryKey>> {
     const db = await this.#idb;
     return (await db.getAllKeys(timelineStore, providerRange(provider))).map(
       ([provider, slug, day, category]) =>

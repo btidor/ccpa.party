@@ -25,7 +25,7 @@ type Props =
 
 function Home(props: Props): React.Node {
   const { provider, screen } = props;
-  const [activeProviders, setActiveProviders] = React.useState(undefined);
+  const [activeProviders, setActiveProviders] = React.useState();
 
   const [epoch, setEpoch] = React.useState(0);
   const db = React.useMemo(

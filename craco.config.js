@@ -3,7 +3,8 @@ module.exports = {
     headers: {
       "Content-Security-Policy": [
         "default-src",
-        "script-src 'self'",
+        // TODO: unsafe-inline is needed for React dev tools
+        "script-src 'self' 'unsafe-inline'",
         "img-src blob: data:",
         "style-src 'unsafe-inline'",
         "frame-ancestors 'none'",

@@ -4,15 +4,18 @@ import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 
 import FilePreview from "components/FilePreview";
+import FilterBar from "components/FilterBar";
 import Navigation from "components/Navigation";
 import Placeholder from "components/Placeholder";
 import Theme from "components/Theme";
+import TimelineRow from "components/TimelineRow";
 import { Database } from "database";
 
 import styles from "Drilldown.module.css";
 
-import type { TimelineEntry, TimelineEntryKey } from "database";
+import type { TimelineEntryKey } from "database";
 import type { Provider } from "provider";
+import DatePicker from "components/DatePicker";
 
 type Props = {|
   +provider: Provider,
@@ -20,14 +23,11 @@ type Props = {|
   +selected?: string,
 |};
 
-type Group = {| +type: "group", value: string, first?: boolean |};
-
-const VerboseDateFormat = new Intl.DateTimeFormat("en-US", {
-  weekday: "long",
-  month: "long",
-  day: "numeric",
-  year: "numeric",
-});
+export type Group = {|
+  +type: "group",
+  +value: string,
+  +first?: boolean,
+|};
 
 function Timeline(props: Props): React.Node {
   const { provider, filter, selected } = props;
@@ -38,46 +38,33 @@ function Timeline(props: Props): React.Node {
     [epoch]
   );
 
-  React.useEffect(() => {
-    if (!filter) {
-      const defaultFilter = provider.timelineCategories
-        .filter((cat) => cat.defaultEnabled)
-        .map((cat) => cat.char)
-        .join("");
-      navigate(`/${provider.slug}/timeline:${defaultFilter}`, {
-        replace: true,
-      });
-    }
-  }, [provider, filter, navigate]);
-
-  const selectedCategories = React.useMemo(() => {
-    const chars = filter === undefined || filter === "-" ? [] : [...filter];
-    return new Map(
-      chars.map((ch) => {
-        const category = provider.timelineCategories.find(
-          (cat) => cat.char === ch
-        );
-        if (!category) throw new Error("Category not found: " + ch);
-        return [category.slug, category];
-      })
-    );
-  }, [provider, filter]);
-
-  const [items, setItems] = React.useState(
-    (undefined: ?$ReadOnlyArray<TimelineEntryKey | Group>)
+  // Convert the abbreviated filter string (e.g. "acns") to a set of slugs (e.g.
+  // {"activity", "content", ...}) for fast lookups.
+  const selectedCategories = React.useMemo(
+    () =>
+      new Set(
+        (filter ? [...filter] : []).map(
+          (ch) =>
+            provider.timelineCategories.find((cat) => cat.char === ch)?.slug
+        )
+      ),
+    [filter, provider]
   );
-  const [metadata, setMetadata] = React.useState(new Map<string, any>());
-  const [range, setRange] = React.useState([0, 0]);
+
+  // Load *all* timeline entries from the database (unhydrated: these are just
+  // the keys), as well as the provider-specific metadata.
+  const [entries, setEntries] = React.useState();
+  const [metadata, setMetadata] = React.useState();
   React.useEffect(() => {
+    // When `provider` changes, immediately unset `entries` and `metadata`. This
+    // prevents downstream components from performing their initialization with
+    // incorrect data.
+    setEntries();
+    setMetadata();
     (async () => {
-      const all = await db.getTimelineEntriesForProvider(provider);
-      if (all.length === 0) {
-        const files = await db.getFilesForProvider(provider);
-        if (files.length === 0) navigate(`/${provider.slug}/import`);
-      }
-      const parsed = all
-        .filter((e) => selectedCategories.has(e.category))
-        .reverse();
+      const entries = await db.getTimelineEntriesForProvider(provider);
+      entries.reverse(); // sort in descending order by timestamp/slug
+      setEntries(entries);
 
       const metadata = new Map(
         (await db.getMetadatasForProvider(provider)).map((e) => [
@@ -86,115 +73,91 @@ function Timeline(props: Props): React.Node {
         ])
       );
       setMetadata(metadata);
+    })();
+  }, [db, provider]);
 
-      const items = ([]: Array<TimelineEntryKey | Group>);
+  // If there are no timeline entries in the database, check if the user has
+  // imported a file yet. If not, send them back to the import page. This check
+  // needs to live in a separate `useEffect` because the `navigate` dependency
+  // makes it re-run on every page navigation.
+  React.useEffect(() => {
+    (async () => {
+      if (entries && entries.length === 0) {
+        const files = await db.getFilesForProvider(provider);
+        if (files.length === 0) navigate(`/${provider.slug}/import`);
+      }
+    })();
+  }, [db, entries, navigate, provider]);
+
+  // Compute the rows to display by filtering down the entries to just the ones
+  // in the selected categories and adding group headers for each day. We have
+  // to recompute this every time the list of selected categories chanages.
+  const rows = React.useMemo(() => {
+    if (entries === undefined) {
+      return undefined;
+    } else {
+      const filtered = entries.filter((entry) =>
+        selectedCategories.has(entry.category)
+      );
+      const rows = ([]: Array<TimelineEntryKey | Group>);
       let lastGroup;
-      for (const entry of parsed) {
+      for (const entry of filtered) {
         if (entry.day !== lastGroup) {
-          items.push({
+          rows.push({
             type: "group",
             value: entry.day,
             first: lastGroup === undefined,
           });
           lastGroup = entry.day;
         }
-        items.push(entry);
+        rows.push(entry);
       }
-      setItems((items: $ReadOnlyArray<TimelineEntryKey | Group>));
-    })();
-  }, [db, navigate, provider, selectedCategories]);
-
-  const [hydration, setHydration] = React.useState(
-    new Map<number, ?TimelineEntry>()
-  );
-  const [drilldownItem, setDrilldownItem] = React.useState(
-    (undefined: ?TimelineEntry)
-  );
-  React.useEffect(() => {
-    (async () => {
-      const hydration = new Map<number, ?TimelineEntry>();
-      const [start, end] = range;
-      for (let i = start - 10; i <= end + 10; i++) {
-        const item = items?.[i];
-        if (!item || item.type !== "timeline") continue;
-        hydration.set(i, await db.hydrateTimelineEntry(item));
-      }
-      setHydration(hydration);
-
-      if (selected) {
-        const drilldownItem = await db.getTimelineEntryBySlug(
-          provider,
-          selected
-        );
-        if (
-          !drilldownItem ||
-          !selectedCategories.has(drilldownItem?.category)
-        ) {
-          filter &&
-            navigate(`/${provider.slug}/timeline:${filter}`, { replace: true });
-        }
-        setDrilldownItem(drilldownItem);
-      }
-    })();
-  }, [
-    db,
-    filter,
-    items,
-    navigate,
-    provider,
-    range,
-    selected,
-    selectedCategories,
-  ]);
-
-  const renderItem = (index) => {
-    const item = (items?.[index]: ?(TimelineEntryKey | Group));
-    if (!item || !items) return;
-    if (item.type === "group") {
-      return (
-        <React.Fragment>
-          {!item.first && <hr className={styles.divider} />}
-          <div className={styles.group} role="row">
-            {VerboseDateFormat.format(new Date(item.value))}
-          </div>
-        </React.Fragment>
-      );
-    } else {
-      const hydrated = hydration.get(index);
-      return (
-        <div
-          onClick={() =>
-            hydrated &&
-            filter &&
-            navigate(
-              `/${provider.slug}/timeline:${filter}` +
-                (selected === hydrated.slug ? "" : `@${hydrated.slug}`)
-            )
-          }
-          className={
-            styles.listItem +
-            (index === items.length - 1 ? " " + styles.last : "")
-          }
-          role="row"
-          aria-selected={hydrated && selected === hydrated.slug}
-        >
-          {hydrated ? provider.render(hydrated, metadata) : <Placeholder />}
-        </div>
-      );
+      return rows;
     }
-  };
+  }, [selectedCategories, entries]);
 
+  // Hydrate the currently-selected entry from the database. We have to
+  // recompute this every time the selected entry changes.
+  const [selectedEntry, setSelectedEntry] = React.useState();
+  React.useEffect(() => {
+    // When the dependencies change, *don't* immediately unset `selectedEntry`.
+    // This would cause the loading message to appear briefly; instead, we allow
+    // the previous item to ghost in the drilldown pane for a few moments while
+    // the next item is loaded.
+    (async () => {
+      if (filter === undefined) return;
+
+      let drilldownItem;
+      if (selected) {
+        drilldownItem = await db.getTimelineEntryBySlug(provider, selected);
+
+        // Extra: if the currently-selected entry does not exist in the
+        // database, or if it's of the wrong category, deselect it.
+        if (!drilldownItem || !selectedCategories.has(drilldownItem.category)) {
+          navigate(`/${provider.slug}/timeline:${filter}`, { replace: true });
+        }
+      }
+      setSelectedEntry(drilldownItem);
+    })();
+  }, [db, filter, navigate, provider, selected, selectedCategories]);
+
+  // On first load, if an entry is selected, scroll the list to its approximate
+  // position.
   const virtuoso = React.useRef<any>();
   const [loaded, setLoaded] = React.useState(false);
   React.useEffect(() => {
-    if (!loaded && virtuoso.current && items) {
+    if (!loaded && virtuoso.current && rows) {
       const index =
         selected &&
-        items.findIndex((e) => e.type === "timeline" && e.slug === selected);
+        rows.findIndex((e) => e.type === "timeline" && e.slug === selected);
       index && virtuoso.current.scrollToIndex(index - 3);
       setLoaded(true);
     }
-  }, [items, loaded, selected, virtuoso]);
+  }, [rows, loaded, selected, virtuoso]);
+
+  // As the user scrolls, update the date picker to reflect the date of the
+  // first visible row.
+  const [rangeStart, setRangeStart] = React.useState(0);
 
   return (
     <Theme provider={provider}>
@@ -203,86 +166,59 @@ function Timeline(props: Props): React.Node {
         <div className={styles.container} style={{ "--left-width": "60vw" }}>
           <div className={styles.left}>
             <div className={styles.bar}>
-              {provider.timelineCategories.map((category) => {
-                const checked = selectedCategories.has(category.slug);
-                return (
-                  <label className={styles.filter} key={category.slug}>
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => {
-                        let newFilter = provider.timelineCategories
-                          .filter((cat) =>
-                            cat.slug === category.slug
-                              ? !checked
-                              : selectedCategories.has(cat.slug)
-                          )
-                          .map((c) => c.char)
-                          .join("");
-                        if (newFilter === "") newFilter = "-";
-
-                        navigate(
-                          `/${provider.slug}/timeline:${newFilter}${
-                            selected ? "@" + selected : ""
-                          }`
-                        );
-                      }}
-                    />
-                    {category.displayName}
-                  </label>
-                );
-              })}
+              <FilterBar
+                filter={filter}
+                filterPath={(newFilter) =>
+                  `/${provider.slug}/timeline:${newFilter}${
+                    selected ? "@" + selected : ""
+                  }`
+                }
+                provider={provider}
+              />
               <div className={styles.grow}></div>
-              <div className={styles.activeGroup}>
-                {(() => {
-                  if (!items || !items[range[0]]) return;
-                  const value =
-                    items[range[0]].type === "timeline"
-                      ? items[range[0]].day
-                      : items[range[0]].value;
-                  return (
-                    <React.Fragment>
-                      <label>
-                        {VerboseDateFormat.format(new Date(value))}
-                        <input
-                          type="date"
-                          value={value}
-                          onChange={(e) => {
-                            let target = 0;
-                            for (const [index, item] of items.entries()) {
-                              if (item.type !== "group") continue;
-                              if (item.value < e.target.value) break;
-                              target = index;
-                            }
-                            virtuoso.current.scrollToIndex(target);
-                          }}
-                        />
-                      </label>
-                    </React.Fragment>
-                  );
-                })()}
-              </div>
+              <DatePicker
+                index={rangeStart}
+                rows={rows}
+                scrollToIndex={virtuoso.current?.scrollToIndex}
+              />
             </div>
-            {!items || items.length === 0 ? (
-              <Placeholder>{items ? "😮 No Results" : undefined}</Placeholder>
+            {!rows || rows.length === 0 ? (
+              <Placeholder>{rows ? "😮 No Results" : undefined}</Placeholder>
             ) : (
               <Virtuoso
+                // Always leave room for a scrollbar so our centered group headers
+                // don't jump around when the layout reflows.
+                style={{ overflowY: "scroll" }}
                 ref={virtuoso}
-                totalCount={items.length}
-                itemContent={renderItem}
-                rangeChanged={(range) =>
-                  setRange([range.startIndex, range.endIndex])
-                }
+                totalCount={rows.length}
+                itemContent={(index) => (
+                  <TimelineRow
+                    db={db}
+                    isLast={index === rows.length - 1}
+                    metadata={metadata}
+                    provider={provider}
+                    row={rows[index]}
+                    selected={selected}
+                    setSelected={(slug) =>
+                      filter &&
+                      navigate(
+                        `/${provider.slug}/timeline:${filter}` +
+                          (selected === slug ? "" : `@${slug}`)
+                      )
+                    }
+                  />
+                )}
+                rangeChanged={(range) => setRangeStart(range.startIndex)}
               />
             )}
           </div>
           <div className={styles.right}>
             <div className={styles.bar}>
               {selected &&
-                drilldownItem &&
-                `From ${drilldownItem.file.slice(1).join("/")}:`}
+                selectedEntry &&
+                `From ${selectedEntry.file.slice(1).join("/")}:`}
             </div>
-            {selected && <FilePreview>{drilldownItem?.value}</FilePreview>}
+            {selected && <FilePreview>{selectedEntry?.value}</FilePreview>}
           </div>
         </div>
       </main>

@@ -1,0 +1,14 @@
+.filter {
+  display: inline-block;
+  height: 100%;
+}
+
+.filter input {
+  margin: 0 1ch;
+  filter: grayscale(100%);
+}
+
+.filter,
+.filter input {
+  cursor: pointer;
+}
