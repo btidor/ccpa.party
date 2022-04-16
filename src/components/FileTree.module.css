@@ -1,0 +1,30 @@
+.tree {
+  width: 100%;
+  height: 100%;
+}
+
+.tree > div div {
+  /* stop react-arborist's horizontal scroll */
+  overflow-x: hidden !important;
+}
+
+.item {
+  background-color: white;
+  padding: 0 0.5rem;
+  overflow-x: hidden;
+  font-size: 14px;
+  line-height: 1.5;
+
+  white-space: nowrap;
+  padding: 0;
+}
+
+.item:hover,
+.item[aria-selected="true"] {
+  cursor: pointer;
+  background-color: var(--primary-light);
+}
+
+.item svg {
+  padding: 0 4px;
+}
