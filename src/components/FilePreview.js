@@ -16,7 +16,6 @@ type Props = {|
 |};
 
 const emptyMessage = "🥛 File is empty";
-const pdfFallbackMessage = "🙅 Could not display PDF";
 const unknownMessage = "😕 Unknown file type";
 
 function displayText(data: ArrayBuffer): React.Node {
@@ -47,20 +46,47 @@ function displayFile(data: ArrayBuffer, filename: string): React.Node {
     case "xml": {
       return displayText(data);
     }
-    case "pdf": {
-      const url = URL.createObjectURL(new Blob([data]));
-      return (
-        // TODO: if file is actually HTML, this could be dangerous!
-        <object data={url} type="application/pdf">
-          <Placeholder>{pdfFallbackMessage}</Placeholder>
-        </object>
-      );
-    }
     case "htm":
     case "html": {
-      // TODO: block network requests!
-      const url = URL.createObjectURL(new Blob([data]));
-      return <iframe src={url} sandbox="" title={filename}></iframe>;
+      // Blob iframes inherit the Content Security Policy of their parent. Here
+      // this prevents them from loading resources from the network (except from
+      // our server). As an additional precaution, we apply a sandbox policy
+      // that prevents scripts from running.
+      //
+      // We set a unique key here to prevent React from trying to re-use the
+      // iframe for different documents, which triggers a bug in Firefox.
+      //
+      // Warning: removing the sandbox, or adding `allow-scripts` +
+      // `allow-same-origin`, will cause the content to execute under *our*
+      // origin!
+      //
+      const url = URL.createObjectURL(
+        new Blob([data], {
+          type: "text/html; charset=utf-8",
+        })
+      );
+      return (
+        <iframe key={filename} src={url} sandbox="" title={filename}></iframe>
+      );
+    }
+    case "pdf": {
+      const url = URL.createObjectURL(
+        new Blob([data], {
+          type: "application/pdf",
+        })
+      );
+      return (
+        // See above for iframe-related warnings. Firefox uses PDF.js to render
+        // PDFs and requires allow-scripts for it to run. Fortunately, browsers
+        // do seem to respect the MIME type set in the Blob constructor, so
+        // crafting an HTML file with a *.pdf extension won't work.
+        <iframe
+          key={filename}
+          src={url}
+          sandbox="allow-scripts"
+          title={filename}
+        ></iframe>
+      );
     }
     case "avif":
     case "gif":

@@ -26,6 +26,7 @@ class Google implements Provider {
         </ExternalLink>
       </li>
       <li>Check all of the boxes</li>
+      {/* TODO: document additional required options */}
       <li>
         Hit <i>Next step</i>
       </li>
