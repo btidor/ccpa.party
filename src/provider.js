@@ -25,7 +25,7 @@ export interface Provider {
   +displayName: string;
   +icon: React.Node;
   +color: string;
-  +fullColor?: boolean;
+  +darkColor?: string;
 
   +privacyPolicy: string;
   +waitTime: string;

@@ -69,7 +69,7 @@ function App(): React.Node {
               if (parts.length) return do404();
 
               // URL: `/`
-              return <Home screen="select" />;
+              return <Home />;
             }
 
             // Extract provider from URL: `/:provider(/...)?`
@@ -85,7 +85,7 @@ function App(): React.Node {
               if (parts.length) return do404();
 
               // URL: `/:provider`
-              return <Home screen="request" provider={provider} />;
+              return <Home />; // TODO
             }
 
             // Page is non-empty. Extract special components from page slug
@@ -102,7 +102,7 @@ function App(): React.Node {
             const pageSlug = matches[1];
             if (pageSlug === "import") {
               // URL: `/:provider/import`
-              return <Home screen="import" provider={provider} />;
+              return <Home />; // TODO
             } else if (pageSlug === "files") {
               // URL: `/:provider/files(@selected)?`
               if (matches[2]) return do404();

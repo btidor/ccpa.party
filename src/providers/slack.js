@@ -17,7 +17,7 @@ class Slack implements Provider {
   displayName: string = "Slack";
   icon: React.Node = (<SlackIcon />);
   color: string = "#4a154b";
-  fullColor: boolean = true;
+  darkColor: string = "#c05b8c";
 
   privacyPolicy: string =
     "https://slack.com/trust/privacy/privacy-policy#california-rights";

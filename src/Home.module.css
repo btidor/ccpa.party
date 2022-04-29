@@ -1,52 +1,53 @@
 .home {
-  display: flex;
+  background-color: #000;
+  font-family: "Cascadia Mono", monospace;
   font-weight: bold;
-  line-height: 2rem;
-  --hpadding: 10vw;
+  color: #fff;
+  display: flex;
 }
 
-.providerList {
-  width: 300px;
-  margin: auto 4vw auto 0;
-  text-align: center;
-  padding: 1rem 4vw 0;
-  border-right: 1px solid #ccc;
-}
-
-.one {
-  margin: 3em 0 0;
-}
-
-.request {
-  margin: auto 0;
-  padding: 0;
-  list-style: none;
-  width: 100%;
-}
-
-.request li {
-  margin: 3em 0;
-}
-
-.instructions {
-  padding: 0 0 0 calc(32px + 1ch);
-  font-weight: normal;
-  user-select: text;
-}
-
-.instructions ol {
-  padding: 0 0 0 1.2em;
-  list-style: lower-alpha;
-}
-
-.instructions li {
+.home section {
   margin: auto;
+  max-width: 100ch;
+  display: flex;
+  gap: 8ch;
 }
 
-.instructions p {
+.home div,
+.home nav {
+  flex: 1;
+  padding: 0;
+  min-width: 25ch;
+  vertical-align: middle;
+}
+
+.home div {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+}
+
+.home p {
   margin: 0;
+  user-select: none;
 }
 
-.instructions p + p {
-  margin: 1em 0 0;
+.home div a {
+  border: 2px solid white;
+  width: 175px;
+  margin: 0 -1rem;
+  font-weight: bold;
+  cursor: inherit;
+}
+
+.home nav a {
+  display: block;
+  color: var(--primary);
+  text-transform: lowercase;
+  text-decoration: none;
+}
+
+.home nav a:hover {
+  text-decoration: underline;
 }
