@@ -28,7 +28,7 @@ class ErrorBoundary extends React.Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <main>
+        <main className="error">
           <code>500 Internal Server Error</code>
         </main>
       );
@@ -40,7 +40,7 @@ class ErrorBoundary extends React.Component<Props, State> {
 function do404(): React.Node {
   return (
     <React.Fragment>
-      <main>
+      <main className="error">
         <code>404 Not Found</code>
       </main>
     </React.Fragment>

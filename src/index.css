@@ -47,3 +47,13 @@ p,
 pre {
   user-select: text;
 }
+
+main.error {
+  display: flex;
+}
+
+main.error code {
+  color: white;
+  font-weight: bold;
+  margin: auto;
+}
