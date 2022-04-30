@@ -17,6 +17,10 @@ import styles from "Home.module.css";
 
 import type { Provider } from "provider";
 
+type Props = {|
+  +provider?: Provider,
+|};
+
 const Providers = ([
   new Amazon(),
   new Apple(),
@@ -28,11 +32,12 @@ const Providers = ([
   new Slack(),
 ]: $ReadOnlyArray<Provider>);
 
-function Home(): React.Node {
+function Home(props: Props): React.Node {
+  const current = props.provider;
   return (
     <main className={styles.home}>
-      <section>
-        <div>
+      <section className={current ? styles.three : styles.two}>
+        <div className={styles.intro}>
           <p>
             <Logo />
           </p>
@@ -55,11 +60,25 @@ function Home(): React.Node {
                 "--primary": provider.darkColor || provider.color,
               }}
               className={styles.provider}
+              aria-current={
+                current?.slug === provider.slug ? "page" : undefined
+              }
             >
               {provider.displayName}
             </Link>
           ))}
         </nav>
+        {current && (
+          <div className={styles.request}>
+            <p>
+              @{" "}
+              <span style={{ color: "#34a853" }}>google takeout &#x2192;</span>
+            </p>
+            <p>check all of the boxes</p>
+            <p>wait up to a few days</p>
+            <p>import...</p>
+          </div>
+        )}
       </section>
     </main>
   );

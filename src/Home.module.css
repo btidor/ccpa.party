@@ -21,7 +21,7 @@
   vertical-align: middle;
 }
 
-.home div {
+.home div.intro {
   text-align: right;
   display: flex;
   flex-direction: column;
@@ -33,21 +33,46 @@
   user-select: none;
 }
 
-.home div a {
+.home div.intro a {
   border: 2px solid white;
   width: 175px;
   margin: 0 -1rem;
   font-weight: bold;
-  cursor: inherit;
 }
 
 .home nav a {
   display: block;
-  color: var(--primary);
   text-transform: lowercase;
   text-decoration: none;
 }
 
 .home nav a:hover {
   text-decoration: underline;
+}
+
+.home section.three nav a {
+  color: #444;
+}
+
+.home section.two nav a,
+.home section.three nav a[aria-current="page"] {
+  color: var(--primary);
+}
+
+.home nav a[aria-current="page"] {
+  text-decoration: none;
+}
+
+.home div.request {
+  font-size: 0.95em;
+  font-weight: normal;
+  color: #34a853;
+}
+
+.home section.three {
+  gap: 4ch;
+}
+
+.home section.three nav {
+  text-align: center;
 }
