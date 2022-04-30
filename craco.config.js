@@ -8,8 +8,9 @@ module.exports = {
         "script-src 'self' 'unsafe-inline'",
         // Allow React to inject styles into the page.
         "style-src 'unsafe-inline'",
-        // Allow fonts to load.
+        // Additional resources:
         "font-src 'self'",
+        "manifest-src 'self'",
         // Allow the FilePreview component to render images (via the <img> tag)
         // as well as PDFs and HTML documents (via the <iframe> tag).
         // * Per https://www.w3.org/TR/CSP3/#security-inherit-csp, blob and data
@@ -22,7 +23,7 @@ module.exports = {
         "frame-src blob:",
         "img-src blob: data:",
         // For the Webpack dev server
-        "connect-src 'self'",
+        "connect-src 'self' wss://*",
         // Object embedding is pretty sketchy and plugins can bypass CSP
         // restrictions. Turn it all off.
         "object-src 'none'",
