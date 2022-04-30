@@ -67,6 +67,9 @@
   font-family: "Cascadia Mono", monospace;
   font-weight: normal;
   font-size: inherit;
+  background: linear-gradient(60deg, #ddd, #4fc169);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .home section.three {

@@ -69,13 +69,19 @@ function Home(props: Props): React.Node {
         {current && (
           <div className={styles.request}>
             <pre>
-              {`1. Request @ Google Takeout ->
-     this is a bit tricky
-      make sure to check x y & z
+              {`data requests @
+Google Takeout →
 
-2.
-def
-ghi`}
+  zip or tgz
+  under activity
+   please
+  select json
+
+results in
+Up To A Few Days
+
+  [Import] Select a file...
+`}
             </pre>
           </div>
         )}
