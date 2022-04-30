@@ -34,7 +34,7 @@
 }
 
 .home div.intro a {
-  border: 2px solid white;
+  border: 2px solid #fff;
   width: 175px;
   margin: 0 -1rem;
   font-weight: bold;
@@ -63,10 +63,10 @@
   text-decoration: none;
 }
 
-.home div.request {
-  font-size: 0.95em;
+.home div.request pre {
+  font-family: "Cascadia Mono", monospace;
   font-weight: normal;
-  color: #34a853;
+  font-size: inherit;
 }
 
 .home section.three {

@@ -15,6 +15,7 @@ class Amazon implements Provider {
   displayName: string = "Amazon";
   icon: React.Node = (<AmazonIcon />);
   color: string = "#ff9900";
+  darkColor: string = "#f59200";
 
   privacyPolicy: string =
     "https://www.amazon.com/gp/help/customer/display.html?nodeId=GC5HB5DVMU5Y8CJ2";

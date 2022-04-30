@@ -18,6 +18,7 @@ class Discord implements Provider {
   displayName: string = "Discord";
   icon: React.Node = (<DiscordIcon />);
   color: string = "#5865f2";
+  darkColor: string = "#9b9dff";
 
   privacyPolicy: string =
     "https://discord.com/privacy#information-for-california-users";

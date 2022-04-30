@@ -11,6 +11,7 @@ class Generic implements Provider {
   displayName: string = "Generic";
   icon: React.Node = (<div />);
   color: string = "#000000";
+  darkColor: string = "#ffffff";
 
   privacyPolicy: string = "";
   waitTime: string = "a generic amount of time";

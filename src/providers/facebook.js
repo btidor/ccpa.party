@@ -14,6 +14,7 @@ class Facebook implements Provider {
   displayName: string = "Facebook";
   icon: React.Node = (<FacebookIcon />);
   color: string = "#1877f2";
+  darkColor: string = "#6caaff";
 
   privacyPolicy: string = "https://www.facebook.com/legal/policy/ccpa";
   waitTime: string = "an unknown amount of time";

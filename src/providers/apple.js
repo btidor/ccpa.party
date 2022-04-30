@@ -15,7 +15,7 @@ class Apple implements Provider {
   displayName: string = "Apple";
   icon: React.Node = (<AppleIcon />);
   color: string = "#000000";
-  darkColor: string = "#dddddd";
+  darkColor: string = "#df9d00";
 
   privacyPolicy: string = "https://www.apple.com/legal/privacy/california/";
   waitTime: string = "about a week";

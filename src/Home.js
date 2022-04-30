@@ -56,9 +56,7 @@ function Home(props: Props): React.Node {
             <Link
               key={provider.slug}
               to={`/${provider.slug}`}
-              style={{
-                "--primary": provider.darkColor || provider.color,
-              }}
+              style={{ "--primary": provider.darkColor }}
               className={styles.provider}
               aria-current={
                 current?.slug === provider.slug ? "page" : undefined
@@ -70,13 +68,15 @@ function Home(props: Props): React.Node {
         </nav>
         {current && (
           <div className={styles.request}>
-            <p>
-              @{" "}
-              <span style={{ color: "#34a853" }}>google takeout &#x2192;</span>
-            </p>
-            <p>check all of the boxes</p>
-            <p>wait up to a few days</p>
-            <p>import...</p>
+            <pre>
+              {`1. Request @ Google Takeout ->
+     this is a bit tricky
+      make sure to check x y & z
+
+2.
+def
+ghi`}
+            </pre>
           </div>
         )}
       </section>
