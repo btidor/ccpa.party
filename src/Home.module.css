@@ -8,7 +8,6 @@
 
 .home section {
   margin: auto;
-  max-width: 100ch;
   display: flex;
   gap: 8ch;
 }
@@ -35,47 +34,17 @@
 
 .home div.intro a {
   border: 2px solid #fff;
-  width: 175px;
   margin: 0 -1rem;
-  font-weight: bold;
+  cursor: default;
 }
 
 .home nav a {
   display: block;
   text-transform: lowercase;
   text-decoration: none;
+  color: var(--dark);
 }
 
 .home nav a:hover {
   text-decoration: underline;
-}
-
-.home section.three nav a {
-  color: #444;
-}
-
-.home section.two nav a,
-.home section.three nav a[aria-current="page"] {
-  color: var(--dark);
-}
-
-.home nav a[aria-current="page"] {
-  text-decoration: none;
-}
-
-.home div.request pre {
-  font-family: "Cascadia Mono", monospace;
-  font-weight: normal;
-  font-size: inherit;
-  background: linear-gradient(60deg, #ddd, #4fc169);
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.home section.three {
-  gap: 4ch;
-}
-
-.home section.three nav {
-  text-align: center;
 }

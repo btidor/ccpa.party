@@ -5,6 +5,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import Timeline from "Timeline";
 import Files from "Files";
 import Home from "Home";
+import Request from "Request";
 import { ProviderLookup } from "provider";
 
 type Props = {
@@ -85,7 +86,7 @@ function App(): React.Node {
               if (parts.length) return do404();
 
               // URL: `/:provider`
-              return <Home provider={provider} />;
+              return <Request provider={provider} />;
             }
 
             // Page is non-empty. Extract special components from page slug

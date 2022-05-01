@@ -18,10 +18,6 @@ import styles from "Home.module.css";
 
 import type { Provider } from "provider";
 
-type Props = {|
-  +provider?: Provider,
-|};
-
 const Providers = ([
   new Amazon(),
   new Apple(),
@@ -33,11 +29,10 @@ const Providers = ([
   new Slack(),
 ]: $ReadOnlyArray<Provider>);
 
-function Home(props: Props): React.Node {
-  const current = props.provider;
+function Home(): React.Node {
   return (
     <main className={styles.home}>
-      <section className={current ? styles.three : styles.two}>
+      <section>
         <div className={styles.intro}>
           <p>
             <Logo />
@@ -59,33 +54,11 @@ function Home(props: Props): React.Node {
               to={`/${provider.slug}`}
               style={{ "--dark": darkColor(provider) }}
               className={styles.provider}
-              aria-current={
-                current?.slug === provider.slug ? "page" : undefined
-              }
             >
               {provider.displayName}
             </Link>
           ))}
         </nav>
-        {current && (
-          <div className={styles.request}>
-            <pre>
-              {`data requests @
-Google Takeout →
-
-  zip or tgz
-  under activity
-   please
-  select json
-
-results in
-Up To A Few Days
-
-  [Import] Select a file...
-`}
-            </pre>
-          </div>
-        )}
       </section>
     </main>
   );
