@@ -1,4 +1,5 @@
 // @flow
+import Color from "colorjs.io";
 import * as React from "react";
 
 import Amazon from "providers/amazon";
@@ -25,7 +26,7 @@ export interface Provider {
   +displayName: string;
   +icon: React.Node;
   +color: string;
-  +darkColor: string;
+  +darkColor?: string;
 
   +privacyPolicy: string;
   +waitTime: string;
@@ -57,14 +58,23 @@ ProviderRegistry.forEach((provider) =>
   (ProviderLookup: any).set(provider.slug, provider)
 );
 
-export function lightenColor(base: string): string {
-  if (!base.startsWith("#")) throw new Error("Can't parse color " + base);
-  if (base.length !== 7) throw new Error("Can't parse color " + base);
-  const parsed = [
-    parseInt(base.slice(1, 3), 16),
-    parseInt(base.slice(3, 5), 16),
-    parseInt(base.slice(5, 7), 16),
-  ];
-  const light = parsed.map((c) => Math.min(Math.round(192 + c / 4), 255));
-  return "#" + light.map((c) => c.toString(16)).join("");
+const white = new Color("#fff");
+
+export function lightColor(provider: Provider): string {
+  return new Color(provider.color).mix(white, 0.75).toString({ format: "hex" });
+}
+
+export function darkColor(provider: Provider): string {
+  const color = new Color(provider.darkColor || provider.color)
+    .to("rec2020")
+    .toGamut({ space: "rec2020" })
+    .set("lightness", 65)
+    .set("chroma", 132);
+  // $FlowFixMe[cannot-resolve-name]
+  if (CSS.supports("color", color.toString())) return color.toString();
+
+  return color
+    .to("srgb")
+    .toGamut({ method: "clip", space: "srgb" })
+    .toString({ format: "hex" });
 }

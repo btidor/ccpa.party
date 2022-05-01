@@ -56,7 +56,7 @@
 
 .home section.two nav a,
 .home section.three nav a[aria-current="page"] {
-  color: var(--primary);
+  color: var(--dark);
 }
 
 .home nav a[aria-current="page"] {

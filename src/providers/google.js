@@ -13,7 +13,6 @@ class Google implements Provider {
   displayName: string = "Google";
   icon: React.Node = (<GoogleIcon />);
   color: string = "#34a853";
-  darkColor: string = "#4fc169";
 
   privacyPolicy: string =
     "https://policies.google.com/privacy?hl=en#california";

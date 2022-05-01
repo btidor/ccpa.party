@@ -3,6 +3,7 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 
 import Logo from "components/Logo";
+import { darkColor } from "provider";
 
 import Amazon from "providers/amazon";
 import Apple from "providers/apple";
@@ -56,7 +57,7 @@ function Home(props: Props): React.Node {
             <Link
               key={provider.slug}
               to={`/${provider.slug}`}
-              style={{ "--primary": provider.darkColor }}
+              style={{ "--dark": darkColor(provider) }}
               className={styles.provider}
               aria-current={
                 current?.slug === provider.slug ? "page" : undefined

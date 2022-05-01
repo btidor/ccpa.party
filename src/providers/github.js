@@ -15,7 +15,7 @@ class GitHub implements Provider {
   displayName: string = "GitHub";
   icon: React.Node = (<GitHubIcon />);
   color: string = "#000000";
-  darkColor: string = "#bd9ee6";
+  darkColor: string = "#6e5494";
 
   privacyPolicy: string =
     "https://docs.github.com/en/site-policy/privacy-policies/githubs-notice-about-the-california-consumer-privacy-act";
