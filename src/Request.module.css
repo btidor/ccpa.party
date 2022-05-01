@@ -1,0 +1,50 @@
+.request {
+  background-color: #000;
+  font-family: "Cascadia Mono", monospace;
+  color: var(--primary);
+  display: flex;
+}
+
+.request section {
+  margin: auto;
+}
+
+.logo a {
+  display: block;
+
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  margin: -38px -1rem 0.5em auto;
+  text-align: right;
+}
+
+.logo span {
+  font-family: "Noto Emoji";
+  font-weight: 900;
+}
+
+.provider {
+  display: block;
+  text-align: right;
+  font-weight: bold;
+  text-transform: lowercase;
+}
+
+.item {
+  display: flex;
+  margin: 2em;
+  line-height: 20px;
+}
+
+.emoji {
+  font-size: 1.25em;
+  font-family: "Noto Emoji";
+  font-weight: 900;
+}
+
+pre {
+  font-family: "Cascadia Mono", monospace;
+  font-size: 16px;
+  line-height: inherit;
+  margin: 0 0 0 3ch;
+}
