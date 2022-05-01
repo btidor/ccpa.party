@@ -3,15 +3,12 @@ import * as React from "react";
 
 import { ExternalLink } from "components/Links";
 
-import GoogleIcon from "icons/google.svg";
-
 import type { DataFile, Entry, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
 class Google implements Provider {
   slug: string = "google";
   displayName: string = "Google";
-  icon: React.Node = (<GoogleIcon />);
   color: string = "#34a853";
 
   privacyPolicy: string =

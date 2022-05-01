@@ -1,8 +1,6 @@
 // @flow
 import * as React from "react";
 
-import NetflixIcon from "icons/netflix.svg";
-
 import { ExternalLink } from "components/Links";
 
 import type { DataFile, Entry, TimelineEntry } from "database";
@@ -11,7 +9,6 @@ import type { Provider, TimelineCategory } from "provider";
 class Netflix implements Provider {
   slug: string = "netflix";
   displayName: string = "Netflix";
-  icon: React.Node = (<NetflixIcon />);
   color: string = "#e50914";
 
   privacyPolicy: string = "https://help.netflix.com/legal/privacy#ccpa";

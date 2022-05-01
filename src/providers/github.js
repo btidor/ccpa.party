@@ -5,15 +5,12 @@ import * as React from "react";
 import { ExternalLink } from "components/Links";
 import { getSlugAndDay, parseJSON } from "database";
 
-import GitHubIcon from "icons/github.svg";
-
 import type { DataFile, Entry, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
 class GitHub implements Provider {
   slug: string = "github";
   displayName: string = "GitHub";
-  icon: React.Node = (<GitHubIcon />);
   color: string = "#000000";
   darkColor: string = "#6e5494";
 

@@ -5,15 +5,12 @@ import * as React from "react";
 import { ExternalLink } from "components/Links";
 import { getSlugAndDay, parseJSON, parseCSV, smartDecode } from "database";
 
-import AppleIcon from "icons/apple.svg";
-
 import type { DataFile, Entry, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
 class Apple implements Provider {
   slug: string = "apple";
   displayName: string = "Apple";
-  icon: React.Node = (<AppleIcon />);
   color: string = "#000000";
   darkColor: string = "#ffb900";
 

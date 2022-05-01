@@ -84,7 +84,7 @@ function Timeline(props: Props): React.Node {
     (async () => {
       if (entries && entries.length === 0) {
         const files = await db.getFilesForProvider(provider);
-        if (files.length === 0) navigate(`/${provider.slug}/import`);
+        if (files.length === 0) navigate(`/${provider.slug}`);
       }
     })();
   }, [db, entries, navigate, provider]);

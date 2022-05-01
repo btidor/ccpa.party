@@ -8,15 +8,12 @@ import { getSlugAndDay, parseCSV, parseJSON, smartDecode } from "database";
 
 import styles from "providers/discord.module.css";
 
-import DiscordIcon from "icons/discord.svg";
-
 import type { DataFile, Entry, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
 class Discord implements Provider {
   slug: string = "discord";
   displayName: string = "Discord";
-  icon: React.Node = (<DiscordIcon />);
   color: string = "#5865f2";
 
   privacyPolicy: string =

@@ -7,15 +7,12 @@ import { getSlugAndDay, parseJSON } from "database";
 
 import styles from "providers/slack.module.css";
 
-import SlackIcon from "icons/slack.svg";
-
 import type { DataFile, Entry, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
 class Slack implements Provider {
   slug: string = "slack";
   displayName: string = "Slack";
-  icon: React.Node = (<SlackIcon />);
   color: string = "#4a154b";
 
   privacyPolicy: string =

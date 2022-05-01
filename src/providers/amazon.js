@@ -5,15 +5,12 @@ import * as React from "react";
 import { ExternalLink } from "components/Links";
 import { smartDecode, getSlugAndDay, parseCSV, parseJSON } from "database";
 
-import AmazonIcon from "icons/amazon.svg";
-
 import type { DataFile, Entry, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
 class Amazon implements Provider {
   slug: string = "amazon";
   displayName: string = "Amazon";
-  icon: React.Node = (<AmazonIcon />);
   color: string = "#ff9900";
 
   privacyPolicy: string =

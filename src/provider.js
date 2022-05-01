@@ -24,7 +24,6 @@ export type TimelineCategory = {|
 export interface Provider {
   +slug: string;
   +displayName: string;
-  +icon: React.Node;
   +color: string;
   +darkColor?: string;
 

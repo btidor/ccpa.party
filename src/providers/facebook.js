@@ -4,15 +4,12 @@ import * as React from "react";
 import { ExternalLink } from "components/Links";
 import { autoParse, discoverEntry, parseJSON } from "database";
 
-import FacebookIcon from "icons/facebook.svg";
-
 import type { DataFile, Entry, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
 class Facebook implements Provider {
   slug: string = "facebook";
   displayName: string = "Facebook";
-  icon: React.Node = (<FacebookIcon />);
   color: string = "#1877f2";
 
   privacyPolicy: string = "https://www.facebook.com/legal/policy/ccpa";
