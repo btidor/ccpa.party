@@ -3,6 +3,11 @@
   src: url("fonts/cascadia.woff2") format("woff2");
 }
 
+@font-face {
+  font-family: "Noto Emoji";
+  src: url("fonts/noto-emoji.woff2") format("woff2");
+}
+
 html,
 body,
 #root {
