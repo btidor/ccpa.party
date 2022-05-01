@@ -1,9 +1,13 @@
 .logo {
+  width: 16ch;
   padding: 0.125rem 1rem;
 
+  font-family: "Cascadia Mono", monospace;
   font-size: 19px;
-  line-height: 2;
   font-variant: small-caps;
+  font-weight: bold;
+
+  line-height: 2;
   text-decoration: none;
 
   color: white;

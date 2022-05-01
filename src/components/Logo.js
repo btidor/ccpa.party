@@ -7,8 +7,8 @@ import styles from "components/Logo.module.css";
 function Logo(): React.Node {
   return (
     <Link to="/" className={styles.logo}>
-      🎉 ccpa.party
-      <sup>&#x1d6fc;</sup>
+      <span>🎉</span> ccpa.party
+      <sup>𝛼</sup>
     </Link>
   );
 }
