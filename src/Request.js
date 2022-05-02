@@ -15,12 +15,12 @@ function Request(props: Props): React.Node {
   const { provider } = props;
   return (
     <main
-      className={styles.request}
+      className={`${styles.request} thin`}
       style={{ "--primary": darkColor(provider) }}
     >
       <section>
         <div className={styles.logo}>
-          <Logo />
+          <Logo picker />
         </div>
         <div className={styles.provider}>{provider.displayName} ◆</div>
 

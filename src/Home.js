@@ -1,6 +1,6 @@
 // @flow
 import * as React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import Logo from "components/Logo";
 import { darkColor } from "provider";
@@ -30,8 +30,17 @@ const Providers = ([
 ]: $ReadOnlyArray<Provider>);
 
 function Home(): React.Node {
+  const location = useLocation();
+  const ref = React.useRef<?HTMLElement>(null);
+  React.useEffect(
+    () =>
+      (ref.current && ref.current.scrollTo(location.state ? 9999 : 0, 0)) ||
+      undefined,
+    [location, ref]
+  );
+
   return (
-    <main className={`${styles.home} thin`}>
+    <main className={`${styles.home} thin`} ref={ref}>
       <section>
         <div className={styles.intro}>
           <p>
