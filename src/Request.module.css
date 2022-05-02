@@ -1,18 +1,21 @@
 .request {
   background-color: #000;
-  font-family: "Cascadia Mono", monospace;
   color: var(--primary);
+  font-family: "Cascadia Mono", monospace;
+
   display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
 }
 
 .request section {
-  margin: auto;
+  margin: 0 auto;
 }
 
 .logo {
   width: fit-content;
   border: 2px solid var(--primary);
-  margin: -38px -1rem 0.5em auto;
+  margin: 1em 0 0.5em auto;
   text-align: right;
 }
 
@@ -26,6 +29,7 @@
 }
 
 .provider {
+  margin: 0 1rem 0 0;
   text-align: right;
   font-weight: bold;
   text-transform: lowercase;
@@ -33,7 +37,7 @@
 
 .instruction {
   display: flex;
-  margin: 2em 1rem;
+  margin: 2em 1rem 2em 0;
   line-height: 20px;
 }
 

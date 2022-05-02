@@ -18,6 +18,9 @@ function Request(props: Props): React.Node {
       className={`${styles.request} thin`}
       style={{ "--primary": darkColor(provider) }}
     >
+      {/* HACK: place extra <div>s so that vertical spacing gets distriuted
+          in a 2:3 ratio above/below the <section> */}
+      <div></div>
       <section>
         <div className={styles.logo}>
           <Logo picker />
@@ -52,6 +55,8 @@ click second pill
           </div>
         </div>
       </section>
+      <div></div>
+      <div></div>
     </main>
   );
 }
