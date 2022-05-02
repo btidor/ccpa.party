@@ -4,6 +4,15 @@
   font-weight: bold;
   color: #fff;
   display: flex;
+
+  padding: 0;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.home::-webkit-scrollbar {
+  display: none;
 }
 
 .home section {
@@ -16,8 +25,16 @@
 .home nav {
   flex: 1;
   padding: 0;
-  min-width: 25ch;
+  width: 26ch;
   vertical-align: middle;
+}
+
+.home div {
+  scroll-snap-align: start;
+}
+
+.home nav {
+  scroll-snap-align: end;
 }
 
 .home div.intro {

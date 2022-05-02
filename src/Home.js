@@ -31,7 +31,7 @@ const Providers = ([
 
 function Home(): React.Node {
   return (
-    <main className={styles.home}>
+    <main className={`${styles.home} thin`}>
       <section>
         <div className={styles.intro}>
           <p>

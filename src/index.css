@@ -50,6 +50,7 @@ main {
   --hpadding: calc(1vw + 0.5rem);
   --navheight: 0px;
   height: calc(100vh - 2 * var(--vpadding) - var(--navheight));
+  height: -webkit-fill-available;
   padding: var(--vpadding) var(--hpadding);
 }
 
