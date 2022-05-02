@@ -66,17 +66,13 @@ pre {
     monospace;
 }
 
-p,
-pre {
-  user-select: text;
-}
-
 main.error {
   display: flex;
 }
 
 main.error code {
-  color: white;
+  color: #fff;
   font-weight: bold;
   margin: auto;
+  text-transform: lowercase;
 }
