@@ -1,21 +1,31 @@
 .logo {
-  width: 16ch;
+  width: 17ch;
   padding: 0.125rem 1rem;
 
   font-family: "Cascadia Mono", monospace;
   font-size: 19px;
-  font-variant: small-caps;
   font-weight: bold;
 
   line-height: 2;
   text-decoration: none;
+  text-align: right;
 
-  color: white;
-  background-color: black;
+  color: var(--dark);
+  background-color: #000;
   display: inline-block;
 }
 
-.logo sup {
-  font-variant: normal;
-  margin-left: 0.25ch;
+.emoji {
+  font-family: "Noto Emoji", monospace;
+  font-weight: 900;
+}
+
+.logo svg {
+  height: 1.3em;
+  margin: 0 0.15ch -0.25em 0;
+}
+
+.title {
+  margin: 0 0.3ch 0 0.75ch;
+  font-variant: small-caps;
 }

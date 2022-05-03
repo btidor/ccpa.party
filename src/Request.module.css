@@ -1,6 +1,6 @@
 .request {
   background-color: #000;
-  color: var(--primary);
+  color: var(--dark);
   font-family: "Cascadia Mono", monospace;
 
   display: flex;
@@ -14,18 +14,8 @@
 
 .logo {
   width: fit-content;
-  border: 2px solid var(--primary);
+  border: 2px solid var(--dark);
   margin: 1em 0 0.5em auto;
-  text-align: right;
-}
-
-.logo a {
-  color: var(--primary);
-}
-
-.logo span {
-  font-family: "Noto Emoji";
-  font-weight: 900;
 }
 
 .provider {
@@ -48,8 +38,8 @@
   margin: 0 1ch 0 0;
 }
 
-code,
-pre {
+.request code,
+.request pre {
   font-family: "Cascadia Mono", monospace;
   font-size: 16px;
   line-height: inherit;
@@ -59,7 +49,7 @@ pre {
 .pointer a {
   display: block;
   text-decoration: none;
-  color: var(--primary);
+  color: var(--dark);
   font-weight: bold;
 }
 

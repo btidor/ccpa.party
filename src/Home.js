@@ -7,12 +7,12 @@ import { darkColor } from "provider";
 
 import Amazon from "providers/amazon";
 import Apple from "providers/apple";
+import Discord from "providers/discord";
 import Facebook from "providers/facebook";
 import GitHub from "providers/github";
 import Google from "providers/google";
 import Netflix from "providers/netflix";
 import Slack from "providers/slack";
-import Discord from "providers/discord";
 
 import styles from "Home.module.css";
 
@@ -43,9 +43,9 @@ function Home(): React.Node {
     <main className={`${styles.home} thin`} ref={ref}>
       <section>
         <div className={styles.intro}>
-          <p>
-            <Logo />
-          </p>
+          <div className={styles.logo}>
+            <Logo party />
+          </div>
           <p>
             a tool
             <br />

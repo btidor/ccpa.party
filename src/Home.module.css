@@ -5,7 +5,6 @@
   color: #fff;
   display: flex;
 
-  padding: 0;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
@@ -21,15 +20,14 @@
   gap: 8ch;
 }
 
-.home div,
+.intro,
 .home nav {
   flex: 1;
-  padding: 0;
   width: 26ch;
   vertical-align: middle;
 }
 
-.home div {
+.intro {
   scroll-snap-align: start;
 }
 
@@ -37,29 +35,29 @@
   scroll-snap-align: end;
 }
 
-.home div.intro {
-  text-align: right;
+.intro {
   display: flex;
   flex-direction: column;
   gap: 1.5em;
+  align-items: flex-end;
 }
 
-.home p {
-  margin: 0;
-  user-select: none;
-}
-
-.home div.intro a {
+.logo {
+  width: fit-content;
   border: 2px solid #fff;
   margin: 0 -1rem;
   cursor: default;
 }
 
+.intro p {
+  text-align: right;
+}
+
 .home nav a {
   display: block;
+  color: var(--dark);
   text-transform: lowercase;
   text-decoration: none;
-  color: var(--dark);
 }
 
 .home nav a:hover {

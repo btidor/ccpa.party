@@ -16,7 +16,7 @@ function Request(props: Props): React.Node {
   return (
     <main
       className={`${styles.request} thin`}
-      style={{ "--primary": darkColor(provider) }}
+      style={{ "--dark": darkColor(provider) }}
     >
       {/* HACK: place extra <div>s so that vertical spacing gets distriuted
           in a 2:3 ratio above/below the <section> */}
