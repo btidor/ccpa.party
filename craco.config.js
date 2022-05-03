@@ -21,7 +21,7 @@ module.exports = {
         //   We use blobs for efficiency, so we should make sure to always apply
         //   a sandbox *without* allow-same-origin, which has the ~same effect.
         "frame-src blob:",
-        "img-src blob: data:",
+        "img-src blob: data: 'self'",
         // For the Webpack dev server
         "connect-src 'self' wss://*",
         // Object embedding is pretty sketchy and plugins can bypass CSP

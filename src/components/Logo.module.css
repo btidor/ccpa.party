@@ -18,14 +18,16 @@
 .emoji {
   font-family: "Noto Emoji", monospace;
   font-weight: 900;
+  margin-right: 0.3ch;
 }
 
-.logo svg {
-  height: 1.3em;
-  margin: 0 0.15ch -0.25em 0;
+.logo img {
+  height: 1.5em;
+  margin-right: 0.5ch;
+  margin-bottom: -0.375em;
 }
 
 .title {
-  margin: 0 0.3ch 0 0.75ch;
+  margin-right: 0.3ch;
   font-variant: small-caps;
 }
