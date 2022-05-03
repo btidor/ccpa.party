@@ -44,32 +44,27 @@
   font-size: 16px;
   line-height: inherit;
   margin: 0;
+  width: 25ch;
 }
 
-.pointer a {
+.instruction a,
+.compass label {
   display: block;
   text-decoration: none;
   color: var(--dark);
   font-weight: bold;
 }
 
-.pointer a:hover {
-  text-decoration: underline;
-}
-
-.pointer pre {
-  margin: 1em 1ch 0;
-}
-
-.import label {
-  font-weight: bold;
-}
-
-.import label:hover {
+.instruction a:hover,
+.compass label:hover {
   text-decoration: underline;
   cursor: pointer;
 }
 
-.import input {
+.finger pre {
+  margin: 1em 1ch 0;
+}
+
+.compass input {
   display: none;
 }

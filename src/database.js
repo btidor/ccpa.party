@@ -50,8 +50,6 @@ const filesStore = "files";
 const timelineStore = "timeline";
 const metadataStore = "metadata";
 
-export const fileSizeLimitMB = 16;
-
 // When searching by provider we need to query the primary key index. If we
 // instead create a secondary index for provider lookups, queries are somehow
 // O(n) in the size of the entire table.

@@ -15,7 +15,7 @@ class Slack implements Provider {
   color: string = "#4a154b";
 
   requestLink: {| href: string, text: string |} = {
-    text: "Export workspace data",
+    text: "Export Workspace Data",
     href: "https://slack.com/help/articles/201658943-Export-your-workspace-data",
   };
   waitTime: string = "TODO";

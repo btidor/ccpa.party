@@ -8,7 +8,8 @@ import FileTree from "components/FileTree";
 import Navigation from "components/Navigation";
 import Placeholder from "components/Placeholder";
 import Theme from "components/Theme";
-import { Database, fileSizeLimitMB } from "database";
+import { Database } from "database";
+import { fileSizeLimitMB } from "provider";
 
 import styles from "Drilldown.module.css";
 

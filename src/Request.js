@@ -1,8 +1,11 @@
 // @flow
 import * as React from "react";
+import { Link } from "react-router-dom";
 
 import Logo from "components/Logo";
-import { darkColor } from "provider";
+import { Database } from "database";
+import { darkColor, importFiles } from "provider";
+
 import styles from "Request.module.css";
 
 import type { Provider } from "provider";
@@ -13,6 +16,16 @@ type Props = {|
 
 function Request(props: Props): React.Node {
   const { provider } = props;
+  const [epoch, setEpoch] = React.useState(0);
+  const db = React.useMemo(
+    () => new Database(() => setEpoch(epoch + 1)),
+    [epoch]
+  );
+
+  const [progress, setProgress] = React.useState(undefined);
+  const fileHandler = (event) =>
+    importFiles(db, provider, event.target.files, setProgress);
+
   return (
     <main
       className={`${styles.request} thin`}
@@ -29,7 +42,7 @@ function Request(props: Props): React.Node {
 
         <div className={styles.instruction}>
           <span className={styles.emoji}>👉</span>
-          <div className={styles.pointer}>
+          <div className={styles.finger}>
             <a
               href={provider.requestLink.href}
               target="_blank"
@@ -50,10 +63,22 @@ function Request(props: Props): React.Node {
 
         <div className={styles.instruction}>
           <span className={styles.emoji}>🧭</span>
-          <div className={styles.import}>
-            <input id="import" type="file" multiple accept=".zip,.tar.gz" />
-            <label htmlFor="import">Import Archive ↑</label>
-            <code></code>
+          <div className={styles.compass}>
+            {" "}
+            <input
+              id="import"
+              type="file"
+              multiple
+              accept=".zip,.tar.gz"
+              onChange={fileHandler}
+            />
+            {progress === undefined ? (
+              <label htmlFor="import">Import Archive ↑</label>
+            ) : progress === true ? (
+              <Link to={`/${provider.slug}/timeline`}>Explore →</Link>
+            ) : (
+              <code>importing {progress.toLocaleString()} files...</code>
+            )}
           </div>
         </div>
       </section>
