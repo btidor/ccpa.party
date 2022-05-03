@@ -12,10 +12,13 @@ class Generic implements Provider {
   icon: React.Node = (<div />);
   color: string = "#000000";
 
+  requestLink: {| href: string, text: string |} = {
+    text: "...",
+    href: "https://www.example.org/",
+  };
+  waitTime: string = "...unknown...";
+  instructions: $ReadOnlyArray<string> = [];
   privacyPolicy: string = "";
-  waitTime: string = "a generic amount of time";
-  instructions: React.Node = (<div />);
-
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {

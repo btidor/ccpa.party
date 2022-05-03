@@ -27,9 +27,10 @@ export interface Provider {
   +color: string;
   +darkColor?: string;
 
-  +privacyPolicy: string;
+  +requestLink: {| text: string, href: string |};
+  +instructions: $ReadOnlyArray<string>;
   +waitTime: string;
-  +instructions: React.Node;
+  +privacyPolicy: string;
 
   +timelineCategories: $ReadOnlyArray<TimelineCategory>;
 

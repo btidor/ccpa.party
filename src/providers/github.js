@@ -2,7 +2,6 @@
 import { DateTime } from "luxon";
 import * as React from "react";
 
-import { ExternalLink } from "components/Links";
 import { getSlugAndDay, parseJSON } from "database";
 
 import type { DataFile, Entry, TimelineEntry } from "database";
@@ -14,23 +13,14 @@ class GitHub implements Provider {
   color: string = "#000000";
   darkColor: string = "#6e5494";
 
+  requestLink: {| href: string, text: string |} = {
+    text: "Account Settings",
+    href: "https://github.com/settings/admin",
+  };
+  waitTime: string = "15 minutes";
+  instructions: $ReadOnlyArray<string> = [];
   privacyPolicy: string =
     "https://docs.github.com/en/site-policy/privacy-policies/githubs-notice-about-the-california-consumer-privacy-act";
-  waitTime: string = "about 15 minutes";
-  instructions: React.Node = (
-    <ol>
-      <li>
-        Log in to{" "}
-        <ExternalLink to="https://github.com/settings/admin" newTab>
-          Account Settings
-        </ExternalLink>
-      </li>
-      <li>
-        Click <i>New export</i>
-      </li>
-      <li>Confirm your password, if prompted</li>
-    </ol>
-  );
 
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [
     {

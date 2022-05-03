@@ -2,7 +2,6 @@
 import { DateTime } from "luxon";
 import * as React from "react";
 
-import { ExternalLink } from "components/Links";
 import { getSlugAndDay, parseJSON, parseCSV, smartDecode } from "database";
 
 import type { DataFile, Entry, TimelineEntry } from "database";
@@ -14,28 +13,13 @@ class Apple implements Provider {
   color: string = "#000000";
   darkColor: string = "#ffb900";
 
-  privacyPolicy: string = "https://www.apple.com/legal/privacy/california/";
+  requestLink: {| href: string, text: string |} = {
+    text: "Data and Privacy",
+    href: "https://privacy.apple.com/",
+  };
   waitTime: string = "about a week";
-  instructions: React.Node = (
-    <ol>
-      <li>
-        Log in to{" "}
-        <ExternalLink to="https://privacy.apple.com/" newTab>
-          Data and Privacy
-        </ExternalLink>
-      </li>
-      <li>
-        Select <i>Request a copy of your data</i>
-      </li>
-      <li>
-        Click <i>Select all</i> in both of the two sections, then hit{" "}
-        <i>Continue</i>
-      </li>
-      <li>
-        Hit <i>Complete request</i>
-      </li>
-    </ol>
-  );
+  instructions: $ReadOnlyArray<string> = [];
+  privacyPolicy: string = "https://www.apple.com/legal/privacy/california/";
 
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [
     {

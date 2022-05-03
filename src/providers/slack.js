@@ -2,7 +2,6 @@
 import EmojiMap from "emoji-name-map";
 import * as React from "react";
 
-import { ExternalLink } from "components/Links";
 import { getSlugAndDay, parseJSON } from "database";
 
 import styles from "providers/slack.module.css";
@@ -15,30 +14,15 @@ class Slack implements Provider {
   displayName: string = "Slack";
   color: string = "#4a154b";
 
+  requestLink: {| href: string, text: string |} = {
+    text: "Export workspace data",
+    href: "https://slack.com/help/articles/201658943-Export-your-workspace-data",
+  };
+  waitTime: string = "TODO";
+  instructions: $ReadOnlyArray<string> = [`workspace owners only`];
   privacyPolicy: string =
     "https://slack.com/trust/privacy/privacy-policy#california-rights";
   // Also: https://slack.com/trust/compliance/ccpa-faq
-  waitTime: string = "an unknown amount of time";
-  instructions: React.Node = (
-    <React.Fragment>
-      <p>
-        To submit a data access request, email <b>privacy@slack.com</b>. Slack
-        will pass on your request to the Workspace Owner. Slack does not support
-        self-serve data exports.
-      </p>
-      <p>
-        If you're the Workspace Owner, you can perform a full data export, which
-        includes all messages from all public channels (but may not include
-        messages from private channels or DMs). To do so, see{" "}
-        <ExternalLink
-          to="https://slack.com/help/articles/201658943-Export-your-workspace-data"
-          newTab
-        >
-          Export your workspace data
-        </ExternalLink>
-      </p>
-    </React.Fragment>
-  );
 
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [
     {

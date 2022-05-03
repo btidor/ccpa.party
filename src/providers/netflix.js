@@ -1,8 +1,6 @@
 // @flow
 import * as React from "react";
 
-import { ExternalLink } from "components/Links";
-
 import type { DataFile, Entry, TimelineEntry } from "database";
 import type { Provider, TimelineCategory } from "provider";
 
@@ -11,21 +9,13 @@ class Netflix implements Provider {
   displayName: string = "Netflix";
   color: string = "#e50914";
 
+  requestLink: {| href: string, text: string |} = {
+    text: "Get My Info",
+    href: "https://www.netflix.com/account/getmyinfo",
+  };
+  waitTime: string = "TODO";
+  instructions: $ReadOnlyArray<string> = [];
   privacyPolicy: string = "https://help.netflix.com/legal/privacy#ccpa";
-  waitTime: string = "an unknown amount of time";
-  instructions: React.Node = (
-    <ol>
-      <li>
-        Log in to the{" "}
-        <ExternalLink to="https://www.netflix.com/account/getmyinfo" newTab>
-          data request page
-        </ExternalLink>
-      </li>
-      <li>
-        Click <i>Submit Request</i>
-      </li>
-    </ol>
-  );
 
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
 

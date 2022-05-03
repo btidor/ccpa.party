@@ -2,7 +2,6 @@
 import { DateTime } from "luxon";
 import * as React from "react";
 
-import { ExternalLink } from "components/Links";
 import { smartDecode, getSlugAndDay, parseCSV, parseJSON } from "database";
 
 import type { DataFile, Entry, TimelineEntry } from "database";
@@ -13,28 +12,14 @@ class Amazon implements Provider {
   displayName: string = "Amazon";
   color: string = "#ff9900";
 
+  requestLink: {| href: string, text: string |} = {
+    text: "Request My Data",
+    href: "https://amazon.com/gp/privacycentral/dsar/preview.html",
+  };
+  waitTime: string = "1–2 days";
+  instructions: $ReadOnlyArray<string> = [];
   privacyPolicy: string =
     "https://www.amazon.com/gp/help/customer/display.html?nodeId=GC5HB5DVMU5Y8CJ2";
-  waitTime: string = "1–2 days";
-  instructions: React.Node = (
-    <ol>
-      <li>
-        Log in to{" "}
-        <ExternalLink
-          newTab
-          to="https://amazon.com/gp/privacycentral/dsar/preview.html"
-        >
-          Request My Data
-        </ExternalLink>
-      </li>
-      <li>
-        Select <i>Request All Your Data</i> from the menu
-      </li>
-      <li>
-        Hit <i>Submit Request</i>
-      </li>
-    </ol>
-  );
 
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [
     {

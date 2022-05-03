@@ -3,7 +3,6 @@ import * as React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import { ExternalLink } from "components/Links";
 import { getSlugAndDay, parseCSV, parseJSON, smartDecode } from "database";
 
 import styles from "providers/discord.module.css";
@@ -16,29 +15,18 @@ class Discord implements Provider {
   displayName: string = "Discord";
   color: string = "#5865f2";
 
+  requestLink: {| href: string, text: string |} = {
+    text: "Discord",
+    href: "https://discord.com/app",
+  };
+  waitTime: string = "about a week";
+  instructions: $ReadOnlyArray<string> = [
+    "open User Settings",
+    "Privacy & Safety tab",
+    "scroll down",
+  ];
   privacyPolicy: string =
     "https://discord.com/privacy#information-for-california-users";
-  waitTime: string = "about a week";
-  instructions: React.Node = (
-    <ol>
-      <li>
-        Log in to{" "}
-        <ExternalLink to="https://discord.com/app" newTab>
-          Discord
-        </ExternalLink>
-      </li>
-      <li>
-        Open <i>User Settings</i>
-      </li>
-      <li>
-        Select the <i>Privacy &amp; Safety</i> tab
-      </li>
-      <li>
-        Scroll down and hit the <i>Request Data</i> button
-      </li>
-    </ol>
-  );
-
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [
     {
       char: "a",
