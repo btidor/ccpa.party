@@ -16,7 +16,7 @@ class Amazon implements Provider {
     text: "Request My Data",
     href: "https://amazon.com/gp/privacycentral/dsar/preview.html",
   };
-  waitTime: string = "1–2 days";
+  waitTime: string = "1-2 days";
   instructions: $ReadOnlyArray<string> = [];
   privacyPolicy: string =
     "https://www.amazon.com/gp/help/customer/display.html?nodeId=GC5HB5DVMU5Y8CJ2";

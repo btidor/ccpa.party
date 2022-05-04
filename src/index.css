@@ -1,12 +1,30 @@
 /* fonts */
 @font-face {
+  /* subset containing just basic latin characters */
   font-family: "Cascadia Mono";
   src: url("fonts/cascadia.woff2") format("woff2");
+  font-display: block;
 }
 
 @font-face {
+  /* if this font gets loaded in production, it means
+     the Cascadia Mono font needs to be re-subset */
+  font-family: "Cascadia Mono Full";
+  src: url("fonts/cascadia-full.woff2") format("woff2");
+}
+
+@font-face {
+  /* subset containing just the emoji we use */
   font-family: "Noto Emoji";
   src: url("fonts/noto-emoji.woff2") format("woff2");
+  font-display: block;
+}
+
+@font-face {
+  /* if this font gets loaded in production, it means
+     the Noto Emoji font needs to be re-subset */
+  font-family: "Noto Emoji Full";
+  src: url("fonts/noto-emoji-full.woff2") format("woff2");
 }
 
 /* simple reset stylesheet
@@ -41,7 +59,7 @@ body,
 body {
   color: #fff;
   background-color: #000;
-  font-family: "Cascadia Mono", monospace;
+  font-family: "Cascadia Mono", "Cascadia Mono Full", monospace;
   font-size: 16px;
   line-height: 28px;
 }
