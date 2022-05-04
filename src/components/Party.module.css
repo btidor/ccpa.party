@@ -1,0 +1,53 @@
+.party path {
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 0.5px;
+}
+
+.glow path {
+  filter: url(#glow);
+}
+
+.red {
+  color: #ff0017;
+  color: color(rec2020 1.08207 0.33861 0.17859);
+}
+
+.orange {
+  color: #ff7e00;
+  color: color(rec2020 0.90297 0.54071 -0.03904);
+}
+
+.yellow {
+  color: #ffbe00;
+  color: color(rec2020 0.99988 0.76715 -0.03134);
+}
+
+.green {
+  color: #00d200;
+  color: color(rec2020 0.24641 0.77419 0.14168);
+}
+
+.blue {
+  color: #00abff;
+  color: color(rec2020 0.25673 0.64106 1.58642);
+}
+
+.purple {
+  color: #cd74ff;
+  color: color(rec2020 0.75552 0.49573 1.42591);
+}
+
+.pink {
+  color: #f0f;
+  color: color(rec2020 0.98842 0.32939 1.17463);
+}
+
+.party .inner {
+  fill: none;
+  stroke-width: 2.1px;
+}
+
+.party .outer {
+  fill: none;
+}

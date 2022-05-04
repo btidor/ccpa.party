@@ -3,7 +3,7 @@
   "description": "a tool to request & explore your data",
   "icons": [
     {
-      "src": "logo.svg",
+      "src": "logo.png",
       "sizes": "any"
     }
   ],
