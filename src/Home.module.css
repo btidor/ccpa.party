@@ -1,8 +1,4 @@
 .home {
-  background-color: #000;
-  font-family: "Cascadia Mono", monospace;
-  font-weight: bold;
-  color: #fff;
   display: flex;
 
   overflow-x: auto;
@@ -50,14 +46,16 @@
 }
 
 .intro p {
+  font-weight: bold;
   text-align: right;
 }
 
 .home nav a {
   display: block;
+
   color: var(--dark);
+  font-weight: bold;
   text-transform: lowercase;
-  text-decoration: none;
 }
 
 .home nav a:hover {
