@@ -11,8 +11,7 @@ main.request {
 }
 
 .logo {
-  width: fit-content;
-  border: 2px solid var(--dark);
+  text-align: right;
   margin: 1em 0 0.5em auto;
 }
 

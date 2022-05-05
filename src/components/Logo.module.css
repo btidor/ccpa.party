@@ -1,24 +1,29 @@
 .logo {
-  width: 190px;
-  height: 44px;
-  padding: 0.125rem 1rem;
-
-  font-family: "Cascadia Mono", monospace;
+  font-family: "Noto Emoji", "Cascadia Mono", monospace;
   font-size: 19px;
-  font-weight: bold;
-
+  font-weight: 900;
   line-height: 2;
-  text-align: right;
+  text-align: center;
 
   color: var(--dark);
   background-color: #000;
+
   display: inline-block;
+  padding: 0 2ch 0.2em;
   position: relative;
+  width: 170px;
+}
+
+.block {
+  width: 194px;
+  height: 48px;
+
+  border: 2px solid var(--dark);
+  padding: 0.125rem 1rem;
+  text-align: right;
 }
 
 .emoji {
-  font-family: "Noto Emoji", monospace;
-  font-weight: 900;
   margin-right: 0.75ch;
 }
 
@@ -31,7 +36,7 @@
 }
 
 .title {
-  margin-right: 0.3ch;
+  margin-right: 2px;
   font-variant: small-caps;
 }
 

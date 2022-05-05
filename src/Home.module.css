@@ -38,9 +38,7 @@ main.home {
   align-items: flex-end;
 }
 
-.logo {
-  width: fit-content;
-  border: 2px solid #fff;
+.logo a {
   margin: 0 -1rem;
   cursor: default;
 }

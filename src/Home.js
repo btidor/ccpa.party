@@ -43,8 +43,8 @@ function Home(): React.Node {
     <main className={`${styles.home} thin dark`} ref={ref}>
       <section>
         <div className={styles.intro}>
-          <div className={styles.logo}>
-            <Logo variant="glow" />
+          <div className={styles.logo} style={{ "--dark": "#fff" }}>
+            <Logo block variant="glow" />
           </div>
           <p>
             a tool

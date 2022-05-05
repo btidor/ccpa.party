@@ -7,6 +7,7 @@ import Party from "components/Party";
 import styles from "components/Logo.module.css";
 
 type Params = {|
+  block?: boolean,
   variant?: "party" | "glow",
   // If true, scrolls the homepage to the right so the company list is in view
   // (for narrow mobile screens). Otherwise resets the homepage to the left so
@@ -15,9 +16,15 @@ type Params = {|
 |};
 
 function Logo(params: Params): React.Node {
-  const { variant, picker } = params;
+  const { block, picker, variant } = params;
   return (
-    <Link to="/" className={styles.logo} state={picker}>
+    <Link
+      to="/"
+      className={[styles.logo, block && styles.block]
+        .filter((x) => x)
+        .join(" ")}
+      state={picker}
+    >
       {variant ? (
         <Party glow={variant === "glow"} />
       ) : (
