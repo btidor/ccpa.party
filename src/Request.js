@@ -36,7 +36,7 @@ function Request(props: Props): React.Node {
       <div></div>
       <section>
         <div className={styles.logo}>
-          <Logo block picker />
+          <Logo block="inline" party="plain" picker />
         </div>
         <div className={styles.provider}>{provider.displayName} ◆</div>
 

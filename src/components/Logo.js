@@ -7,8 +7,8 @@ import Party from "components/Party";
 import styles from "components/Logo.module.css";
 
 type Params = {|
-  block?: boolean,
-  variant?: "party" | "glow",
+  block: "bordered" | "subtle" | "inline",
+  party: "party" | "glow" | "plain",
   // If true, scrolls the homepage to the right so the company list is in view
   // (for narrow mobile screens). Otherwise resets the homepage to the left so
   // the logo and intro are in view.
@@ -16,19 +16,17 @@ type Params = {|
 |};
 
 function Logo(params: Params): React.Node {
-  const { block, picker, variant } = params;
+  const { block, party, picker } = params;
   return (
     <Link
       to="/"
-      className={[styles.logo, block && styles.block]
-        .filter((x) => x)
-        .join(" ")}
+      className={[styles.logo, styles[block]].join(" ")}
       state={picker}
     >
-      {variant ? (
-        <Party glow={variant === "glow"} />
-      ) : (
+      {party === "plain" ? (
         <span className={styles.emoji}>🎉</span>
+      ) : (
+        <Party glow={party === "glow"} />
       )}
       <span className={styles.title}>ccpa.party</span>
       <sup>𝛼</sup>
