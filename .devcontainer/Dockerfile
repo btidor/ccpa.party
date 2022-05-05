@@ -8,3 +8,6 @@ RUN apt update -q && apt upgrade -yq
 
 RUN apt install -yq nodejs libatomic1 && \
     npm install -g npm@latest
+
+RUN apt install -yq python3-pip && \
+    pip3 install fonttools brotli uharfbuzz
