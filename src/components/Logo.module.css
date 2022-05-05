@@ -2,7 +2,7 @@
   width: 190px;
   padding: 0.125rem 1rem;
 
-  font-family: "Cascadia Mono", "Cascadia Mono Full", monospace;
+  font-family: "Cascadia Mono", monospace;
   font-size: 19px;
   font-weight: bold;
 
@@ -15,7 +15,7 @@
 }
 
 .emoji {
-  font-family: "Noto Emoji", "Noto Emoji Full", monospace;
+  font-family: "Noto Emoji", monospace;
   font-weight: 900;
   margin-right: 0.3ch;
 }

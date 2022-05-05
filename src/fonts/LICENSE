@@ -1,0 +1,26 @@
+cascadia*:
+  - Adapted from Cascadia Code, by Aaron Bell
+
+    Copyright (c) 2019 - Present, Microsoft Corporation,
+    with Reserved Font Name Cascadia Code.
+
+    Licensed under the SIL Open Font License, Version 1.1
+    (http://scripts.sil.org/OFL).
+
+noto-emoji*:
+  - Adapted from Noto Emoji, by Google
+
+    Copyright 2013, 2021 Google Inc. All Rights Reserved.
+
+    Licensed under the SIL Open Font License, Version 1.1
+    (http://scripts.sil.org/OFL).
+
+plex*:
+  - Adapted from Plex, by Mike Abbink, Paul van der Laan,
+    and Pieter van Rosmalen
+
+    Copyright © 2017 IBM Corp. with Reserved Font Name
+    "Plex"
+
+    Licensed under the SIL Open Font License, Version 1.1
+    (http://scripts.sil.org/OFL).
