@@ -49,13 +49,13 @@
 }
 
 .action {
-  color: black;
+  color: #000;
   display: block;
   padding: 0 1em;
   cursor: pointer;
 }
 
 .action:hover {
-  color: white;
+  color: #fff;
   background-color: var(--primary);
 }
