@@ -3,6 +3,7 @@
   /* subset containing just basic latin characters */
   font-family: "Cascadia Mono";
   font-display: block;
+  text-rendering: geometricPrecision;
   src: url("fonts/cascadia-subset.woff2") format("woff2");
 }
 
@@ -10,12 +11,14 @@
   /* subset containing just the emoji we use */
   font-family: "Noto Emoji";
   font-display: block;
+  text-rendering: geometricPrecision;
   src: url("fonts/noto-emoji-subset.woff2") format("woff2");
 }
 
 @font-face {
   /* subset containing just basic ascii */
   font-family: "Plex Mono";
+  text-rendering: optimizeLegibility;
   src: url("fonts/plex-mono-subset.woff2") format("woff2");
 }
 
