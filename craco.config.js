@@ -1,5 +1,9 @@
 module.exports = {
   devServer: {
+    client: {
+      // Makes auto-reload work both locally and via ngrok
+      webSocketURL: "auto://0.0.0.0:0/ws",
+    },
     headers: {
       "Content-Security-Policy": [
         "default-src 'none'",
