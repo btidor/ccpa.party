@@ -64,7 +64,10 @@ ProviderRegistry.forEach((provider) =>
 const white = new Color("#fff");
 
 export function lightColor(provider: Provider): string {
-  return new Color(provider.color).mix(white, 0.75).toString({ format: "hex" });
+  return new Color(provider.color)
+    .mix(white, 0.75)
+    .toGamut({ method: "clip", space: "srgb" })
+    .toString({ format: "hex" });
 }
 
 export function darkColor(provider: Provider): string {
