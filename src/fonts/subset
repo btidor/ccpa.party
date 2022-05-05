@@ -16,8 +16,10 @@ pyftsubset "cascadia.woff2" \
   --flavor="woff2" \
   --output-file="cascadia-subset.woff2"
 
+# fyi, subset must include `0` (U+0030) because it's used
+# to compute the css `ch` unit
 pyftsubset "noto-emoji.woff2" \
-  --unicodes="U+1F389,U+1F449,U+23F3,U+1F9ED" \
+  --unicodes="U+0030,U+1F389,U+1F449,U+23F3,U+1F9ED" \
   --no-ignore-missing-unicodes \
   --layout-features="" \
   --layout-scripts="" \

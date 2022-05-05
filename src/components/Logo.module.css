@@ -1,5 +1,5 @@
 .logo {
-  font-family: "Noto Emoji", "Cascadia Mono", monospace;
+  font-family: "Cascadia Mono", monospace;
   font-size: 19px;
   line-height: 2;
   text-align: center;
@@ -26,7 +26,7 @@
 }
 
 .emoji {
-  margin-right: 0.75ch;
+  font-family: "Noto Emoji";
   font-weight: 900;
 }
 
