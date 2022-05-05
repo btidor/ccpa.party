@@ -8,15 +8,25 @@ main.request {
 
 .request section {
   margin: 0 auto;
+  padding: 2em;
+  border: 2px solid var(--dark);
+}
+
+@media only screen and (max-width: 420px) {
+  .request section {
+    width: calc(100% - 2em);
+    height: calc(100% - 2em);
+    margin: 1em;
+    padding: 2em 1.5em;
+  }
 }
 
 .logo {
   text-align: right;
-  margin: 1em 0 0.5em auto;
 }
 
 .provider {
-  margin-right: 1rem;
+  margin: 0.25em 0 3em;
   text-align: right;
   font-weight: bold;
   text-transform: lowercase;
@@ -24,8 +34,12 @@ main.request {
 
 .instruction {
   display: flex;
-  margin: 2em 1rem 2em 0;
-  line-height: 22px;
+  margin: 2em 0;
+  line-height: 25px;
+}
+
+.instruction:last-of-type {
+  margin-bottom: 1em;
 }
 
 .emoji {
