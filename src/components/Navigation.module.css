@@ -1,11 +1,11 @@
 header.header {
-  display: flex;
-
-  background-color: var(--primary);
-  white-space: nowrap;
   align-items: center;
+  display: flex;
+  white-space: nowrap;
 
-  font-weight: bold;
+  color: #fff;
+  background-color: var(--primary);
+  font-size: 15px;
 }
 
 .header + main {
@@ -13,26 +13,21 @@ header.header {
 }
 
 .header select {
-  align-self: stretch;
-  border: none;
-  margin: 0;
-  padding: 0 1rem;
-  color: #fff;
-  background-color: inherit;
-  font-weight: inherit;
   width: 200px;
+  align-self: stretch;
+  padding: 0 1rem;
+
+  background-color: inherit;
+  font-weight: 600;
 }
 
 .header nav {
   margin: 0 1rem;
-  font-size: 0.9em;
-  font-weight: normal;
 }
 
 .header nav a {
   margin: 0 1vw;
-  color: #fff;
-  text-decoration: none;
+  font-weight: 500;
 }
 
 .header nav a:hover,

@@ -43,7 +43,9 @@ html {
 *,
 *:before,
 *:after {
+  border: none;
   box-sizing: inherit;
+  color: inherit;
   font-family: inherit;
   font-size: inherit;
   font-weight: normal;
@@ -77,7 +79,8 @@ main.thin {
 }
 
 main.dark,
-header.dark {
+header.dark,
+main.error {
   color: #fff;
   background-color: #000;
 

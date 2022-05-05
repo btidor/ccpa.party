@@ -9,8 +9,8 @@
 }
 
 .picker label {
-  background-color: inherit;
   display: block;
+  font-weight: 450;
   width: 100%;
 }
 
@@ -21,12 +21,7 @@
 
 .picker input {
   position: absolute;
-  top: 12px;
   left: -13px;
   width: 1px;
-
-  color: transparent;
-  background: none;
-  border: none;
   filter: opacity(0);
 }

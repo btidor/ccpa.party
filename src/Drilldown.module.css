@@ -20,27 +20,35 @@
 .right {
   width: calc(100% - var(--left-width) - 1px);
   flex: 1;
+
+  font-family: "Plex Mono", monospace;
+  font-size: 13px;
+  line-height: 1.425;
 }
 
 .bar {
   height: 32px;
+  line-height: 32px;
   flex-shrink: 0;
   padding: 0 0 0 0.5rem;
+
+  color: #222;
   background-color: var(--primary-light);
 
   display: flex;
   gap: 1ch;
-
-  color: #222;
-  font-size: 14px;
-  line-height: 32px;
-
   overflow: hidden;
 }
 
-.right .bar {
-  font-family: monospace;
-  font-size: 12px;
+.left .bar {
+  color: #222;
+  font-size: 14px;
+  line-height: 33px;
+}
+
+.right .bar,
+.right pre,
+.right .bar span {
   user-select: text;
 }
 

@@ -97,7 +97,7 @@ function FileTree(props: Props): React.Node {
             width={width}
             height={height}
             indent={12}
-            rowHeight={21}
+            rowHeight={22}
             hideRoot
             isOpen={(node) => !node.id || expanded.has(node.id)}
             onToggle={(id, isCollapsed) => {
