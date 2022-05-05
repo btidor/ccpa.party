@@ -1,7 +1,6 @@
 .logo {
   font-family: "Noto Emoji", "Cascadia Mono", monospace;
   font-size: 19px;
-  font-weight: 900;
   line-height: 2;
   text-align: center;
 
@@ -25,6 +24,7 @@
 
 .emoji {
   margin-right: 0.75ch;
+  font-weight: 900;
 }
 
 .logo svg {
@@ -37,10 +37,12 @@
 
 .title {
   margin-right: 2px;
+  font-weight: 600;
   font-variant: small-caps;
 }
 
 .logo sup {
   font-family: monospace;
   font-size: 0.75em;
+  font-weight: 600;
 }
