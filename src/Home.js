@@ -40,7 +40,7 @@ function Home(): React.Node {
   );
 
   return (
-    <main className={`${styles.home} thin`} ref={ref}>
+    <main className={`${styles.home} thin dark`} ref={ref}>
       <section>
         <div className={styles.intro}>
           <div className={styles.logo}>

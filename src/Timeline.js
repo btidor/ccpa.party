@@ -162,7 +162,7 @@ function Timeline(props: Props): React.Node {
   return (
     <Theme provider={provider}>
       <Navigation provider={provider} pageSlug="timeline" />
-      <main className="thin">
+      <main className="thin light">
         <div className={styles.container} style={{ "--left-width": "60vw" }}>
           <div className={styles.left}>
             <div className={styles.bar}>

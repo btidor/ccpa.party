@@ -44,7 +44,7 @@ function Navigation(props: Props): React.Node {
   }, [epoch]);
 
   return (
-    <header className={styles.header}>
+    <header className={`${styles.header} light`}>
       <Logo />
       <select
         value={provider.slug}

@@ -90,7 +90,7 @@ function Files(props: Props): React.Node {
   return (
     <Theme provider={provider}>
       <Navigation provider={provider} pageSlug="files" />
-      <main className="thin">
+      <main className="thin light">
         <div className={styles.container} style={{ "--left-width": "30vw" }}>
           <div className={styles.left}>
             <div className={styles.bar}></div>
