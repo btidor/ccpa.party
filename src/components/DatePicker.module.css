@@ -1,5 +1,6 @@
 .picker {
-  width: 17vw;
+  width: 16vw;
+  min-width: auto;
 
   border-left: 1px solid black;
   text-align: center;
@@ -11,6 +12,7 @@
   display: block;
   font-weight: 450;
   width: 100%;
+  line-height: 35px;
 }
 
 .picker label:hover {

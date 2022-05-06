@@ -2,6 +2,7 @@
   display: inline-block;
   font-weight: 450;
   height: 100%;
+  line-height: 35px;
 }
 
 .filter input {

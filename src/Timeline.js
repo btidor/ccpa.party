@@ -185,43 +185,47 @@ function Timeline(props: Props): React.Node {
                 scrollToIndex={virtuoso.current?.scrollToIndex}
               />
             </div>
-            {!rows || rows.length === 0 ? (
-              <Placeholder>{rows ? "😮 No Results" : undefined}</Placeholder>
-            ) : (
-              <Virtuoso
-                // Always leave room for a scrollbar so our centered group headers
-                // don't jump around when the layout reflows.
-                style={{ overflowY: "scroll" }}
-                ref={virtuoso}
-                totalCount={rows.length}
-                itemContent={(index) => (
-                  <TimelineRow
-                    db={db}
-                    isLast={index === rows.length - 1}
-                    metadata={metadata}
-                    provider={provider}
-                    row={rows[index]}
-                    selected={selected}
-                    setSelected={(slug) =>
-                      filter &&
-                      navigate(
-                        `/${provider.slug}/timeline:${filter}` +
-                          (selected === slug ? "" : `@${slug}`)
-                      )
-                    }
-                  />
-                )}
-                rangeChanged={(range) => setRangeStart(range.startIndex)}
-              />
-            )}
+            <div className={styles.box}>
+              {!rows || rows.length === 0 ? (
+                <Placeholder>{rows ? "😮 No Results" : undefined}</Placeholder>
+              ) : (
+                <Virtuoso
+                  // Always leave room for a scrollbar so our centered group headers
+                  // don't jump around when the layout reflows.
+                  style={{ overflowY: "scroll" }}
+                  ref={virtuoso}
+                  totalCount={rows.length}
+                  itemContent={(index) => (
+                    <TimelineRow
+                      db={db}
+                      isLast={index === rows.length - 1}
+                      metadata={metadata}
+                      provider={provider}
+                      row={rows[index]}
+                      selected={selected}
+                      setSelected={(slug) =>
+                        filter &&
+                        navigate(
+                          `/${provider.slug}/timeline:${filter}` +
+                            (selected === slug ? "" : `@${slug}`)
+                        )
+                      }
+                    />
+                  )}
+                  rangeChanged={(range) => setRangeStart(range.startIndex)}
+                />
+              )}
+            </div>
           </div>
           <div className={styles.right}>
             <div className={styles.bar}>
-              {selected &&
-                selectedEntry &&
-                `From ${selectedEntry.file.slice(1).join("/")}:`}
+              {selected && selectedEntry && (
+                <span>From {selectedEntry.file.slice(1).join("/")}:</span>
+              )}
             </div>
-            {selected && <FilePreview>{selectedEntry?.value}</FilePreview>}
+            <div className={styles.box}>
+              {selected && <FilePreview>{selectedEntry?.value}</FilePreview>}
+            </div>
           </div>
         </div>
       </main>

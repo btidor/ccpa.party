@@ -3,7 +3,7 @@
   height: -webkit-fill-available;
   display: flex;
   flex-direction: column;
-  padding: 1vw;
+  padding: 2vw;
   gap: 1vw;
 }
 
@@ -26,7 +26,7 @@
 .right {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--dark);
+  gap: 1vw;
 }
 
 .left {
@@ -34,7 +34,8 @@
 }
 
 .right {
-  width: calc(97vw - var(--left-width));
+  width: calc(95vw - var(--left-width));
+
   font-family: "Plex Mono", monospace;
   font-size: 13px;
   line-height: 1.425;
@@ -43,25 +44,23 @@
 .bar {
   height: 32px;
   line-height: 32px;
-  flex-shrink: 0;
+  flex: none;
   padding-left: 0.5rem;
 
   color: #000;
   background-color: var(--dark);
 
   display: flex;
-  gap: 1.5ch;
   overflow: hidden;
 }
 
 .left .bar {
   font-size: 14px;
-  line-height: 33px;
+  gap: 1.5ch;
 }
 
-.right .bar,
-.right pre,
 .right .bar span {
+  font-weight: 550;
   user-select: text;
 }
 
@@ -70,13 +69,22 @@
 }
 
 .action {
-  color: #000;
   display: block;
   padding: 0 1em;
   cursor: pointer;
 }
 
+.action:last-of-type {
+  margin-right: 0.5em;
+}
+
 .action:hover {
-  color: #fff;
-  background-color: var(--dark);
+  color: var(--dark);
+  background-color: #000;
+}
+
+.box {
+  flex-grow: 1;
+  border: 1px solid var(--dark);
+  padding: 0.25rem;
 }

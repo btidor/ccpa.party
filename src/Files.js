@@ -96,20 +96,22 @@ function Files(props: Props): React.Node {
         <div className={styles.container} style={{ "--left-width": "30vw" }}>
           <div className={styles.left}>
             <div className={styles.bar}></div>
-            {!items || items.length === 0 ? (
-              <Placeholder />
-            ) : (
-              <FileTree
-                items={items}
-                selected={selected}
-                onSelect={(index) =>
-                  navigate(
-                    `/${provider.slug}/files` +
-                      (selected === index ? "" : `@${index}`)
-                  )
-                }
-              />
-            )}
+            <div className={styles.box}>
+              {!items || items.length === 0 ? (
+                <Placeholder />
+              ) : (
+                <FileTree
+                  items={items}
+                  selected={selected}
+                  onSelect={(index) =>
+                    navigate(
+                      `/${provider.slug}/files` +
+                        (selected === index ? "" : `@${index}`)
+                    )
+                  }
+                />
+              )}
+            </div>
           </div>
           <div className={styles.right}>
             <div className={styles.bar}>
@@ -121,15 +123,17 @@ function Files(props: Props): React.Node {
               {item && <FileParseAction file={item} provider={provider} />}
               {item && <FileDownloadAction file={item} />}
             </div>
-            {!selected ? undefined : item?.skipped ? (
-              <FilePreview>
-                {`🐘 Not imported due to ${fileSizeLimitMB}MB size limit`}
-              </FilePreview>
-            ) : (
-              <FilePreview filename={item?.path.slice(-1)[0]}>
-                {item?.data}
-              </FilePreview>
-            )}
+            <div className={styles.box}>
+              {!selected ? undefined : item?.skipped ? (
+                <FilePreview>
+                  {`🐘 Not imported due to ${fileSizeLimitMB}MB size limit`}
+                </FilePreview>
+              ) : (
+                <FilePreview filename={item?.path.slice(-1)[0]}>
+                  {item?.data}
+                </FilePreview>
+              )}
+            </div>
           </div>
         </div>
       </main>
