@@ -44,7 +44,7 @@ function Home(): React.Node {
       <section>
         <div className={styles.intro}>
           <div className={styles.logo} style={{ "--dark": "#fff" }}>
-            <Logo block="bordered" party="glow" />
+            <Logo block="home" party="glow" />
           </div>
           <p>
             a tool

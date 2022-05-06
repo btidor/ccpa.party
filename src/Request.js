@@ -26,6 +26,7 @@ function Request(props: Props): React.Node {
   const fileHandler = (event) =>
     importFiles(db, provider, event.target.files, setProgress);
 
+  const inputRef = React.useRef<?HTMLInputElement>();
   return (
     <main
       className={`${styles.request} thin dark`}
@@ -35,10 +36,10 @@ function Request(props: Props): React.Node {
           in a 2:3 ratio above/below the <section> */}
       <div></div>
       <section>
-        <div className={styles.logo}>
-          <Logo block="inline" party="plain" picker />
-        </div>
-        <div className={styles.provider}>{provider.displayName} ◆</div>
+        <header>
+          <Logo block="request" party="plain" picker />
+          <div className={styles.provider}>{provider.displayName} ◆</div>
+        </header>
 
         <div className={styles.instruction}>
           <span className={styles.emoji}>👉</span>
@@ -70,10 +71,19 @@ function Request(props: Props): React.Node {
               type="file"
               multiple
               accept=".zip,.tar.gz"
+              ref={inputRef}
               onChange={fileHandler}
             />
             {progress === undefined ? (
-              <label htmlFor="import">Import Archive ↑</label>
+              <label
+                htmlFor="import"
+                tabIndex={0}
+                onKeyDown={(e) =>
+                  e.code === "Enter" && inputRef.current?.click()
+                }
+              >
+                Import Archive ↑
+              </label>
             ) : progress === true ? (
               <Link to={`/${provider.slug}/timeline`}>Explore →</Link>
             ) : (

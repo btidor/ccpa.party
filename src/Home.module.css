@@ -38,9 +38,8 @@ main.home {
   align-items: flex-end;
 }
 
-.logo a {
+.logo {
   margin: 0 -1rem;
-  cursor: default;
 }
 
 .intro p {

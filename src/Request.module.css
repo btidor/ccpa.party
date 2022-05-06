@@ -21,7 +21,7 @@ main.request {
   }
 }
 
-.logo {
+.request header {
   text-align: right;
 }
 
@@ -56,8 +56,6 @@ main.request {
 
 .instruction a,
 .compass label {
-  display: block;
-
   color: var(--dark);
   font-weight: bold;
 }

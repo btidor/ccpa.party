@@ -45,7 +45,7 @@ function Navigation(props: Props): React.Node {
 
   return (
     <header className={`${styles.header} light`}>
-      <Logo block="subtle" party="plain" />
+      <Logo block="nav" party="plain" />
       <select
         value={provider.slug}
         onChange={(event) => {

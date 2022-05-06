@@ -11,16 +11,18 @@
   position: relative;
 }
 
-.bordered {
+.home {
   width: 194px;
   height: 48px;
 
   border: 2px solid var(--dark);
   padding: 0.125rem 1rem;
   text-align: right;
+
+  cursor: default;
 }
 
-.subtle {
+.nav {
   padding: 0 2ch 0.2em;
   width: 177px;
 }
