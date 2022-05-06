@@ -6,7 +6,7 @@
 
 .filter input {
   margin: 0 1ch;
-  filter: grayscale(100%);
+  filter: grayscale(100%) contrast(1000);
 }
 
 .filter,

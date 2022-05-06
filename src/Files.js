@@ -7,9 +7,8 @@ import FilePreview from "components/FilePreview";
 import FileTree from "components/FileTree";
 import Navigation from "components/Navigation";
 import Placeholder from "components/Placeholder";
-import Theme from "components/Theme";
 import { Database } from "database";
-import { fileSizeLimitMB } from "provider";
+import { fileSizeLimitMB, darkColor } from "provider";
 
 import styles from "Drilldown.module.css";
 
@@ -88,9 +87,12 @@ function Files(props: Props): React.Node {
   }
 
   return (
-    <Theme provider={provider}>
+    <div
+      className={styles.outer}
+      style={{ "--dark": darkColor(props.provider) }}
+    >
       <Navigation provider={provider} pageSlug="files" />
-      <main className="thin light">
+      <main className={styles.drilldown}>
         <div className={styles.container} style={{ "--left-width": "30vw" }}>
           <div className={styles.left}>
             <div className={styles.bar}></div>
@@ -131,7 +133,7 @@ function Files(props: Props): React.Node {
           </div>
         </div>
       </main>
-    </Theme>
+    </div>
   );
 }
 

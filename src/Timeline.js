@@ -7,9 +7,9 @@ import FilePreview from "components/FilePreview";
 import FilterBar from "components/FilterBar";
 import Navigation from "components/Navigation";
 import Placeholder from "components/Placeholder";
-import Theme from "components/Theme";
 import TimelineRow from "components/TimelineRow";
 import { Database } from "database";
+import { darkColor } from "provider";
 
 import styles from "Drilldown.module.css";
 
@@ -160,9 +160,12 @@ function Timeline(props: Props): React.Node {
   const [rangeStart, setRangeStart] = React.useState(0);
 
   return (
-    <Theme provider={provider}>
+    <div
+      className={styles.outer}
+      style={{ "--dark": darkColor(props.provider) }}
+    >
       <Navigation provider={provider} pageSlug="timeline" />
-      <main className="thin light">
+      <main className={styles.drilldown}>
         <div className={styles.container} style={{ "--left-width": "60vw" }}>
           <div className={styles.left}>
             <div className={styles.bar}>
@@ -222,7 +225,7 @@ function Timeline(props: Props): React.Node {
           </div>
         </div>
       </main>
-    </Theme>
+    </div>
   );
 }
 

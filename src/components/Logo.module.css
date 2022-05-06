@@ -22,11 +22,6 @@
   cursor: default;
 }
 
-.nav {
-  padding: 0 2ch 0.2em;
-  width: 177px;
-}
-
 .emoji {
   font-family: "Noto Emoji";
   font-weight: 900;

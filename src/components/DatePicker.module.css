@@ -1,8 +1,7 @@
 .picker {
   width: 17vw;
 
-  color: #fff;
-  background-color: var(--primary);
+  border-left: 1px solid black;
   text-align: center;
 
   position: relative;
@@ -16,7 +15,6 @@
 
 .picker label:hover {
   cursor: pointer;
-  filter: brightness(90%);
 }
 
 .picker input {

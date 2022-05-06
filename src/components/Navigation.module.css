@@ -1,36 +1,41 @@
-header.header {
-  align-items: center;
+.header {
   display: flex;
+  align-items: center;
   white-space: nowrap;
 
-  color: #fff;
-  background-color: var(--primary);
-  font-size: 15px;
+  color: var(--dark);
+  font-family: "Cascadia Mono", monospace;
+  font-size: 14px;
 }
 
-.header + main {
-  --navheight: calc(0.3rem + 40px);
+.logo {
+  margin: 0 4vw 0 1vw;
 }
 
 .header select {
-  width: 200px;
-  align-self: stretch;
-  padding: 0 1rem;
+  width: 150px;
+  height: 2.5em;
+  padding: 0 0.5rem;
+  margin-right: 2vw;
 
-  background-color: inherit;
+  background-color: transparent;
+  border: 1px solid var(--dark);
   font-weight: 600;
+  text-transform: lowercase;
 }
 
 .header nav {
-  margin: 0 1rem;
+  display: flex;
+  gap: 1vw;
 }
 
 .header nav a {
-  margin: 0 1vw;
   font-weight: 500;
+  text-transform: lowercase;
 }
 
 .header nav a:hover,
 .header nav a[aria-current="page"] {
-  border-bottom: 1px solid #fff;
+  text-underline-offset: 0.25em;
+  text-decoration: underline;
 }
