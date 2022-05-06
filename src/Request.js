@@ -28,10 +28,7 @@ function Request(props: Props): React.Node {
 
   const inputRef = React.useRef<?HTMLInputElement>();
   return (
-    <main
-      className={`${styles.request} thin dark`}
-      style={{ "--dark": darkColor(provider) }}
-    >
+    <main className={styles.request} style={{ "--dark": darkColor(provider) }}>
       {/* HACK: place extra <div>s so that vertical spacing gets distriuted
           in a 2:3 ratio above/below the <section> */}
       <div></div>

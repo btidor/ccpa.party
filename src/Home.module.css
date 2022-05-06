@@ -1,9 +1,13 @@
-main.home {
+.home {
+  height: 100vh;
+  height: -webkit-fill-available;
   display: flex;
 
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
+
+  font-family: "Cascadia Mono", monospace;
 }
 
 .home::-webkit-scrollbar {

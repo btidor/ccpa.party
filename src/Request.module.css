@@ -1,4 +1,4 @@
-main.request {
+.request {
   color: var(--dark);
 
   height: auto;
@@ -8,6 +8,8 @@ main.request {
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
+
+  font-family: "Cascadia Mono", monospace;
 }
 
 .request section {
@@ -26,6 +28,7 @@ main.request {
 }
 
 .request header {
+  color: inherit;
   text-align: right;
 }
 

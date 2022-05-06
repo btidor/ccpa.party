@@ -67,48 +67,23 @@ body,
   height: 100%;
 }
 
-main {
-  --vpadding: 1vw;
-  --hpadding: calc(1vw + 0.5rem);
-  --navheight: 0px;
-  height: calc(100vh - 2 * var(--vpadding) - var(--navheight));
-  height: -webkit-fill-available;
-  padding: var(--vpadding) var(--hpadding);
-}
-
-main.thin {
-  --vpadding: 0px;
-  --hpadding: 0px;
-}
-
-main.dark,
-header.dark,
-main.error {
+main, header {
   color: #fff;
   background-color: #000;
 
-  font-family: "Cascadia Mono", monospace;
-  font-size: 16px;
-  line-height: 28px;
-}
-
-main.light,
-header.light {
-  color: #000;
-  background-color: #fff;
-
-  font-family: "Plex Sans", monospace;
   font-size: 16px;
   line-height: 28px;
 }
 
 main.error {
+  height: 100vh;
+  height: -webkit-fill-available;
   display: flex;
 }
 
 main.error code {
-  color: #fff;
-  font-weight: bold;
   margin: auto;
+  font-family: "Cascadia Mono", monospace;
+  font-weight: bold;
   text-transform: lowercase;
 }
