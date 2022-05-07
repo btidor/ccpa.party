@@ -42,29 +42,21 @@ class Slack implements Provider {
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
     if (file.skipped) return [];
     if (file.path[1] === "users.json") {
-      const users = new Map();
-      for (const user of parseJSON(file.data)) {
-        users.set(user.id, user);
-      }
       return [
         {
           type: "metadata",
           provider: file.provider,
           key: "users",
-          value: users,
+          value: parseJSON(file.data),
         },
       ];
     } else if (file.path[1] === "channels.json") {
-      const channels = new Map();
-      for (const channel of parseJSON(file.data)) {
-        channels.set(channel.id, channel);
-      }
       return [
         {
           type: "metadata",
           provider: file.provider,
           key: "channels",
-          value: channels,
+          value: parseJSON(file.data),
         },
       ];
     } else if (file.path[1] === "integration_logs.json") {
@@ -101,17 +93,19 @@ class Slack implements Provider {
     metadata: $ReadOnlyMap<string, any>
   ): React.Node {
     const message = entry.value;
-    const users = (metadata.get("users"): ?$ReadOnlyMap<string, any>);
-    const channels = (metadata.get("channels"): ?$ReadOnlyMap<string, any>);
+    const users = metadata.get("users");
+    const channels = metadata.get("channels");
 
     if (!users || !channels) throw new Error("Failed to load metadata");
 
     const channelName =
-      entry.context || channels.get(message.channel)?.name || "unknown";
+      entry.context ||
+      channels.find((x) => x.id === message.channel)?.name ||
+      "unknown";
 
     let name = message.user_name || "unknown";
     let style = {};
-    const user = users.get(message.user || message.user_id);
+    const user = users.find((x) => x.id === message.user || message.user_id);
     if (!!user) {
       name = user.profile.display_name || user.profile.real_name;
       if (user.color) style = { color: `#${user.color}` };
@@ -176,14 +170,14 @@ class Slack implements Provider {
           </React.Fragment>,
         ];
       } else if (element.type === "user") {
-        const user = users.get(element.user_id) || {};
+        const user = users.find((x) => x.id === element.user_id) || {};
         return [
           <span key={key} className={styles.internal}>
             @{user.display_name || user.real_name || "unknown"}
           </span>,
         ];
       } else if (element.type === "channel") {
-        const channel = channels.get(element.channel_id) || {};
+        const channel = channels.find((x) => x.id === element.channel_id) || {};
         return [
           <span key={key} className={styles.internal}>
             #{channel.name || "unknown"}

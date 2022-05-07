@@ -59,24 +59,30 @@ const providerRange = (provider) =>
 
 export class Database {
   #idb: Promise<any>;
+  #enc: TextEncoder;
+  #dec: TextDecoder;
 
   constructor(terminated: ?() => void) {
     this.#idb = openDB("import", 1, {
       async upgrade(db) {
-        db.createObjectStore(filesStore, {
-          keyPath: ["provider", "path"],
-        });
-        db.createObjectStore(timelineStore, {
-          keyPath: ["provider", "slug", "day", "category"],
-        });
-        db.createObjectStore(metadataStore, {
-          keyPath: ["provider", "key"],
-        });
+        db.createObjectStore(filesStore);
+        db.createObjectStore(timelineStore);
+        db.createObjectStore(metadataStore);
       },
       async terminated(db) {
         terminated?.();
       },
     });
+    this.#enc = new TextEncoder();
+    this.#dec = new TextDecoder();
+    window.todoKey ||= window.crypto.subtle.generateKey(
+      {
+        name: "AES-GCM",
+        length: 256,
+      },
+      false,
+      ["encrypt", "decrypt"]
+    );
   }
 
   async getAllFiles(): Promise<Array<DataFileKey>> {
@@ -95,24 +101,57 @@ export class Database {
 
   async hydrateFile(file: DataFileKey): Promise<?DataFile> {
     const db = await this.#idb;
-    return await db.get(filesStore, [file.provider, file.path]);
+    const [iv, enc] = await db.get(filesStore, [file.provider, file.path]);
+    const data = await window.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv },
+      await window.todoKey,
+      enc
+    );
+    return {
+      path: file.path,
+      provider: file.provider,
+      skipped: undefined,
+      data: (data: ArrayBuffer),
+    };
   }
 
   async putFile(file: DataFile): Promise<void> {
     const db = await this.#idb;
-    await db.put(filesStore, file);
+    const iv = await window.crypto.getRandomValues(new Uint8Array(12));
+    const enc = await window.crypto.subtle.encrypt(
+      { name: "AES-GCM", iv },
+      await window.todoKey,
+      file.data
+    );
+    await db.put(filesStore, [iv, enc], [file.provider, file.path]);
   }
 
   async getMetadatasForProvider(
     provider: Provider
   ): Promise<Array<MetadataEntry>> {
     const db = await this.#idb;
-    return await db.getAll(metadataStore, providerRange(provider));
+    const encs = await db.getAll(metadataStore, providerRange(provider));
+    const results = [];
+    for (const [iv, enc] of encs) {
+      const data = await window.crypto.subtle.decrypt(
+        { name: "AES-GCM", iv },
+        await window.todoKey,
+        enc
+      );
+      results.push(JSON.parse(this.#dec.decode(data)));
+    }
+    return results;
   }
 
   async putMetadata(metadata: MetadataEntry): Promise<void> {
     const db = await this.#idb;
-    await db.put(metadataStore, metadata);
+    const iv = await window.crypto.getRandomValues(new Uint8Array(12));
+    const enc = await window.crypto.subtle.encrypt(
+      { name: "AES-GCM", iv },
+      await window.todoKey,
+      this.#enc.encode(JSON.stringify(metadata))
+    );
+    await db.put(metadataStore, [iv, enc], [metadata.provider, metadata.key]);
   }
 
   async getTimelineEntriesForProvider(
@@ -133,17 +172,33 @@ export class Database {
 
   async putTimelineEntry(entry: TimelineEntry): Promise<void> {
     const db = await this.#idb;
-    await db.put(timelineStore, entry);
+    const iv = await window.crypto.getRandomValues(new Uint8Array(12));
+    const enc = await window.crypto.subtle.encrypt(
+      { name: "AES-GCM", iv },
+      await window.todoKey,
+      this.#enc.encode(JSON.stringify(entry))
+    );
+    await db.put(
+      timelineStore,
+      [iv, enc],
+      [entry.provider, entry.slug, entry.day, entry.category]
+    );
   }
 
   async hydrateTimelineEntry(entry: TimelineEntryKey): Promise<?TimelineEntry> {
     const db = await this.#idb;
-    return await db.get(timelineStore, [
+    const [iv, enc] = await db.get(timelineStore, [
       entry.provider,
       entry.slug,
       entry.day,
       entry.category,
     ]);
+    const data = await window.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv },
+      await window.todoKey,
+      enc
+    );
+    return JSON.parse(this.#dec.decode(data));
   }
 
   async getTimelineEntryBySlug(
@@ -151,11 +206,17 @@ export class Database {
     slug: string
   ): Promise<?TimelineEntry> {
     const db = await this.#idb;
-    return await db.get(
+    const [iv, enc] = await db.get(
       timelineStore,
       // $FlowFixMe[prop-missing]
       IDBKeyRange.bound([provider.slug, slug], [provider.slug, slug + " "])
     );
+    const data = await window.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv },
+      await window.todoKey,
+      enc
+    );
+    return JSON.parse(this.#dec.decode(data));
   }
 }
 
