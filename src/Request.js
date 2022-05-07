@@ -84,7 +84,7 @@ function Request(props: Props): React.Node {
             ) : progress === true ? (
               <Link to={`/${provider.slug}/timeline`}>Explore →</Link>
             ) : (
-              <code>importing {progress.toLocaleString()} files...</code>
+              <code>importing {progress.toLocaleString()} items</code>
             )}
           </div>
         </div>
