@@ -83,7 +83,7 @@ function Files(props: Props): React.Node {
   }, [db, items, selected]);
 
   if (items?.length === 0) {
-    return <Navigate to={`/${provider.slug}/import`} />;
+    return <Navigate to={`/${provider.slug}`} />;
   }
 
   return (
