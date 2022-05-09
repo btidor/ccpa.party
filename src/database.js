@@ -61,6 +61,7 @@ export class Database {
   #idb: Promise<any>;
   #enc: TextEncoder;
   #dec: TextDecoder;
+  #key: any;
 
   constructor(terminated: ?() => void) {
     this.#idb = openDB("import", 1, {
@@ -75,14 +76,38 @@ export class Database {
     });
     this.#enc = new TextEncoder();
     this.#dec = new TextDecoder();
-    window.todoKey ||= window.crypto.subtle.generateKey(
-      {
-        name: "AES-GCM",
-        length: 256,
-      },
-      false,
-      ["encrypt", "decrypt"]
-    );
+
+    // We encrypt the data and store the key in a cookie because (a) values in
+    // the browser cookie jar are strongly protected using OS-level data
+    // protection APIs and it's not clear the same is true of data in
+    // IndexedDB, and (b) we can force the key to expire after 24 hours.
+    const raw = document.cookie.split(";").find((x) => x.startsWith("key="));
+    if (raw) {
+      const dec = new Uint8Array(
+        [...atob(raw.slice(4))].map((c) => c.charCodeAt(0))
+      );
+      this.#key = window.crypto.subtle.importKey("raw", dec, "AES-GCM", true, [
+        "encrypt",
+        "decrypt",
+      ]);
+    } else {
+      this.#key = window.crypto.subtle
+        .generateKey(
+          {
+            name: "AES-GCM",
+            length: 256,
+          },
+          true,
+          ["encrypt", "decrypt"]
+        )
+        .then((key) => window.crypto.subtle.exportKey("raw", key))
+        .then((buf) =>
+          btoa(
+            [...new Uint8Array(buf)].map((c) => String.fromCharCode(c)).join("")
+          )
+        )
+        .then((enc) => (document.cookie = `key=${enc}; max-age=86400; secure`));
+    }
   }
 
   async getAllFiles(): Promise<Array<DataFileKey>> {
@@ -104,7 +129,7 @@ export class Database {
     const [iv, enc] = await db.get(filesStore, [file.provider, file.path]);
     const data = await window.crypto.subtle.decrypt(
       { name: "AES-GCM", iv },
-      await window.todoKey,
+      await this.#key,
       enc
     );
     return {
@@ -120,7 +145,7 @@ export class Database {
     const iv = await window.crypto.getRandomValues(new Uint8Array(12));
     const enc = await window.crypto.subtle.encrypt(
       { name: "AES-GCM", iv },
-      await window.todoKey,
+      await this.#key,
       file.data
     );
     await db.put(filesStore, [iv, enc], [file.provider, file.path]);
@@ -135,7 +160,7 @@ export class Database {
     for (const [iv, enc] of encs) {
       const data = await window.crypto.subtle.decrypt(
         { name: "AES-GCM", iv },
-        await window.todoKey,
+        await this.#key,
         enc
       );
       results.push(JSON.parse(this.#dec.decode(data)));
@@ -148,7 +173,7 @@ export class Database {
     const iv = await window.crypto.getRandomValues(new Uint8Array(12));
     const enc = await window.crypto.subtle.encrypt(
       { name: "AES-GCM", iv },
-      await window.todoKey,
+      await this.#key,
       this.#enc.encode(JSON.stringify(metadata))
     );
     await db.put(metadataStore, [iv, enc], [metadata.provider, metadata.key]);
@@ -175,7 +200,7 @@ export class Database {
     const iv = await window.crypto.getRandomValues(new Uint8Array(12));
     const enc = await window.crypto.subtle.encrypt(
       { name: "AES-GCM", iv },
-      await window.todoKey,
+      await this.#key,
       this.#enc.encode(JSON.stringify(entry))
     );
     await db.put(
@@ -195,7 +220,7 @@ export class Database {
     ]);
     const data = await window.crypto.subtle.decrypt(
       { name: "AES-GCM", iv },
-      await window.todoKey,
+      await this.#key,
       enc
     );
     return JSON.parse(this.#dec.decode(data));
@@ -213,7 +238,7 @@ export class Database {
     );
     const data = await window.crypto.subtle.decrypt(
       { name: "AES-GCM", iv },
-      await window.todoKey,
+      await this.#key,
       enc
     );
     return JSON.parse(this.#dec.decode(data));
