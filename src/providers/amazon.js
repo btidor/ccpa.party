@@ -7,7 +7,7 @@ import {
   getSlugAndDay,
   parseCSV,
   parseJSON,
-} from "common/database";
+} from "common/importer";
 
 import type { DataFile, Entry, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";

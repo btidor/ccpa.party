@@ -2,7 +2,7 @@
 import EmojiMap from "emoji-name-map";
 import * as React from "react";
 
-import { getSlugAndDay, parseJSON } from "common/database";
+import { getSlugAndDay, parseJSON } from "common/importer";
 
 import styles from "providers/slack.module.css";
 

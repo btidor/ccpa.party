@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
 
-import { autoParse, discoverEntry, parseJSON } from "common/database";
+import { autoParse, discoverEntry, parseJSON } from "common/importer";
 
 import type { DataFile, Entry, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";

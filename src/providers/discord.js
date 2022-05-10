@@ -8,7 +8,7 @@ import {
   parseCSV,
   parseJSON,
   smartDecode,
-} from "common/database";
+} from "common/importer";
 
 import styles from "providers/discord.module.css";
 
