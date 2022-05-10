@@ -29,8 +29,10 @@ function Logo(params: Params): React.Node {
       ) : (
         <Party glow={party === "glow"} />
       )}
-      <span className={styles.title}>ccpa.party</span>
-      <sup>𝛼</sup>
+      <span className={styles.title}>
+        ccpa.party
+        <sup>𝛼</sup>
+      </span>
     </Link>
   );
 }

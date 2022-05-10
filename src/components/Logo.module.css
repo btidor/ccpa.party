@@ -7,8 +7,31 @@
   color: var(--dark);
   background-color: #000;
 
-  display: inline-block;
-  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.emoji {
+  margin: 0 8px 0 auto;
+  font-family: "Noto Emoji";
+  font-weight: 900;
+}
+
+.logo svg {
+  margin: 0 8px 0 auto;
+  width: 28px;
+}
+
+.title {
+  font-weight: 600;
+  font-variant: small-caps;
+}
+
+.logo sup {
+  margin-left: 2px;
+  font-family: monospace;
+  font-size: 0.75em;
+  font-weight: 600;
 }
 
 .home {
@@ -20,30 +43,4 @@
   text-align: right;
 
   cursor: default;
-}
-
-.emoji {
-  font-family: "Noto Emoji";
-  font-weight: 900;
-}
-
-.logo svg {
-  /* use absolute positioning to avoid shift as font loads */
-  position: absolute;
-  left: 38px;
-  top: 8px;
-  width: 28px;
-}
-
-.title {
-  margin-left: 8px;
-  margin-right: 2px;
-  font-weight: 600;
-  font-variant: small-caps;
-}
-
-.logo sup {
-  font-family: monospace;
-  font-size: 0.75em;
-  font-weight: 600;
 }
