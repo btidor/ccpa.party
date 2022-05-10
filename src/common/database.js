@@ -3,6 +3,8 @@ import csv from "csvtojson";
 import { openDB } from "idb";
 import MurmurHash3 from "imurmurhash";
 
+import { b64enc, b64dec, getOrSetCookie } from "common/util";
+
 import type { Provider } from "common/provider";
 
 export type DataFileKey = {|
@@ -50,6 +52,9 @@ const filesStore = "files";
 const timelineStore = "timeline";
 const metadataStore = "metadata";
 
+const keyMaxAge = 24 * 3600; // 24 hours
+const keyUsages = ["encrypt", "decrypt"];
+
 // When searching by provider we need to query the primary key index. If we
 // instead create a secondary index for provider lookups, queries are somehow
 // O(n) in the size of the entire table.
@@ -61,7 +66,7 @@ export class Database {
   #idb: Promise<any>;
   #enc: TextEncoder;
   #dec: TextDecoder;
-  #key: any;
+  #key: Promise<any>;
 
   constructor(terminated: ?() => void) {
     this.#idb = openDB("import", 1, {
@@ -74,40 +79,30 @@ export class Database {
         terminated?.();
       },
     });
+
     this.#enc = new TextEncoder();
     this.#dec = new TextDecoder();
 
-    // We encrypt the data and store the key in a cookie because (a) values in
-    // the browser cookie jar are strongly protected using OS-level data
-    // protection APIs and it's not clear the same is true of data in
-    // IndexedDB, and (b) we can force the key to expire after 24 hours.
-    const raw = document.cookie.split(";").find((x) => x.startsWith("key="));
-    if (raw) {
-      const dec = new Uint8Array(
-        [...atob(raw.slice(4))].map((c) => c.charCodeAt(0))
+    // We encrypt the data and store the key in a cookie because (a) the browser
+    // cookie jar is encrypted using OS-level data protection APIs while
+    // IndexedDB is not, and (b) we can force the key to expire after 24 hours.
+    this.#key = getOrSetCookie("key", async () => {
+      const key = await window.crypto.subtle.generateKey(
+        { name: "AES-GCM", length: 256 },
+        true,
+        keyUsages
       );
-      this.#key = window.crypto.subtle.importKey("raw", dec, "AES-GCM", true, [
-        "encrypt",
-        "decrypt",
-      ]);
-    } else {
-      this.#key = window.crypto.subtle
-        .generateKey(
-          {
-            name: "AES-GCM",
-            length: 256,
-          },
-          true,
-          ["encrypt", "decrypt"]
-        )
-        .then((key) => window.crypto.subtle.exportKey("raw", key))
-        .then((buf) =>
-          btoa(
-            [...new Uint8Array(buf)].map((c) => String.fromCharCode(c)).join("")
-          )
-        )
-        .then((enc) => (document.cookie = `key=${enc}; max-age=86400; secure`));
-    }
+      const value = b64enc(await window.crypto.subtle.exportKey("raw", key));
+      return [value, keyMaxAge];
+    }).then((val) =>
+      window.crypto.subtle.importKey(
+        "raw",
+        b64dec(val),
+        "AES-GCM",
+        true,
+        keyUsages
+      )
+    );
   }
 
   async getAllFiles(): Promise<Array<DataFileKey>> {
