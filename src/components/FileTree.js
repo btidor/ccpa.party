@@ -11,7 +11,7 @@ import {
 
 import styles from "components/FileTree.module.css";
 
-import type { DataFileKey } from "database";
+import type { DataFileKey } from "common/database";
 
 type Props = {|
   +items: $ReadOnlyArray<DataFileKey>,

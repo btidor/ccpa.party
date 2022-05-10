@@ -8,13 +8,13 @@ import FilterBar from "components/FilterBar";
 import Navigation from "components/Navigation";
 import Placeholder from "components/Placeholder";
 import TimelineRow from "components/TimelineRow";
-import { Database } from "database";
-import { darkColor } from "provider";
+import { Database } from "common/database";
+import { darkColor } from "common/provider";
 
 import styles from "Drilldown.module.css";
 
-import type { TimelineEntryKey } from "database";
-import type { Provider } from "provider";
+import type { TimelineEntryKey } from "common/database";
+import type { Provider } from "common/provider";
 import DatePicker from "components/DatePicker";
 
 type Props = {|

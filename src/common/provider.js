@@ -15,7 +15,7 @@ import Google from "providers/google";
 import Netflix from "providers/netflix";
 import Slack from "providers/slack";
 
-import type { Database, DataFile, Entry, TimelineEntry } from "database";
+import type { Database, DataFile, Entry, TimelineEntry } from "common/database";
 
 export type TimelineCategory = {|
   +slug: string,

@@ -4,7 +4,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 
 import styles from "components/FilterBar.module.css";
 
-import type { Provider } from "provider";
+import type { Provider } from "common/provider";
 
 type Props = {|
   +filter: string | void,

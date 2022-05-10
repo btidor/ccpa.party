@@ -7,13 +7,13 @@ import FilePreview from "components/FilePreview";
 import FileTree from "components/FileTree";
 import Navigation from "components/Navigation";
 import Placeholder from "components/Placeholder";
-import { Database } from "database";
-import { fileSizeLimitMB, darkColor } from "provider";
+import { Database } from "common/database";
+import { fileSizeLimitMB, darkColor } from "common/provider";
 
 import styles from "Drilldown.module.css";
 
-import type { DataFileKey, DataFile } from "database";
-import type { Provider } from "provider";
+import type { DataFileKey, DataFile } from "common/database";
+import type { Provider } from "common/provider";
 
 type Props = {|
   +provider: Provider,

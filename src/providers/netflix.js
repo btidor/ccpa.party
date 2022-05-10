@@ -1,8 +1,8 @@
 // @flow
 import * as React from "react";
 
-import type { DataFile, Entry, TimelineEntry } from "database";
-import type { Provider, TimelineCategory } from "provider";
+import type { DataFile, Entry, TimelineEntry } from "common/database";
+import type { Provider, TimelineCategory } from "common/provider";
 
 class Netflix implements Provider {
   slug: string = "netflix";

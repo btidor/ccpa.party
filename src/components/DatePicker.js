@@ -4,7 +4,7 @@ import * as React from "react";
 import styles from "components/DatePicker.module.css";
 
 import type { Group } from "Timeline";
-import type { TimelineEntryKey } from "database";
+import type { TimelineEntryKey } from "common/database";
 
 type Props = {|
   +index: number,

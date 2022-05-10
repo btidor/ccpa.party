@@ -3,12 +3,12 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 
 import Logo from "components/Logo";
-import { Database } from "database";
-import { darkColor, importFiles } from "provider";
+import { Database } from "common/database";
+import { darkColor, importFiles } from "common/provider";
 
 import styles from "Request.module.css";
 
-import type { Provider } from "provider";
+import type { Provider } from "common/provider";
 
 type Props = {|
   +provider: Provider,

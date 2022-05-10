@@ -3,7 +3,7 @@ import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import Logo from "components/Logo";
-import { darkColor } from "provider";
+import { darkColor } from "common/provider";
 
 import Amazon from "providers/amazon";
 import Apple from "providers/apple";
@@ -16,7 +16,7 @@ import Slack from "providers/slack";
 
 import styles from "Home.module.css";
 
-import type { Provider } from "provider";
+import type { Provider } from "common/provider";
 
 const Providers = ([
   new Amazon(),

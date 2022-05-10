@@ -3,12 +3,17 @@ import * as React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import { getSlugAndDay, parseCSV, parseJSON, smartDecode } from "database";
+import {
+  getSlugAndDay,
+  parseCSV,
+  parseJSON,
+  smartDecode,
+} from "common/database";
 
 import styles from "providers/discord.module.css";
 
-import type { DataFile, Entry, TimelineEntry } from "database";
-import type { Provider, TimelineCategory } from "provider";
+import type { DataFile, Entry, TimelineEntry } from "common/database";
+import type { Provider, TimelineCategory } from "common/provider";
 
 class Discord implements Provider {
   slug: string = "discord";

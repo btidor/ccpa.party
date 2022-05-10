@@ -2,7 +2,7 @@
 import * as React from "react";
 
 import Placeholder from "components/Placeholder";
-import { smartDecode, parseJSON } from "database";
+import { smartDecode, parseJSON } from "common/database";
 
 import styles from "components/FilePreview.module.css";
 

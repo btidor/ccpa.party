@@ -3,7 +3,7 @@ import csv from "csvtojson";
 import { openDB } from "idb";
 import MurmurHash3 from "imurmurhash";
 
-import type { Provider } from "provider";
+import type { Provider } from "common/provider";
 
 export type DataFileKey = {|
   +provider: string,

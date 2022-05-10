@@ -6,7 +6,7 @@ import Timeline from "Timeline";
 import Files from "Files";
 import Home from "Home";
 import Request from "Request";
-import { ProviderLookup } from "provider";
+import { ProviderLookup } from "common/provider";
 
 type Props = {
   +children: React.Node,

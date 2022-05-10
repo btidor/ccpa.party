@@ -2,10 +2,10 @@
 import { DateTime } from "luxon";
 import * as React from "react";
 
-import { getSlugAndDay, parseJSON } from "database";
+import { getSlugAndDay, parseJSON } from "common/database";
 
-import type { DataFile, Entry, TimelineEntry } from "database";
-import type { Provider, TimelineCategory } from "provider";
+import type { DataFile, Entry, TimelineEntry } from "common/database";
+import type { Provider, TimelineCategory } from "common/provider";
 
 class GitHub implements Provider {
   slug: string = "github";
