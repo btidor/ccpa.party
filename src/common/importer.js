@@ -204,6 +204,7 @@ export async function importFiles(
     data: () => Promise<BufferSource>,
   |};
 
+  const start = new Date().getTime();
   const work: Array<ImportFile> = [];
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -285,4 +286,5 @@ export async function importFiles(
   }
   await db.commit();
   setProgress(true);
+  console.warn(`Import ran in ${(new Date().getTime() - start) / 1000}s`);
 }
