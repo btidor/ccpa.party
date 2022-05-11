@@ -96,7 +96,11 @@ function displayFile(data: ArrayBuffer, filename: string): React.Node {
     case "svg":
     case "webp": {
       const url = URL.createObjectURL(new Blob([data]));
-      return <img src={url} alt={filename} className={styles.media} />;
+      return (
+        <div className={styles.container}>
+          <img src={url} alt={filename} className={styles.media} />
+        </div>
+      );
     }
     default: {
       return <Placeholder>{unknownMessage}</Placeholder>;

@@ -6,7 +6,8 @@
 
 .inspector pre,
 .inspector object,
-.inspector iframe {
+.inspector iframe,
+.inspector .container {
   position: absolute;
   top: 0;
   left: 0;
@@ -29,6 +30,10 @@
 
 .inspector iframe {
   background-color: #ddd;
+}
+
+.inspector .container {
+  overflow: hidden;
 }
 
 .inspector img {
