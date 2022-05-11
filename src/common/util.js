@@ -10,6 +10,17 @@ export function b64dec(str: string): BufferSource {
   return new Uint8Array([...atob(str)].map((c) => c.charCodeAt(0))).buffer;
 }
 
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+
+export function serialize(obj: any): BufferSource {
+  return encoder.encode(JSON.stringify(obj));
+}
+
+export function deserialize(buf: BufferSource): any {
+  return JSON.parse(decoder.decode(buf));
+}
+
 export async function getOrSetCookie(
   name: string,
   generate: () => Promise<[string, number]>
