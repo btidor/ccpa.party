@@ -68,7 +68,7 @@ export class Database {
   _key: Promise<any>;
 
   constructor(terminated: ?() => void) {
-    this._idb = openDB(dbName, dbVersion, {
+    const idb = openDB(dbName, dbVersion, {
       async upgrade(db) {
         // For now, schema upgrades wipe the database
         [...db.objectStoreNames].forEach((store) =>
@@ -76,10 +76,15 @@ export class Database {
         );
         db.createObjectStore(dbStore);
       },
-      async terminated(db) {
+      async blocking() {
+        (await idb).close();
+        terminated?.();
+      },
+      async terminated() {
         terminated?.();
       },
     });
+    this._idb = idb;
 
     // We encrypt the data and store the key in a cookie because (a) the browser
     // cookie jar is encrypted using OS-level data protection APIs while
@@ -269,7 +274,7 @@ export class WritableDatabase extends Database {
     // Delete previous provider index
     if (prev) await db.delete(dbStore, prev);
 
-    await db.close();
+    db.close();
   }
 
   async _putBlob(blob: BufferSource): Promise<string> {
