@@ -4,7 +4,8 @@ import { Link } from "react-router-dom";
 
 import Logo from "components/Logo";
 import { WritableDatabase } from "common/database";
-import { darkColor, importFiles } from "common/provider";
+import { importFiles } from "common/importer";
+import { darkColor } from "common/provider";
 
 import styles from "Request.module.css";
 
