@@ -105,7 +105,7 @@ class Slack implements Provider {
 
     let name = message.user_name || "unknown";
     let style = {};
-    const user = users.find((x) => x.id === message.user || message.user_id);
+    const user = users.find((x) => x.id === (message.user || message.user_id));
     if (!!user) {
       name = user.profile.display_name || user.profile.real_name;
       if (user.color) style = { color: `#${user.color}` };
