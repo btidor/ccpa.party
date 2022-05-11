@@ -1,12 +1,12 @@
 // @flow
 
-export function b64enc(buf: ArrayBuffer): string {
+export function b64enc(buf: BufferSource): string {
   return btoa(
     [...new Uint8Array(buf)].map((c) => String.fromCharCode(c)).join("")
   );
 }
 
-export function b64dec(str: string): ArrayBuffer {
+export function b64dec(str: string): BufferSource {
   return new Uint8Array([...atob(str)].map((c) => c.charCodeAt(0))).buffer;
 }
 

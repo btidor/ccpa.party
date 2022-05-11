@@ -90,7 +90,7 @@ const jsonReviver = (key: any, value: any): any =>
 const isPrintableUnicode = (str: string): boolean =>
   Array.from(str).every((c) => printableRegExp.test(c));
 
-export function parseJSON(data: ArrayBuffer | string): any {
+export function parseJSON(data: BufferSource | string): any {
   let text;
   if (typeof data === "string") text = data;
   else text = utf8Decoder.decode(data);
@@ -107,7 +107,7 @@ export function parseJSON(data: ArrayBuffer | string): any {
 }
 
 export async function parseCSV(
-  data: ArrayBuffer | string
+  data: BufferSource | string
 ): Promise<$ReadOnlyArray<{ [string]: string }>> {
   let text;
   if (typeof data === "string") text = data;
@@ -118,7 +118,7 @@ export async function parseCSV(
 
 // Some companies (e.g. Amazon, Facebook) mis-encode some of their files, for
 // instance by applying UTF-8 encoding twice.
-export function smartDecode(data: ArrayBuffer): string {
+export function smartDecode(data: BufferSource): string {
   // Simple UTF-8
   let text = utf8Decoder.decode(data);
   if (isPrintableUnicode(text)) return text;

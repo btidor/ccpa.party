@@ -10,7 +10,7 @@ type Props = {|
   +children:
     | void // show standard loading message
     | string // show custom placeholder message
-    | ArrayBuffer // display file (please also pass filename)
+    | BufferSource // display file (please also pass filename)
     | { [string]: any }, // display JSON object
   +filename?: string,
 |};
@@ -18,7 +18,7 @@ type Props = {|
 const emptyMessage = "🥛 File is empty";
 const unknownMessage = "😕 Unknown file type";
 
-function displayText(data: ArrayBuffer): React.Node {
+function displayText(data: BufferSource): React.Node {
   try {
     const raw = smartDecode(data);
     return <pre>{raw}</pre>;
@@ -27,7 +27,7 @@ function displayText(data: ArrayBuffer): React.Node {
   }
 }
 
-function displayFile(data: ArrayBuffer, filename: string): React.Node {
+function displayFile(data: BufferSource, filename: string): React.Node {
   const ext = filename.includes(".")
     ? filename.split(".").slice(-1)[0]
     : undefined;
@@ -114,9 +114,9 @@ function FilePreview(props: Props): React.Node {
   let node;
   if (children === undefined || typeof children === "string") {
     node = <Placeholder>{children}</Placeholder>;
-  } else if (children instanceof ArrayBuffer) {
+  } else if (children instanceof ArrayBuffer || ArrayBuffer.isView(children)) {
     node = children.byteLength ? (
-      displayFile(children, filename || "")
+      displayFile((children: any), filename || "")
     ) : (
       <Placeholder>{emptyMessage}</Placeholder>
     );

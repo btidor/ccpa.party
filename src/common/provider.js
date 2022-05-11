@@ -95,7 +95,7 @@ export async function importFiles(
 ) {
   type ImportFile = {|
     path: $ReadOnlyArray<string>,
-    data: () => Promise<ArrayBuffer>,
+    data: () => Promise<BufferSource>,
   |};
 
   const work: Array<ImportFile> = [];
@@ -111,7 +111,7 @@ export async function importFiles(
   let processed = 0;
   const processEntry = async (
     path: $ReadOnlyArray<string>,
-    data: ArrayBuffer
+    data: BufferSource
   ): Promise<?ImportFile> => {
     if (processed % 23 === 0) {
       setProgress(processed);
@@ -125,7 +125,7 @@ export async function importFiles(
       const dataFile = ({
         provider: provider.slug,
         path,
-        data: undefined,
+        data: new ArrayBuffer(0),
         skipped: "tooLarge",
       }: DataFile);
       await db.putFile(dataFile);
