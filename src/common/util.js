@@ -23,6 +23,6 @@ export async function getOrSetCookie(
   value = document.cookie.split(";").find((x) => x.startsWith(`${name}=`));
   if (value) return value.slice(name.length + 1);
 
-  document.cookie = `${name}=${newValue}; max-age=${maxAge}; secure`;
+  document.cookie = `${name}=${newValue}; path=/; max-age=${maxAge}; secure`;
   return newValue;
 }
