@@ -1,5 +1,5 @@
 //@flow
-import { openDB } from "idb";
+import { deleteDB, openDB } from "idb";
 
 import { b64enc, b64dec, getOrSetCookie } from "common/util";
 
@@ -46,12 +46,11 @@ export type TimelineEntry = {|
 
 export type Entry = MetadataEntry | TimelineEntry;
 
-const filesStore = "files";
-const timelineStore = "timeline";
-const metadataStore = "metadata";
-
 const dbName = "ccpa.party";
 const dbVersion = 1;
+const dbStore = "encrypted";
+
+const keyHashKey = "KEY-HASH";
 
 const keyMaxAge = 24 * 3600; // 24 hours
 const keyUsages = ["encrypt", "decrypt"];
@@ -72,9 +71,11 @@ export class Database {
   constructor(terminated: ?() => void) {
     this.#idb = openDB(dbName, dbVersion, {
       async upgrade(db) {
-        db.createObjectStore(filesStore);
-        db.createObjectStore(timelineStore);
-        db.createObjectStore(metadataStore);
+        // For now, schema upgrades wipe the database
+        [...db.objectStoreNames].forEach((store) =>
+          db.deleteObjectStore(store)
+        );
+        db.createObjectStore(dbStore);
       },
       async terminated(db) {
         terminated?.();
@@ -95,15 +96,31 @@ export class Database {
       );
       const value = b64enc(await window.crypto.subtle.exportKey("raw", key));
       return [value, keyMaxAge];
-    }).then((val) =>
-      window.crypto.subtle.importKey(
+    }).then((val) => {
+      const key = window.crypto.subtle.importKey(
         "raw",
         b64dec(val),
         "AES-GCM",
         true,
         keyUsages
-      )
-    );
+      );
+      return window.crypto.subtle.digest("SHA-256", b64dec(val)).then((_hash) =>
+        this.#idb.then((db) =>
+          db.get(dbStore, keyHashKey).then((res) => {
+            const hash = b64enc(_hash);
+            if (res === hash) {
+              return key;
+            } else if (!res) {
+              return db.put(dbStore, hash, keyHashKey).then(() => key);
+            } else {
+              console.error("Encryption key expired, clearing IndexedDB...");
+              db.close();
+              return deleteDB(dbName).then(() => terminated?.());
+            }
+          })
+        )
+      );
+    });
   }
 
   async getAllFiles(): Promise<Array<DataFileKey>> {
