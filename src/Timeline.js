@@ -66,13 +66,7 @@ function Timeline(props: Props): React.Node {
       entries.reverse(); // sort in descending order by timestamp/slug
       setEntries(entries);
 
-      const metadata = new Map(
-        (await db.getMetadatasForProvider(provider)).map((e) => [
-          e.key,
-          e.value,
-        ])
-      );
-      setMetadata(metadata);
+      setMetadata(await db.getMetadatasForProvider(provider));
     })();
   }, [db, provider]);
 

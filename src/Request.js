@@ -3,7 +3,7 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 
 import Logo from "components/Logo";
-import { Database } from "common/database";
+import { WritableDatabase } from "common/database";
 import { darkColor, importFiles } from "common/provider";
 
 import styles from "Request.module.css";
@@ -18,8 +18,8 @@ function Request(props: Props): React.Node {
   const { provider } = props;
   const [epoch, setEpoch] = React.useState(0);
   const db = React.useMemo(
-    () => new Database(() => setEpoch(epoch + 1)),
-    [epoch]
+    () => new WritableDatabase(provider, () => setEpoch(epoch + 1)),
+    [epoch, provider]
   );
 
   const [progress, setProgress] = React.useState(undefined);

@@ -15,7 +15,12 @@ import Google from "providers/google";
 import Netflix from "providers/netflix";
 import Slack from "providers/slack";
 
-import type { Database, DataFile, Entry, TimelineEntry } from "common/database";
+import type {
+  DataFile,
+  Entry,
+  TimelineEntry,
+  WritableDatabase,
+} from "common/database";
 
 export type TimelineCategory = {|
   +slug: string,
@@ -88,7 +93,7 @@ export function darkColor(provider: Provider): string {
 export const fileSizeLimitMB = 16;
 
 export async function importFiles(
-  db: Database,
+  db: WritableDatabase,
   provider: Provider,
   files: $ReadOnlyArray<File>,
   setProgress: (number | boolean) => void
@@ -177,5 +182,6 @@ export async function importFiles(
       throw new Error("Unknown archive: " + path.slice(-1)[0]);
     }
   }
+  await db.commit();
   setProgress(true);
 }

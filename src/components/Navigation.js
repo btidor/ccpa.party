@@ -34,9 +34,7 @@ function Navigation(props: Props): React.Node {
   React.useEffect(() => {
     (async () => {
       const db = new Database(() => setEpoch(epoch + 1));
-      const active = new Set<string>();
-      const files = await db.getAllFiles();
-      files.forEach((file) => active.add(file.provider));
+      const active = await db.getProviders();
       setProviders(
         ProviderRegistry.filter((provider) => active.has(provider.slug))
       );
