@@ -46,6 +46,7 @@ html {
 *,
 *:before,
 *:after {
+  background-color: inherit;
   border: none;
   box-sizing: inherit;
   color: inherit;
@@ -67,7 +68,8 @@ body,
   height: 100%;
 }
 
-main, header {
+main,
+header {
   color: #fff;
   background-color: #000;
 

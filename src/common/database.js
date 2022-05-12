@@ -48,6 +48,7 @@ export type Entry = MetadataEntry | TimelineEntry;
 const dbName = "ccpa.party";
 const dbVersion = 1;
 const dbStore = "encrypted";
+const dbLock = "ccpa.party/db";
 
 const keyHashKey = "KEY-HASH";
 const rootIndexKey = "ROOT-INDEX";
@@ -69,73 +70,87 @@ type ProviderIndex = {|
 type AsyncState = {| +db: IDBDatabase, +key: any |};
 
 export class Database {
+  _terminated: () => void;
   _state: Promise<?AsyncState>;
   _rootIndex: Promise<RootIndex>;
-  _terminated: ?() => void;
 
-  constructor(terminated: ?() => void) {
-    this._state = (async () => {
-      // We encrypt the data and store the key in a cookie because (a) the browser
-      // cookie jar is encrypted using OS-level data protection APIs while
-      // IndexedDB is not, and (b) we can force the key to expire after 24 hours.
-      const cookie = getCookie(keyCookie);
-      if (cookie) {
-        const key = await window.crypto.subtle.importKey(
-          "raw",
-          b64dec(cookie),
-          "AES-GCM",
-          false,
-          keyUsages
-        );
-        const keyHash = b64enc(
-          await window.crypto.subtle.digest("SHA-256", b64dec(cookie))
-        );
+  constructor(terminated: () => void) {
+    this._terminated = terminated;
+    this._state = new Promise((resolve) =>
+      // $FlowFixMe[prop-missing]
+      navigator.locks.request(dbLock, async () => {
+        // We encrypt the data and store the key in a cookie because (a) the
+        // browser cookie jar is encrypted using OS-level data protection APIs
+        // while IndexedDB is not, and (b) we can force the key to expire after
+        // 24 hours.
+        const db = await this._openDatabase();
+        const cookie = getCookie(keyCookie);
+        if (cookie) {
+          const key = await window.crypto.subtle.importKey(
+            "raw",
+            b64dec(cookie),
+            "AES-GCM",
+            false,
+            keyUsages
+          );
+          const keyHash = b64enc(
+            await window.crypto.subtle.digest("SHA-256", b64dec(cookie))
+          );
 
-        const db: IDBDatabase = await this._openDatabase(terminated);
-        let storedHash: string = await new Promise((resolve, reject) => {
-          const op = db
-            .transaction(dbStore)
-            .objectStore(dbStore)
-            .get(keyHashKey);
-          op.onsuccess = () => resolve((op.result: any));
-          op.onerror = (e) => reject(e);
-        });
-        if (storedHash === keyHash) {
-          // Success! Database was created with the current encryption key.
-          return { db, key };
-        } else {
-          // Database exists, but was created with an older enryption key.
-          // Close, then fall through to delete the database.
-          db.close();
+          let storedHash: string = await new Promise((resolve, reject) => {
+            const op = db
+              .transaction(dbStore)
+              .objectStore(dbStore)
+              .get(keyHashKey);
+            op.onsuccess = () => resolve((op.result: any));
+            op.onerror = (e) => reject(e);
+          });
+          if (storedHash === keyHash) {
+            // Success! Database was created with the current encryption key.
+            resolve({ db, key });
+            return;
+          } else if (storedHash === undefined) {
+            // Database not yet initialized with a key. Fall through to
+            // initialize.
+          } else {
+            // Database exists, but was created with an older enryption key.
+            // Clear, then reload the page to reinitialize.
+            await new Promise((resolve, reject) => {
+              const op = db.transaction(dbStore).objectStore(dbStore).clear();
+              op.onsuccess = () => resolve(op.result);
+              op.onerror = (e) => reject(e);
+            });
+            db.close();
+            terminated();
+            return; // promise never resolves, operations hang
+          }
         }
-      }
 
-      await new Promise((resolve, reject) => {
-        // Unfortunately, Firefox doesn't let us enumerate the existing
-        // databases. This is a no-op if the database doesn't exist.
-        const op = window.indexedDB.deleteDatabase(dbName);
-        op.onsuccess = () => resolve(op.result);
-        op.onerror = (e) => reject(e);
-      });
-
-      if (await this._generateAndSaveKey()) {
-        console.error("Encryption key expired, clearing IndexedDB...");
-      }
-      terminated?.();
-    })();
+        if (await this._generateAndSaveKey()) {
+          console.error("Initializing IndexedDB...");
+          db.close();
+          terminated();
+          return; // promise never resolves, operations hang
+        } else {
+          // Read-only database. Resolve with undefined state so operations
+          // return empty results.
+          resolve();
+        }
+      })
+    );
 
     this._rootIndex = (async () =>
       (await this._get(rootIndexKey, { named: true })) || {})();
-    this._terminated = terminated;
   }
 
-  _openDatabase(terminated: ?() => void): Promise<IDBDatabase> {
+  _openDatabase(): Promise<IDBDatabase> {
+    const terminated = this._terminated;
     return new Promise((resolve, reject) => {
       const op = window.indexedDB.open(dbName, dbVersion);
       op.onsuccess = () => {
         const db = op.result;
-        db.onversionchange = () => (db.close(), terminated?.());
-        db.onclose = () => terminated?.();
+        db.onversionchange = () => (db.close(), terminated());
+        db.onclose = () => terminated();
         resolve(db);
       };
       op.onerror = (e) => reject(e);
@@ -189,7 +204,7 @@ export class ProviderScopedDatabase extends Database {
   _provider: Provider;
   _providerIndex: Promise<ProviderIndex>;
 
-  constructor(provider: Provider, terminated: ?() => void) {
+  constructor(provider: Provider, terminated: () => void) {
     super(terminated);
     this._provider = provider;
     this._providerIndex = (async () => {
@@ -268,7 +283,7 @@ export class WritableDatabase extends ProviderScopedDatabase {
     timeline: Array<TimelineEntry>,
   |};
 
-  constructor(provider: Provider, terminated: ?() => void) {
+  constructor(provider: Provider, terminated: () => void) {
     super(provider, terminated);
     this._additions = { files: [], metadata: new Map(), timeline: [] };
     // TODO: hold a lock while WritableDatabase is open
@@ -278,20 +293,16 @@ export class WritableDatabase extends ProviderScopedDatabase {
     const db = await this._openDatabase();
     const key = await window.crypto.getRandomValues(new Uint8Array(32));
     const keyHash = b64enc(await window.crypto.subtle.digest("SHA-256", key));
-    if (getCookie(keyCookie)) {
-      // Data race! Don't write cookie, just reload.
-    } else {
-      setCookie(keyCookie, b64enc(key), keyMaxAge);
-      await new Promise((resolve, reject) => {
-        const op = db
-          .transaction(dbStore, "readwrite")
-          .objectStore(dbStore)
-          .put(keyHash, keyHashKey);
-        op.onsuccess = () => resolve(op.result);
-        op.onerror = (e) => reject(e);
-      });
-    }
-    db.close();
+
+    setCookie(keyCookie, b64enc(key), keyMaxAge);
+    await new Promise((resolve, reject) => {
+      const op = db
+        .transaction(dbStore, "readwrite")
+        .objectStore(dbStore)
+        .put(keyHash, keyHashKey);
+      op.onsuccess = () => resolve(op.result);
+      op.onerror = (e) => reject(e);
+    });
     return true;
   }
 
@@ -331,14 +342,14 @@ export class WritableDatabase extends ProviderScopedDatabase {
     }
     timelineIndex.sort((a, b) => a[3].localeCompare(b[3]));
 
-    // Overwrite provider index
+    // Write provider index
     const iv = await this._put({
       files: fileIndex,
       metadata: metadataIndex,
       timeline: timelineIndex,
     });
 
-    // Write root index
+    // Update root index
     const root = await this._rootIndex;
     root[this._provider.slug] = iv;
     await this._put(root, rootIndexKey);
@@ -346,7 +357,42 @@ export class WritableDatabase extends ProviderScopedDatabase {
     // Close database and block future writes
     (await this._state)?.db.close();
     this._state = Promise.resolve();
-    this._terminated?.();
+    this._terminated();
+  }
+
+  async resetProvider(): Promise<void> {
+    const deletes = new Set();
+
+    // Delete data pages & provider index
+    (await this.getFiles()).forEach((f) => deletes.add(f.iv));
+    (await this.getTimelineEntries()).forEach((e) => deletes.add(e.iv));
+    deletes.add((await this._rootIndex)[this._provider.slug]);
+    deletes.delete(undefined);
+    await this._deletes((deletes: any));
+
+    // Update root index
+    const root = await this._rootIndex;
+    delete root[this._provider.slug];
+    await this._put(root, rootIndexKey);
+
+    // Close database and block future writes
+    const isEmpty = !Object.keys(
+      (await this._get(rootIndexKey, { named: true })) || {}
+    ).length;
+    const state = await this._state;
+    if (isEmpty && state) {
+      await new Promise((resolve, reject) => {
+        const op = state.db
+          .transaction(dbStore, "readwrite")
+          .objectStore(dbStore)
+          .clear();
+        op.onsuccess = () => resolve(op.result);
+        op.onerror = (e) => reject(e);
+      });
+    }
+    state?.db.close();
+    this._state = Promise.resolve();
+    this._terminated();
   }
 
   async _put(v: any, k?: string): Promise<string> {
@@ -406,6 +452,21 @@ export class WritableDatabase extends ProviderScopedDatabase {
       txn.onerror = (e) => reject(e);
     });
     return ivs;
+  }
+
+  async _deletes(keys: $ReadOnlySet<string>): Promise<void> {
+    const state = await this._state;
+    if (!state) throw new Error("Writing to closed database");
+    const { db } = state;
+
+    await new Promise((resolve, reject) => {
+      const txn: IDBTransaction = db.transaction(dbStore, "readwrite");
+      const store = txn.objectStore(dbStore);
+      keys.forEach((k) => store.delete(k));
+
+      txn.oncomplete = () => resolve();
+      txn.onerror = (e) => reject(e);
+    });
   }
 
   async putFile(file: DataFile): Promise<void> {

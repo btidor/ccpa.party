@@ -23,14 +23,15 @@ function Request(props: Props): React.Node {
     [epoch, provider]
   );
 
-  const [progress, setProgress] = React.useState();
-  const fileHandler = (event) =>
-    importFiles(db, provider, event.target.files, setProgress);
-
   const [imported, setImported] = React.useState();
   React.useEffect(() => {
     (async () => setImported((await db.getProviders()).has(provider.slug)))();
   }, [db, provider]);
+
+  const [progress, setProgress] = React.useState();
+  const fileHandler = (event) =>
+    importFiles(db, provider, event.target.files, setProgress);
+  const resetHandler = (event) => db.resetProvider();
 
   const inputRef = React.useRef<?HTMLInputElement>();
   return (
@@ -78,7 +79,13 @@ function Request(props: Props): React.Node {
               onChange={fileHandler}
             />
             {imported === undefined ? undefined : imported ? (
-              <Link to={`/${provider.slug}/timeline`}>Explore →</Link>
+              <React.Fragment>
+                <Link to={`/${provider.slug}/timeline`}>Explore →</Link>
+                <div className={styles.grow}></div>
+                <button aria-label="reset" onClick={resetHandler}>
+                  &#x2a2f;
+                </button>
+              </React.Fragment>
             ) : progress ? (
               <code>importing {progress.toLocaleString()} items</code>
             ) : (
@@ -88,6 +95,7 @@ function Request(props: Props): React.Node {
                 onKeyDown={(e) =>
                   e.code === "Enter" && inputRef.current?.click()
                 }
+                role="button"
               >
                 Import Archive ↑
               </label>

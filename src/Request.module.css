@@ -68,7 +68,8 @@
 }
 
 .instruction a:hover,
-.compass label:hover {
+.compass label:hover,
+.compass button:hover {
   text-decoration: underline;
   cursor: pointer;
 }
@@ -77,6 +78,22 @@
   margin-top: 1em;
 }
 
+.compass {
+  display: flex;
+  width: 100%;
+}
+
 .compass input {
   display: none;
+}
+
+.grow {
+  flex: 1;
+}
+
+.compass button {
+  margin-right: -1ch;
+  padding: 0 1ch;
+  font-size: 1.1em;
+  font-weight: 900;
 }
