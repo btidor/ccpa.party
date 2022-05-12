@@ -58,7 +58,7 @@ function TimelineRow(props: Props): React.Node {
         {hydrated && metadata ? (
           provider.render(hydrated, metadata)
         ) : (
-          <code>Loading...</code>
+          <React.Fragment>&nbsp;</React.Fragment>
         )}
       </div>
     );
