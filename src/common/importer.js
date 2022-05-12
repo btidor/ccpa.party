@@ -285,6 +285,5 @@ export async function importFiles(
     }
   }
   await db.commit();
-  setProgress(true);
   console.warn(`Import ran in ${(new Date().getTime() - start) / 1000}s`);
 }

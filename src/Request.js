@@ -23,9 +23,14 @@ function Request(props: Props): React.Node {
     [epoch, provider]
   );
 
-  const [progress, setProgress] = React.useState(undefined);
+  const [progress, setProgress] = React.useState();
   const fileHandler = (event) =>
     importFiles(db, provider, event.target.files, setProgress);
+
+  const [imported, setImported] = React.useState();
+  React.useEffect(() => {
+    (async () => setImported((await db.getProviders()).has(provider.slug)))();
+  }, [db, provider]);
 
   const inputRef = React.useRef<?HTMLInputElement>();
   return (
@@ -72,7 +77,11 @@ function Request(props: Props): React.Node {
               ref={inputRef}
               onChange={fileHandler}
             />
-            {progress === undefined ? (
+            {imported === undefined ? undefined : imported ? (
+              <Link to={`/${provider.slug}/timeline`}>Explore →</Link>
+            ) : progress ? (
+              <code>importing {progress.toLocaleString()} items</code>
+            ) : (
               <label
                 htmlFor="import"
                 tabIndex={0}
@@ -82,10 +91,6 @@ function Request(props: Props): React.Node {
               >
                 Import Archive ↑
               </label>
-            ) : progress === true ? (
-              <Link to={`/${provider.slug}/timeline`}>Explore →</Link>
-            ) : (
-              <code>importing {progress.toLocaleString()} items</code>
             )}
           </div>
         </div>

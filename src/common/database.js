@@ -71,6 +71,7 @@ type AsyncState = {| +db: IDBDatabase, +key: any |};
 export class Database {
   _state: Promise<?AsyncState>;
   _rootIndex: Promise<RootIndex>;
+  _terminated: ?() => void;
 
   constructor(terminated: ?() => void) {
     this._state = (async () => {
@@ -125,6 +126,7 @@ export class Database {
 
     this._rootIndex = (async () =>
       (await this._get(rootIndexKey, { named: true })) || {})();
+    this._terminated = terminated;
   }
 
   _openDatabase(terminated: ?() => void): Promise<IDBDatabase> {
@@ -344,6 +346,7 @@ export class WritableDatabase extends ProviderScopedDatabase {
     // Close database and block future writes
     (await this._state)?.db.close();
     this._state = Promise.resolve();
+    this._terminated?.();
   }
 
   async _put(v: any, k?: string): Promise<string> {
