@@ -24,6 +24,11 @@
   text-transform: lowercase;
 }
 
+.header select:focus-visible {
+  border: 1px dashed var(--dark);
+  margin: 0 2vw 0 0;
+}
+
 .header nav {
   display: flex;
   gap: 1vw;

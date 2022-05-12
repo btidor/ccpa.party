@@ -89,3 +89,9 @@ main.error code {
   font-weight: bold;
   text-transform: lowercase;
 }
+
+:focus-visible {
+  outline: none;
+  border: 1px solid var(--dark);
+  margin: -1px;
+}

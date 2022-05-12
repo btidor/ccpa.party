@@ -12,7 +12,7 @@
 }
 
 .emoji {
-  margin: 0 8px 0 auto;
+  margin-right: 8px;
   font-family: "Noto Emoji";
   font-weight: 900;
 }

@@ -32,6 +32,11 @@
   text-align: right;
 }
 
+.logo {
+  margin-left: auto;
+  width: fit-content;
+}
+
 .provider {
   margin: 0.25em 0 3em;
   text-align: right;
@@ -87,13 +92,18 @@
   display: none;
 }
 
+.compass a {
+  /* fixes cut-off focus border */
+  margin-right: 1px;
+}
+
 .grow {
   flex: 1;
 }
 
 .compass button {
-  margin-right: -1ch;
-  padding: 0 1ch;
+  margin-right: -0.5ch;
+  padding: 0 0.5ch;
   font-size: 1.1em;
   font-weight: 900;
 }
