@@ -21,19 +21,11 @@ export function deserialize(buf: BufferSource): any {
   return JSON.parse(decoder.decode(buf));
 }
 
-export async function getOrSetCookie(
-  name: string,
-  generate: () => Promise<[string, number]>
-): Promise<string> {
-  let value = document.cookie.split(";").find((x) => x.startsWith(`${name}=`));
-  if (value) return value.slice(name.length + 1);
+export function getCookie(name: string): ?string {
+  const str = document.cookie.split(";").find((x) => x.startsWith(`${name}=`));
+  return str && str.slice(name.length + 1);
+}
 
-  const [newValue, maxAge] = await generate();
-
-  // Re-check cookie (it might have changed during `generate()`)
-  value = document.cookie.split(";").find((x) => x.startsWith(`${name}=`));
-  if (value) return value.slice(name.length + 1);
-
-  document.cookie = `${name}=${newValue}; path=/; max-age=${maxAge}; secure`;
-  return newValue;
+export function setCookie(name: string, value: string, maxAge: number): void {
+  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; secure`;
 }

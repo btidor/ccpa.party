@@ -1,12 +1,11 @@
 // @flow
-import { deleteDB, openDB } from "idb";
-
 import {
   b64enc,
   b64dec,
   serialize,
   deserialize,
-  getOrSetCookie,
+  getCookie,
+  setCookie,
 } from "common/util";
 
 import type { Provider } from "common/provider";
@@ -34,6 +33,7 @@ export type TimelineEntryKey = {|
   +slug: string,
   +category: string,
   +iv?: string,
+  +offset?: number,
 |};
 
 export type TimelineEntry = {|
@@ -52,156 +52,187 @@ const dbStore = "encrypted";
 const keyHashKey = "KEY-HASH";
 const rootIndexKey = "ROOT-INDEX";
 
+const keyCookie = "key";
 const keyMaxAge = 24 * 3600; // 24 hours
 const keyUsages = ["encrypt", "decrypt"];
+
+const batchSize = 100;
 
 type RootIndex = {| [string]: string |}; // provider slug -> iv
 
 type ProviderIndex = {|
   files: Array<DataFileKey>,
   metadata: Array<[string, any]>,
-  timeline: Array<[string, string, string, string]>,
+  timeline: Array<[string, number, string, string, string]>,
 |};
 
+type AsyncState = {| +db: IDBDatabase, +key: any |};
+
 export class Database {
-  _idb: Promise<any>;
-  _key: Promise<any>;
+  _state: Promise<?AsyncState>;
+  _rootIndex: Promise<RootIndex>;
 
   constructor(terminated: ?() => void) {
-    const idb = openDB(dbName, dbVersion, {
-      async upgrade(db) {
+    this._state = (async () => {
+      // We encrypt the data and store the key in a cookie because (a) the browser
+      // cookie jar is encrypted using OS-level data protection APIs while
+      // IndexedDB is not, and (b) we can force the key to expire after 24 hours.
+      const cookie = getCookie(keyCookie);
+      if (cookie) {
+        const key = await window.crypto.subtle.importKey(
+          "raw",
+          b64dec(cookie),
+          "AES-GCM",
+          false,
+          keyUsages
+        );
+        const keyHash = b64enc(
+          await window.crypto.subtle.digest("SHA-256", b64dec(cookie))
+        );
+
+        const db: IDBDatabase = await this._openDatabase(terminated);
+        let storedHash: string = await new Promise((resolve, reject) => {
+          const op = db
+            .transaction(dbStore)
+            .objectStore(dbStore)
+            .get(keyHashKey);
+          op.onsuccess = () => resolve((op.result: any));
+          op.onerror = (e) => reject(e);
+        });
+        if (storedHash === keyHash) {
+          // Success! Database was created with the current encryption key.
+          return { db, key };
+        } else {
+          // Database exists, but was created with an older enryption key.
+          // Close, then fall through to delete the database.
+          db.close();
+        }
+      }
+
+      await new Promise((resolve, reject) => {
+        // Unfortunately, Firefox doesn't let us enumerate the existing
+        // databases. This is a no-op if the database doesn't exist.
+        const op = window.indexedDB.deleteDatabase(dbName);
+        op.onsuccess = () => resolve(op.result);
+        op.onerror = (e) => reject(e);
+      });
+
+      if (await this._generateAndSaveKey()) {
+        console.error("Encryption key expired, clearing IndexedDB...");
+      }
+      terminated?.();
+    })();
+
+    this._rootIndex = (async () =>
+      (await this._get(rootIndexKey, { named: true })) || {})();
+  }
+
+  _openDatabase(terminated: ?() => void): Promise<IDBDatabase> {
+    return new Promise((resolve, reject) => {
+      const op = window.indexedDB.open(dbName, dbVersion);
+      op.onsuccess = () => {
+        const db = op.result;
+        db.onversionchange = () => (db.close(), terminated?.());
+        db.onclose = () => terminated?.();
+        resolve(db);
+      };
+      op.onerror = (e) => reject(e);
+      op.onupgradeneeded = () => {
         // For now, schema upgrades wipe the database
+        const db = op.result;
         [...db.objectStoreNames].forEach((store) =>
           db.deleteObjectStore(store)
         );
         db.createObjectStore(dbStore);
-      },
-      async blocking() {
-        (await idb).close();
-        terminated?.();
-      },
-      async terminated() {
-        terminated?.();
-      },
-    });
-    this._idb = idb;
-
-    // We encrypt the data and store the key in a cookie because (a) the browser
-    // cookie jar is encrypted using OS-level data protection APIs while
-    // IndexedDB is not, and (b) we can force the key to expire after 24 hours.
-    this._key = getOrSetCookie("key", async () => {
-      const key = await window.crypto.subtle.generateKey(
-        { name: "AES-GCM", length: 256 },
-        true,
-        keyUsages
-      );
-      const value = b64enc(await window.crypto.subtle.exportKey("raw", key));
-      return [value, keyMaxAge];
-    }).then((val) => {
-      const key = window.crypto.subtle.importKey(
-        "raw",
-        b64dec(val),
-        "AES-GCM",
-        true,
-        keyUsages
-      );
-      return window.crypto.subtle.digest("SHA-256", b64dec(val)).then((_hash) =>
-        this._idb.then((db) =>
-          db.get(dbStore, keyHashKey).then((res) => {
-            const hash = b64enc(_hash);
-            if (res === hash) {
-              return key;
-            } else if (!res) {
-              return db.put(dbStore, hash, keyHashKey).then(() => key);
-            } else {
-              console.error("Encryption key expired, clearing IndexedDB...");
-              db.close();
-              return deleteDB(dbName).then(() => terminated?.());
-            }
-          })
-        )
-      );
+      };
+      op.onblocked = () => op.result.close();
     });
   }
 
-  async _getRootIndex(): Promise<RootIndex> {
-    const db = await this._idb;
-    const raw = await db.get(dbStore, rootIndexKey);
-    if (!raw) return {};
+  async _generateAndSaveKey(): Promise<boolean> {
+    return false;
+  }
 
-    const [iv, ciphertext] = raw;
-    const plaintext = await window.crypto.subtle.decrypt(
+  async _get(
+    k: string,
+    opts?: {| +binary?: boolean, +named?: boolean |}
+  ): Promise<any> {
+    const state = await this._state;
+    if (!state) return; // failed to initialize, treat as empty database
+    const { db, key } = state;
+
+    let result: any = await new Promise((resolve, reject) => {
+      const op = db.transaction(dbStore).objectStore(dbStore).get(k);
+      op.onsuccess = () => resolve(op.result);
+      op.onerror = (e) => reject(e);
+    });
+    if (result === undefined) return;
+
+    const [iv, ciphertext] = opts?.named ? result : [b64dec(k), result];
+    result = await window.crypto.subtle.decrypt(
       { name: "AES-GCM", iv },
-      await this._key,
+      key,
       ciphertext
     );
-    return deserialize(plaintext);
-  }
-
-  async _getIndex(provider: string): Promise<ProviderIndex> {
-    const iv = (await this._getRootIndex())[provider];
-    if (iv) {
-      const blob = await this._getBlob(iv);
-      if (blob) return deserialize(blob);
-    }
-    return { files: [], metadata: [], timeline: [] };
-  }
-
-  async _getBlob(iv: string): Promise<?BufferSource> {
-    const db = await this._idb;
-    const ciphertext = await db.get(dbStore, iv);
-    if (!ciphertext) return;
-    return await window.crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: b64dec(iv) },
-      await this._key,
-      ciphertext
-    );
+    if (!opts?.binary) result = deserialize(result);
+    return result;
   }
 
   async getProviders(): Promise<Set<string>> {
-    return new Set(Object.keys(await this._getRootIndex()));
+    return new Set(Object.keys(await this._rootIndex));
+  }
+}
+
+export class ProviderScopedDatabase extends Database {
+  _provider: Provider;
+  _providerIndex: Promise<ProviderIndex>;
+
+  constructor(provider: Provider, terminated: ?() => void) {
+    super(terminated);
+    this._provider = provider;
+    this._providerIndex = (async () => {
+      const iv = (await this._rootIndex)[provider.slug];
+      return (iv && this._get(iv)) || { files: [], metadata: [], timeline: [] };
+    })();
   }
 
-  async getFilesForProvider(
-    provider: Provider
-  ): Promise<$ReadOnlyArray<DataFileKey>> {
-    return (await this._getIndex(provider.slug)).files;
+  async getFiles(): Promise<$ReadOnlyArray<DataFileKey>> {
+    return (await this._providerIndex).files;
   }
 
   async hydrateFile(file: DataFileKey): Promise<?DataFile> {
     if (!file.iv) throw new Error("DataFileKey is missing IV");
     if (file.skipped) return { ...file, data: new ArrayBuffer(0) };
-    const data = await this._getBlob(file.iv);
+    const data = await this._get(file.iv, { binary: true });
     if (!data) return;
     return { ...file, data };
   }
 
-  async getMetadatasForProvider(
-    provider: Provider
-  ): Promise<$ReadOnlyMap<string, any>> {
-    return new Map((await this._getIndex(provider.slug)).metadata);
+  async getMetadata(): Promise<$ReadOnlyMap<string, any>> {
+    return new Map((await this._providerIndex).metadata);
   }
 
-  async getTimelineEntriesForProvider(
-    provider: Provider
-  ): Promise<Array<TimelineEntryKey>> {
-    return (await this._getIndex(provider.slug)).timeline.map(
-      ([iv, day, slug, category]) => ({
+  async getTimelineEntries(): Promise<Array<TimelineEntryKey>> {
+    return (await this._providerIndex).timeline.map(
+      ([iv, offset, day, slug, category]) => ({
         type: "timeline",
-        provider: provider.slug,
+        provider: this._provider.slug,
         day,
         slug,
         category,
         iv,
+        offset,
       })
     );
   }
 
   async hydrateTimelineEntry(entry: TimelineEntryKey): Promise<?TimelineEntry> {
-    if (!entry.iv) throw new Error("TimelineEntryKey is missing IV");
-    const data = await this._getBlob(entry.iv);
+    if (!entry.iv || entry.offset === undefined) {
+      throw new Error("TimelineEntryKey is missing IV or offset");
+    }
+    const data = await this._get(entry.iv);
     if (!data) return;
-    const [file, context, value] = deserialize(data);
+    const [file, context, value] = data[entry.offset];
     return {
       ...entry,
       file,
@@ -210,100 +241,180 @@ export class Database {
     };
   }
 
-  async getTimelineEntryBySlug(
-    provider: Provider,
-    slug: string
-  ): Promise<?TimelineEntry> {
-    const entry = (await this._getIndex(provider.slug)).timeline.find(
-      ([, , s]) => s === slug
+  async getTimelineEntryBySlug(slug: string): Promise<?TimelineEntry> {
+    const entry = (await this._providerIndex).timeline.find(
+      ([, , , s]) => s === slug
     );
     if (!entry) return;
-    const [iv, day, s, category] = entry;
+    const [iv, offset, day, s, category] = entry;
     return this.hydrateTimelineEntry({
       type: "timeline",
-      provider: provider.slug,
+      provider: this._provider.slug,
       day,
       slug: s,
       category,
       iv,
+      offset,
     });
   }
 }
 
-export class WritableDatabase extends Database {
-  // TODO: hold a lock when writing to database
-
-  _provider: Provider;
+export class WritableDatabase extends ProviderScopedDatabase {
   _additions: {|
-    files: Array<DataFileKey>,
-    metadata: Array<[string, any]>,
-    timeline: Array<[string, string, string, string]>,
+    files: Array<DataFile>,
+    metadata: Map<string, any>,
+    timeline: Array<TimelineEntry>,
   |};
 
   constructor(provider: Provider, terminated: ?() => void) {
-    super(terminated);
-    this._provider = provider;
-    this._additions = { files: [], metadata: [], timeline: [] };
+    super(provider, terminated);
+    this._additions = { files: [], metadata: new Map(), timeline: [] };
+    // TODO: hold a lock while WritableDatabase is open
   }
 
-  // You MUST call `commit` in order to flush indexes and metadata.
+  async _generateAndSaveKey(): Promise<boolean> {
+    const db = await this._openDatabase();
+    const key = await window.crypto.getRandomValues(new Uint8Array(32));
+    const keyHash = b64enc(await window.crypto.subtle.digest("SHA-256", key));
+    if (getCookie(keyCookie)) {
+      // Data race! Don't write cookie, just reload.
+    } else {
+      setCookie(keyCookie, b64enc(key), keyMaxAge);
+      await new Promise((resolve, reject) => {
+        const op = db
+          .transaction(dbStore, "readwrite")
+          .objectStore(dbStore)
+          .put(keyHash, keyHashKey);
+        op.onsuccess = () => resolve(op.result);
+        op.onerror = (e) => reject(e);
+      });
+    }
+    db.close();
+    return true;
+  }
+
+  // You MUST call `commit` in order to flush data and indexes.
   async commit(): Promise<void> {
-    // Overwrite provider index
-    this._additions.files.sort((a, b) =>
-      a.path.join().localeCompare(b.path.join())
+    // Write files and compute index
+    const fileIvs = await this._puts(
+      this._additions.files.map(({ data }) => data),
+      { binary: true }
     );
-    this._additions.metadata = [...new Map(this._additions.metadata)];
-    this._additions.metadata.sort();
-    this._additions.timeline.sort((a, b) => a[2].localeCompare(b[2]));
-    const ivProvider = await this._putBlob(serialize(this._additions));
+    const fileIndex = this._additions.files.map(({ data, ...rest }, i) => ({
+      iv: fileIvs[i],
+      ...rest,
+    }));
+    fileIndex.sort((a, b) => a.path.join().localeCompare(b.path.join()));
+
+    // Compute metadata index
+    const metadataIndex = [...this._additions.metadata];
+    metadataIndex.sort();
+
+    // Write timeline entries and compute index
+    const timelineIndex = [];
+    for (let i = 0; i < this._additions.timeline.length; i += batchSize) {
+      const batch = this._additions.timeline.slice(i, i + batchSize);
+      const iv = await this._put(
+        batch.map(({ file, context, value }) => [file, context, value])
+      );
+      timelineIndex.push(
+        ...batch.map(({ day, slug, category }, i) => [
+          iv,
+          i,
+          day,
+          slug,
+          category,
+        ])
+      );
+    }
+    timelineIndex.sort((a, b) => a[3].localeCompare(b[3]));
+
+    // Overwrite provider index
+    const iv = await this._put({
+      files: fileIndex,
+      metadata: metadataIndex,
+      timeline: timelineIndex,
+    });
 
     // Write root index
-    const root = await this._getRootIndex();
-    const prev = root[this._provider.slug];
-    root[this._provider.slug] = ivProvider;
+    const root = await this._rootIndex;
+    root[this._provider.slug] = iv;
+    await this._put(root, rootIndexKey);
 
-    const iv = await window.crypto.getRandomValues(new Uint8Array(12));
-    const ciphertext = await window.crypto.subtle.encrypt(
-      { name: "AES-GCM", iv },
-      await this._key,
-      serialize(root)
-    );
-    const db = await this._idb;
-    await db.put(dbStore, [iv, ciphertext], rootIndexKey);
-
-    // Delete previous provider index
-    if (prev) await db.delete(dbStore, prev);
-
-    db.close();
+    // Close database and block future writes
+    (await this._state)?.db.close();
+    this._state = Promise.resolve();
   }
 
-  async _putBlob(blob: BufferSource): Promise<string> {
+  async _put(v: any, k?: string): Promise<string> {
+    const state = await this._state;
+    if (!state) throw new Error("Writing to closed database");
+    const { db, key } = state;
+
     const iv = await window.crypto.getRandomValues(new Uint8Array(12));
     const ciphertext = await window.crypto.subtle.encrypt(
       { name: "AES-GCM", iv },
-      await this._key,
-      blob
+      key,
+      serialize(v)
     );
-    const key = b64enc(iv);
-    const db = await this._idb;
-    await db.put(dbStore, ciphertext, key);
-    return key;
+
+    const [dbkey, dbval] = k ? [k, [iv, ciphertext]] : [b64enc(iv), ciphertext];
+
+    await new Promise((resolve, reject) => {
+      const op = db
+        .transaction(dbStore, "readwrite")
+        .objectStore(dbStore)
+        .put(dbval, dbkey);
+      op.onsuccess = () => resolve();
+      op.onerror = (e) => reject(e);
+    });
+    return dbkey;
+  }
+
+  async _puts(
+    data: $ReadOnlyArray<any>,
+    opts?: {| +binary?: boolean |}
+  ): Promise<Array<string>> {
+    const state = await this._state;
+    if (!state) throw new Error("Writing to closed database");
+    const { db, key } = state;
+
+    if (!opts?.binary) data = data.map((v) => serialize(v));
+
+    const [ciphertexts, ivs] = [[], []];
+    for (let i = 0; i < data.length; i++) {
+      const iv = await window.crypto.getRandomValues(new Uint8Array(12));
+      ciphertexts.push(
+        await window.crypto.subtle.encrypt(
+          { name: "AES-GCM", iv },
+          key,
+          data[i]
+        )
+      );
+      ivs.push(b64enc(iv));
+    }
+
+    await new Promise((resolve, reject) => {
+      const txn: IDBTransaction = db.transaction(dbStore, "readwrite");
+      const store = txn.objectStore(dbStore);
+      ivs.map((iv, i) => store.put(ciphertexts[i], iv));
+
+      txn.oncomplete = () => resolve();
+      txn.onerror = (e) => reject(e);
+    });
+    return ivs;
   }
 
   async putFile(file: DataFile): Promise<void> {
-    const { data, ...rest } = file;
-    const iv = await this._putBlob(file.data);
-    this._additions.files.push({ iv, ...rest });
+    this._additions.files.push(file);
   }
 
   async putMetadata(metadata: MetadataEntry): Promise<void> {
     const { key, value } = metadata;
-    this._additions.metadata.push([key, value]);
+    this._additions.metadata.set(key, value);
   }
 
   async putTimelineEntry(entry: TimelineEntry): Promise<void> {
-    const { day, slug, category, file, context, value } = entry;
-    const iv = await this._putBlob(serialize([file, context, value]));
-    this._additions.timeline.push([iv, day, slug, category]);
+    this._additions.timeline.push(entry);
   }
 }

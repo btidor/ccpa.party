@@ -8,7 +8,7 @@ import FilterBar from "components/FilterBar";
 import Navigation from "components/Navigation";
 import Placeholder from "components/Placeholder";
 import TimelineRow from "components/TimelineRow";
-import { Database } from "common/database";
+import { ProviderScopedDatabase } from "common/database";
 import { darkColor } from "common/provider";
 
 import styles from "Drilldown.module.css";
@@ -34,8 +34,8 @@ function Timeline(props: Props): React.Node {
   const navigate = useNavigate();
   const [epoch, setEpoch] = React.useState(0);
   const db = React.useMemo(
-    () => new Database(() => setEpoch(epoch + 1)),
-    [epoch]
+    () => new ProviderScopedDatabase(provider, () => setEpoch(epoch + 1)),
+    [epoch, provider]
   );
 
   // Convert the abbreviated filter string (e.g. "acns") to a set of slugs (e.g.
@@ -62,11 +62,11 @@ function Timeline(props: Props): React.Node {
     setEntries();
     setMetadata();
     (async () => {
-      const entries = await db.getTimelineEntriesForProvider(provider);
+      const entries = await db.getTimelineEntries();
       entries.reverse(); // sort in descending order by timestamp/slug
       setEntries(entries);
 
-      setMetadata(await db.getMetadatasForProvider(provider));
+      setMetadata(await db.getMetadata());
     })();
   }, [db, provider]);
 
@@ -77,7 +77,7 @@ function Timeline(props: Props): React.Node {
   React.useEffect(() => {
     (async () => {
       if (entries && entries.length === 0) {
-        const files = await db.getFilesForProvider(provider);
+        const files = await db.getFiles();
         if (files.length === 0) navigate(`/${provider.slug}`);
       }
     })();
@@ -123,7 +123,7 @@ function Timeline(props: Props): React.Node {
 
       let drilldownItem;
       if (selected) {
-        drilldownItem = await db.getTimelineEntryBySlug(provider, selected);
+        drilldownItem = await db.getTimelineEntryBySlug(selected);
 
         // Extra: if the currently-selected entry does not exist in the
         // database, or if it's of the wrong category, deselect it.

@@ -3,14 +3,14 @@ import * as React from "react";
 
 import styles from "components/TimelineRow.module.css";
 
-import { Database } from "common/database";
+import { ProviderScopedDatabase } from "common/database";
 
 import type { Group } from "Timeline";
 import type { MetadataEntry, TimelineEntryKey } from "common/database";
 import type { Provider } from "common/provider";
 
 type Props = {|
-  +db: Database,
+  +db: ProviderScopedDatabase,
   +isLast: boolean,
   +metadata: ?$ReadOnlyMap<string, MetadataEntry>,
   +provider: Provider,

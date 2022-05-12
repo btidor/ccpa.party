@@ -7,7 +7,7 @@ import FilePreview from "components/FilePreview";
 import FileTree from "components/FileTree";
 import Navigation from "components/Navigation";
 import Placeholder from "components/Placeholder";
-import { Database } from "common/database";
+import { ProviderScopedDatabase } from "common/database";
 import { fileSizeLimitMB } from "common/importer";
 import { darkColor } from "common/provider";
 
@@ -51,8 +51,8 @@ function Files(props: Props): React.Node {
 
   const [epoch, setEpoch] = React.useState(0);
   const db = React.useMemo(
-    () => new Database(() => setEpoch(epoch + 1)),
-    [epoch]
+    () => new ProviderScopedDatabase(provider, () => setEpoch(epoch + 1)),
+    [epoch, provider]
   );
 
   const [items, setItems] = React.useState(
@@ -64,7 +64,7 @@ function Files(props: Props): React.Node {
     // incorrect data (e.g. expanding the wrong root).
     setItems();
     (async () => {
-      setItems(await db.getFilesForProvider(provider));
+      setItems(await db.getFiles());
     })();
   }, [db, provider]);
 
