@@ -85,56 +85,58 @@ export class Database {
         // 24 hours.
         const db = await this._openDatabase();
         const cookie = getCookie(keyCookie);
+        let cookieHash, key;
         if (cookie) {
-          const key = await window.crypto.subtle.importKey(
+          key = await window.crypto.subtle.importKey(
             "raw",
             b64dec(cookie),
             "AES-GCM",
             false,
             keyUsages
           );
-          const keyHash = b64enc(
+          cookieHash = b64enc(
             await window.crypto.subtle.digest("SHA-256", b64dec(cookie))
           );
+        }
 
-          let storedHash: string = await new Promise((resolve, reject) => {
+        const storedHash: string = await new Promise((resolve, reject) => {
+          const op = db
+            .transaction(dbStore)
+            .objectStore(dbStore)
+            .get(keyHashKey);
+          op.onsuccess = () => resolve((op.result: any));
+          op.onerror = (e) => reject(e);
+        });
+        if (storedHash && storedHash === cookieHash) {
+          // Success! Database was created with the current encryption key.
+          resolve({ db, key });
+        } else if (storedHash !== undefined) {
+          // Database exists, but was created with an older enryption key.
+          // Clear, then reload the page to reinitialize.
+          console.warn("Clearing IndexedDB...");
+          await new Promise((resolve, reject) => {
             const op = db
-              .transaction(dbStore)
+              .transaction(dbStore, "readwrite")
               .objectStore(dbStore)
-              .get(keyHashKey);
-            op.onsuccess = () => resolve((op.result: any));
+              .clear();
+            op.onsuccess = () => resolve(op.result);
             op.onerror = (e) => reject(e);
           });
-          if (storedHash === keyHash) {
-            // Success! Database was created with the current encryption key.
-            resolve({ db, key });
-            return;
-          } else if (storedHash === undefined) {
-            // Database not yet initialized with a key. Fall through to
-            // initialize.
-          } else {
-            // Database exists, but was created with an older enryption key.
-            // Clear, then reload the page to reinitialize.
-            await new Promise((resolve, reject) => {
-              const op = db.transaction(dbStore).objectStore(dbStore).clear();
-              op.onsuccess = () => resolve(op.result);
-              op.onerror = (e) => reject(e);
-            });
+          db.close();
+          terminated();
+          // promise never resolves, operations hang
+        } else {
+          // Database is empty; generate a new key (unless in read-only mode)
+          // and initialize it.
+          if (await this._generateAndSaveKey()) {
             db.close();
             terminated();
             return; // promise never resolves, operations hang
+          } else {
+            // Read-only database. Resolve with undefined state so operations
+            // return empty results.
+            resolve();
           }
-        }
-
-        if (await this._generateAndSaveKey()) {
-          console.error("Initializing IndexedDB...");
-          db.close();
-          terminated();
-          return; // promise never resolves, operations hang
-        } else {
-          // Read-only database. Resolve with undefined state so operations
-          // return empty results.
-          resolve();
         }
       })
     );
@@ -290,6 +292,7 @@ export class WritableDatabase extends ProviderScopedDatabase {
   }
 
   async _generateAndSaveKey(): Promise<boolean> {
+    console.warn("Initializing IndexedDB...");
     const db = await this._openDatabase();
     const key = await window.crypto.getRandomValues(new Uint8Array(32));
     const keyHash = b64enc(await window.crypto.subtle.digest("SHA-256", key));
@@ -381,6 +384,7 @@ export class WritableDatabase extends ProviderScopedDatabase {
     ).length;
     const state = await this._state;
     if (isEmpty && state) {
+      console.warn("Clearing IndexedDB...");
       await new Promise((resolve, reject) => {
         const op = state.db
           .transaction(dbStore, "readwrite")
