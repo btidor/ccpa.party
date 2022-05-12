@@ -28,10 +28,12 @@ function Request(props: Props): React.Node {
     (async () => setImported((await db.getProviders()).has(provider.slug)))();
   }, [db, provider]);
 
-  const [progress, setProgress] = React.useState();
-  const fileHandler = (event) =>
-    importFiles(db, provider, event.target.files, setProgress);
-  const resetHandler = (event) => db.resetProvider();
+  const [inProgress, setInProgress] = React.useState(false);
+  React.useEffect(() => setInProgress(false), [db]);
+  const fileHandler = (event) => (
+    setInProgress(true), importFiles(db, provider, event.target.files)
+  );
+  const resetHandler = (event) => (setInProgress(true), db.resetProvider());
 
   const inputRef = React.useRef<?HTMLInputElement>();
   return (
@@ -86,8 +88,8 @@ function Request(props: Props): React.Node {
                   &#x2a2f;
                 </button>
               </React.Fragment>
-            ) : progress ? (
-              <code>importing {progress.toLocaleString()} items</code>
+            ) : inProgress ? (
+              <code>...</code>
             ) : (
               <label
                 htmlFor="import"

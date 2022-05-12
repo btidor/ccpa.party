@@ -196,8 +196,7 @@ export const fileSizeLimitMB = 16;
 export async function importFiles(
   db: WritableDatabase,
   provider: Provider,
-  files: $ReadOnlyArray<File>,
-  setProgress: (number | boolean) => void
+  files: $ReadOnlyArray<File>
 ) {
   type ImportFile = {|
     path: $ReadOnlyArray<string>,
@@ -214,15 +213,10 @@ export async function importFiles(
     return;
   }
 
-  setProgress(0);
-  let processed = 0;
   const processEntry = async (
     path: $ReadOnlyArray<string>,
     data: BufferSource
   ): Promise<?ImportFile> => {
-    if (processed % 23 === 0) {
-      setProgress(processed);
-    }
     if (
       path.slice(-1)[0].endsWith(".zip") ||
       path.slice(-1)[0].endsWith(".tar.gz")
@@ -236,7 +230,6 @@ export async function importFiles(
         skipped: "tooLarge",
       }: DataFile);
       await db.putFile(dataFile);
-      processed++;
       return;
     } else {
       const dataFile = ({
@@ -250,7 +243,6 @@ export async function importFiles(
       for (const entry of parsed) {
         if (entry.type === "metadata") await db.putMetadata(entry);
         else if (entry.type === "timeline") await db.putTimelineEntry(entry);
-        processed++;
       }
       return;
     }
