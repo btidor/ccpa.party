@@ -2,8 +2,9 @@
 import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
 
-import Logo from "components/Logo";
+import { Database } from "common/database";
 import { darkColor } from "common/provider";
+import Logo from "components/Logo";
 
 import Amazon from "providers/amazon";
 import Apple from "providers/apple";
@@ -39,6 +40,15 @@ function Home(): React.Node {
     [location, ref]
   );
 
+  const [epoch, setEpoch] = React.useState(0);
+  const [imported, setImported] = React.useState();
+  React.useEffect(() => {
+    (async () =>
+      setImported(
+        await new Database(() => setEpoch(epoch + 1)).getProviders()
+      ))();
+  }, [epoch]);
+
   return (
     <main className={styles.home} ref={ref}>
       <section>
@@ -58,14 +68,10 @@ function Home(): React.Node {
         </div>
         <nav>
           {Providers.map((provider) => (
-            <Link
-              key={provider.slug}
-              to={`/${provider.slug}`}
-              style={{ "--dark": darkColor(provider) }}
-              className={styles.provider}
-            >
-              {provider.displayName}
-            </Link>
+            <div key={provider.slug} style={{ "--dark": darkColor(provider) }}>
+              <span>{imported?.has(provider.slug) && "␥"}</span>
+              <Link to={`/${provider.slug}`}>{provider.displayName}</Link>
+            </div>
           ))}
         </nav>
       </section>
