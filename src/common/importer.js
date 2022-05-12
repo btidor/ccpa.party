@@ -5,11 +5,9 @@ import MurmurHash3 from "imurmurhash";
 import untar from "js-untar";
 import { unzip } from "unzipit";
 
-import type {
-  DataFile,
-  TimelineEntry,
-  WritableDatabase,
-} from "common/database";
+import { WritableDatabase } from "common/database";
+
+import type { DataFile, TimelineEntry } from "common/database";
 import type { Provider } from "common/provider";
 
 export async function autoParse(
@@ -193,17 +191,18 @@ export function getSlugAndDay(
 
 export const fileSizeLimitMB = 16;
 
-export async function importFiles(
-  db: WritableDatabase,
-  provider: Provider,
-  files: $ReadOnlyArray<File>
-) {
-  type ImportFile = {|
-    path: $ReadOnlyArray<string>,
-    data: () => Promise<BufferSource>,
-  |};
+type ImportFile = {|
+  path: $ReadOnlyArray<string>,
+  data: () => Promise<BufferSource>,
+|};
 
+export async function importFiles(
+  provider: Provider,
+  files: $ReadOnlyArray<File>,
+  terminated: () => void
+) {
   const start = new Date().getTime();
+  const db = new WritableDatabase(provider, terminated);
   const work: Array<ImportFile> = [];
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -278,4 +277,12 @@ export async function importFiles(
   }
   await db.commit();
   console.warn(`Import ran in ${(new Date().getTime() - start) / 1000}s`);
+}
+
+export async function resetProvider(
+  provider: Provider,
+  terminated: () => void
+) {
+  const db = new WritableDatabase(provider, terminated);
+  await db.resetProvider();
 }

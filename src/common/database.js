@@ -48,7 +48,9 @@ export type Entry = MetadataEntry | TimelineEntry;
 const dbName = "ccpa.party";
 const dbVersion = 1;
 const dbStore = "encrypted";
-const dbLock = "ccpa.party/db";
+
+const dbInitLock = "ccpa.party/dbinit";
+const dbWriteLock = "ccpa.party/dbwrite";
 
 const keyHashKey = "KEY-HASH";
 const rootIndexKey = "ROOT-INDEX";
@@ -78,7 +80,7 @@ export class Database {
     this._terminated = terminated;
     this._state = new Promise((resolve) =>
       // $FlowFixMe[prop-missing]
-      navigator.locks.request(dbLock, async () => {
+      navigator.locks.request(dbInitLock, async () => {
         // We encrypt the data and store the key in a cookie because (a) the
         // browser cookie jar is encrypted using OS-level data protection APIs
         // while IndexedDB is not, and (b) we can force the key to expire after
@@ -288,7 +290,12 @@ export class WritableDatabase extends ProviderScopedDatabase {
   constructor(provider: Provider, terminated: () => void) {
     super(provider, terminated);
     this._additions = { files: [], metadata: new Map(), timeline: [] };
-    // TODO: hold a lock while WritableDatabase is open
+    // $FlowFixMe[prop-missing]
+    navigator.locks.request(dbWriteLock, () => {
+      return new Promise((resolve) => {
+        this._terminated = () => (resolve(), terminated());
+      });
+    });
   }
 
   async _generateAndSaveKey(): Promise<boolean> {

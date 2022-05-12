@@ -3,8 +3,8 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 
 import Logo from "components/Logo";
-import { WritableDatabase } from "common/database";
-import { importFiles } from "common/importer";
+import { Database } from "common/database";
+import { importFiles, resetProvider } from "common/importer";
 import { darkColor } from "common/provider";
 
 import styles from "Request.module.css";
@@ -19,8 +19,8 @@ function Request(props: Props): React.Node {
   const { provider } = props;
   const [epoch, setEpoch] = React.useState(0);
   const db = React.useMemo(
-    () => new WritableDatabase(provider, () => setEpoch(epoch + 1)),
-    [epoch, provider]
+    () => new Database(() => setEpoch(epoch + 1)),
+    [epoch]
   );
 
   const [imported, setImported] = React.useState();
@@ -31,9 +31,12 @@ function Request(props: Props): React.Node {
   const [inProgress, setInProgress] = React.useState(false);
   React.useEffect(() => setInProgress(false), [db]);
   const fileHandler = (event) => (
-    setInProgress(true), importFiles(db, provider, event.target.files)
+    setInProgress(true),
+    importFiles(provider, event.target.files, () => setEpoch(epoch + 1))
   );
-  const resetHandler = (event) => (setInProgress(true), db.resetProvider());
+  const resetHandler = (event) => (
+    setInProgress(true), resetProvider(provider, () => setEpoch(epoch + 1))
+  );
 
   const inputRef = React.useRef<?HTMLInputElement>();
   return (
