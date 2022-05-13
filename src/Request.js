@@ -25,11 +25,13 @@ function Request(props: Props): React.Node {
 
   const [imported, setImported] = React.useState();
   React.useEffect(() => {
-    (async () => setImported((await db.getProviders()).has(provider.slug)))();
+    (async () => (
+      setImported((await db.getProviders()).has(provider.slug)),
+      setInProgress(false)
+    ))();
   }, [db, provider]);
 
   const [inProgress, setInProgress] = React.useState(false);
-  React.useEffect(() => setInProgress(false), [db]);
   const fileHandler = (event) => (
     setInProgress(true),
     importFiles(provider, event.target.files, () => setEpoch(epoch + 1))
