@@ -281,7 +281,9 @@ export async function importFiles(
     }
   }
   await db.commit();
-  console.warn(`Import ran in ${(new Date().getTime() - start) / 1000}s`);
+  if (process.env.NODE_ENV === "development") {
+    console.warn(`Time: ${(new Date().getTime() - start) / 1000}s`);
+  }
 }
 
 export async function resetProvider(

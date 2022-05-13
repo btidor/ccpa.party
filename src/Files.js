@@ -24,16 +24,19 @@ type Props = {|
 const FileParseAction = (props: {|
   +file: DataFile,
   +provider: Provider,
-|}): React.Node => (
-  <div
-    className={styles.action}
-    onClick={() => {
-      props.provider.parse(props.file).then((e) => console.warn(e));
-    }}
-  >
-    <BeakerIcon />
-  </div>
-);
+|}): React.Node =>
+  process.env.NODE_ENV === "development" && (
+    <React.Suspense fallback={null}>
+      <div
+        className={styles.action}
+        onClick={() => {
+          props.provider.parse(props.file).then((e) => console.warn(e));
+        }}
+      >
+        <BeakerIcon />
+      </div>
+    </React.Suspense>
+  );
 
 const FileDownloadAction = (props: {| +file: DataFile |}): React.Node => (
   <a
