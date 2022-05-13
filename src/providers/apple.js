@@ -15,8 +15,7 @@ import type { Provider, TimelineCategory } from "common/provider";
 class Apple implements Provider {
   slug: string = "apple";
   displayName: string = "Apple";
-  color: string = "#000000";
-  darkColor: string = "#ffb900";
+  color: string = "#ffb900";
 
   requestLink: {| href: string, text: string |} = {
     text: "Data and Privacy",

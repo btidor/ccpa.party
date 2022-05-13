@@ -10,8 +10,7 @@ import type { Provider, TimelineCategory } from "common/provider";
 class GitHub implements Provider {
   slug: string = "github";
   displayName: string = "GitHub";
-  color: string = "#000000";
-  darkColor: string = "#6e5494";
+  color: string = "#6e5494";
 
   requestLink: {| href: string, text: string |} = {
     text: "Account Settings",

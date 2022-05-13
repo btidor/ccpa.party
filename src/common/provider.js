@@ -25,7 +25,6 @@ export interface Provider {
   +slug: string;
   +displayName: string;
   +color: string;
-  +darkColor?: string;
 
   +requestLink: {| text: string, href: string |};
   +instructions: $ReadOnlyArray<string>;
@@ -58,17 +57,8 @@ ProviderRegistry.forEach((provider) =>
   (ProviderLookup: any).set(provider.slug, provider)
 );
 
-const white = new Color("#fff");
-
-export function lightColor(provider: Provider): string {
-  return new Color(provider.color)
-    .mix(white, 0.75)
-    .toGamut({ method: "clip", space: "srgb" })
-    .toString({ format: "hex" });
-}
-
 export function darkColor(provider: Provider): string {
-  const color = new Color(provider.darkColor || provider.color)
+  const color = new Color(provider.color)
     .to("rec2020")
     .toGamut({ space: "rec2020" })
     .set("lightness", 65)
