@@ -286,12 +286,18 @@ export class WritableDatabase extends ProviderScopedDatabase {
     files: Array<DataFile>,
     metadata: Map<string, any>,
     timeline: Array<TimelineEntry>,
+    timelineDedup: Set<string>,
   |};
 
   constructor(provider: Provider, terminated: () => void) {
     const release = new Promise((resolve) => {
       super(provider, () => (resolve(), terminated()));
-      this._additions = { files: [], metadata: new Map(), timeline: [] };
+      this._additions = {
+        files: [],
+        metadata: new Map(),
+        timeline: [],
+        timelineDedup: new Set(),
+      };
     });
     // $FlowFixMe[prop-missing]
     navigator.locks.request(dbWriteLock, () => release);
@@ -488,6 +494,9 @@ export class WritableDatabase extends ProviderScopedDatabase {
   }
 
   async putTimelineEntry(entry: TimelineEntry): Promise<void> {
-    this._additions.timeline.push(entry);
+    if (!this._additions.timelineDedup.has(entry.slug)) {
+      this._additions.timeline.push(entry);
+      this._additions.timelineDedup.add(entry.slug);
+    }
   }
 }
