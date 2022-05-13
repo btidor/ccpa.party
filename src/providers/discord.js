@@ -30,8 +30,10 @@ class Discord implements Provider {
     "Privacy & Safety tab",
     "scroll down",
   ];
+  singleFile: boolean = true;
   privacyPolicy: string =
     "https://discord.com/privacy#information-for-california-users";
+
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [
     {
       char: "a",

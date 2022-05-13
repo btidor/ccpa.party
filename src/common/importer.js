@@ -277,7 +277,7 @@ export async function importFiles(
         if (next) work.push(next);
       }
     } else {
-      throw new Error("Unknown archive: " + path.slice(-1)[0]);
+      throw new Error("Unknown file: " + path.slice(-1)[0]);
     }
   }
   await db.commit();

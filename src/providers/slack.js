@@ -20,6 +20,7 @@ class Slack implements Provider {
   };
   waitTime: string = "TODO";
   instructions: $ReadOnlyArray<string> = [`workspace owners only`];
+  singleFile: boolean = true;
   privacyPolicy: string =
     "https://slack.com/trust/privacy/privacy-policy#california-rights";
   // Also: https://slack.com/trust/compliance/ccpa-faq

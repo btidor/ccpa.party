@@ -29,6 +29,7 @@ export interface Provider {
   +requestLink: {| text: string, href: string |};
   +instructions: $ReadOnlyArray<string>;
   +waitTime: string;
+  +singleFile: boolean;
   +privacyPolicy: string;
 
   +timelineCategories: $ReadOnlyArray<TimelineCategory>;

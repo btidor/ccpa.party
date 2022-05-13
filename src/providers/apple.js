@@ -23,6 +23,7 @@ class Apple implements Provider {
   };
   waitTime: string = "about a week";
   instructions: $ReadOnlyArray<string> = [];
+  singleFile: boolean = false;
   privacyPolicy: string = "https://www.apple.com/legal/privacy/california/";
 
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [

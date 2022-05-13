@@ -18,6 +18,7 @@ class GitHub implements Provider {
   };
   waitTime: string = "15 minutes";
   instructions: $ReadOnlyArray<string> = [];
+  singleFile: boolean = true;
   privacyPolicy: string =
     "https://docs.github.com/en/site-policy/privacy-policies/githubs-notice-about-the-california-consumer-privacy-act";
 

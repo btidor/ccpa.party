@@ -15,6 +15,7 @@ class Netflix implements Provider {
   };
   waitTime: string = "TODO";
   instructions: $ReadOnlyArray<string> = [];
+  singleFile: boolean = true;
   privacyPolicy: string = "https://help.netflix.com/legal/privacy#ccpa";
 
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [];

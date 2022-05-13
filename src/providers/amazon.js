@@ -23,6 +23,7 @@ class Amazon implements Provider {
   };
   waitTime: string = "1-2 days";
   instructions: $ReadOnlyArray<string> = [];
+  singleFile: boolean = false;
   privacyPolicy: string =
     "https://www.amazon.com/gp/help/customer/display.html?nodeId=GC5HB5DVMU5Y8CJ2";
 

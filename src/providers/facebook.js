@@ -17,6 +17,7 @@ class Facebook implements Provider {
   };
   waitTime: string = "TODO";
   instructions: $ReadOnlyArray<string> = ["select format JSON"];
+  singleFile: boolean = true;
   privacyPolicy: string = "https://www.facebook.com/legal/policy/ccpa";
 
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [

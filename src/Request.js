@@ -109,7 +109,7 @@ function Request(props: Props): React.Node {
                 }
                 role="button"
               >
-                Import Archive ↑
+                Import {provider.singleFile ? "File" : "Files"} ↑
               </label>
             )}
           </div>

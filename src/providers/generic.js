@@ -18,7 +18,9 @@ class Generic implements Provider {
   };
   waitTime: string = "...unknown...";
   instructions: $ReadOnlyArray<string> = [];
+  singleFile: boolean = true;
   privacyPolicy: string = "";
+
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {

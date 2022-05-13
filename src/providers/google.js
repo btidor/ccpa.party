@@ -19,6 +19,7 @@ class Google implements Provider {
     `click Multiple Formats`,
     `change HTML to JSON`,
   ];
+  singleFile: boolean = true;
   privacyPolicy: string =
     "https://policies.google.com/privacy?hl=en#california";
 
