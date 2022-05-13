@@ -8,7 +8,7 @@
 }
 
 .drilldown {
-  font-family: "Plex Sans", monospace;
+  font-family: "Plex Sans", "Noto Emoji", monospace;
   flex: 1;
 }
 
