@@ -6,7 +6,6 @@ import Amazon from "providers/amazon";
 import Apple from "providers/apple";
 import Discord from "providers/discord";
 import Facebook from "providers/facebook";
-import Generic from "providers/generic";
 import GitHub from "providers/github";
 import Google from "providers/google";
 import Netflix from "providers/netflix";
@@ -47,7 +46,6 @@ export const ProviderRegistry: $ReadOnlyArray<Provider> = [
   new Google(),
   new Netflix(),
   new Slack(),
-  new Generic(),
 ];
 
 export const ProviderLookup: $ReadOnlyMap<string, Provider> = new Map<

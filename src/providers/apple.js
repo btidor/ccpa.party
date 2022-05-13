@@ -2,12 +2,7 @@
 import { DateTime } from "luxon";
 import * as React from "react";
 
-import {
-  getSlugAndDay,
-  parseJSON,
-  parseCSV,
-  smartDecode,
-} from "common/importer";
+import { getSlugAndDay, parseJSON, parseCSV, smartDecode } from "common/parse";
 
 import type { DataFile, Entry, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";

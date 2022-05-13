@@ -1,13 +1,13 @@
 // @flow
 import * as React from "react";
 
-import styles from "components/TimelineRow.module.css";
-
 import { ProviderScopedDatabase } from "common/database";
 
-import type { Group } from "Timeline";
+import styles from "components/TimelineRow.module.css";
+
 import type { MetadataEntry, TimelineEntryKey } from "common/database";
 import type { Provider } from "common/provider";
+import type { Group } from "Timeline";
 
 type Props = {|
   +db: ProviderScopedDatabase,

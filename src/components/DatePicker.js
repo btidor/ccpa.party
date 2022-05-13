@@ -3,8 +3,8 @@ import * as React from "react";
 
 import styles from "components/DatePicker.module.css";
 
-import type { Group } from "Timeline";
 import type { TimelineEntryKey } from "common/database";
+import type { Group } from "Timeline";
 
 type Props = {|
   +index: number,

@@ -3,13 +3,14 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 
+import { ProviderScopedDatabase } from "common/database";
+import { darkColor } from "common/provider";
+
 import FilePreview from "components/FilePreview";
 import FilterBar from "components/FilterBar";
 import Navigation from "components/Navigation";
 import Placeholder from "components/Placeholder";
 import TimelineRow from "components/TimelineRow";
-import { ProviderScopedDatabase } from "common/database";
-import { darkColor } from "common/provider";
 
 import styles from "Drilldown.module.css";
 

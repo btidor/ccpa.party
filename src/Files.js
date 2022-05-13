@@ -3,13 +3,14 @@ import * as React from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { BeakerIcon, DesktopDownloadIcon } from "@primer/octicons-react";
 
+import { ProviderScopedDatabase } from "common/database";
+import { fileSizeLimitMB } from "common/importer";
+import { darkColor } from "common/provider";
+
 import FilePreview from "components/FilePreview";
 import FileTree from "components/FileTree";
 import Navigation from "components/Navigation";
 import Placeholder from "components/Placeholder";
-import { ProviderScopedDatabase } from "common/database";
-import { fileSizeLimitMB } from "common/importer";
-import { darkColor } from "common/provider";
 
 import styles from "Drilldown.module.css";
 

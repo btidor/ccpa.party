@@ -3,10 +3,11 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 import { TrashIcon } from "@primer/octicons-react";
 
-import Logo from "components/Logo";
 import { Database } from "common/database";
 import { importFiles, resetProvider } from "common/importer";
 import { darkColor } from "common/provider";
+
+import Logo from "components/Logo";
 
 import styles from "Request.module.css";
 

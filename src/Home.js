@@ -3,32 +3,11 @@ import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import { Database } from "common/database";
-import { darkColor } from "common/provider";
+import { ProviderRegistry, darkColor } from "common/provider";
+
 import Logo from "components/Logo";
 
-import Amazon from "providers/amazon";
-import Apple from "providers/apple";
-import Discord from "providers/discord";
-import Facebook from "providers/facebook";
-import GitHub from "providers/github";
-import Google from "providers/google";
-import Netflix from "providers/netflix";
-import Slack from "providers/slack";
-
 import styles from "Home.module.css";
-
-import type { Provider } from "common/provider";
-
-const Providers = ([
-  new Amazon(),
-  new Apple(),
-  new Discord(),
-  new Facebook(),
-  new GitHub(),
-  new Google(),
-  new Netflix(),
-  new Slack(),
-]: $ReadOnlyArray<Provider>);
 
 function Home(): React.Node {
   const location = useLocation();
@@ -67,7 +46,7 @@ function Home(): React.Node {
           </p>
         </div>
         <nav>
-          {Providers.map((provider) => (
+          {ProviderRegistry.map((provider) => (
             <div key={provider.slug} style={{ "--dark": darkColor(provider) }}>
               <span>{imported?.has(provider.slug) && "␥"}</span>
               <Link to={`/${provider.slug}`}>{provider.displayName}</Link>

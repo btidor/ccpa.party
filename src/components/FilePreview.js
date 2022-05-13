@@ -1,8 +1,9 @@
 // @flow
 import * as React from "react";
 
+import { smartDecode, parseJSON } from "common/parse";
+
 import Placeholder from "components/Placeholder";
-import { smartDecode, parseJSON } from "common/importer";
 
 import styles from "components/FilePreview.module.css";
 
