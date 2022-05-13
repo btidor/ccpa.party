@@ -93,8 +93,7 @@ const utf8Decoder = new TextDecoder("utf-8");
 const utf16beDecoder = new TextDecoder("utf-16be");
 const jsonReviver = (key: any, value: any): any =>
   typeof value === "string" ? smartDecodeText(value) : value;
-const isPrintableUnicode = (str: string): boolean =>
-  Array.from(str).every((c) => printableRegExp.test(c));
+const isPrintableUnicode = (str: string): boolean => printableRegExp.test(str);
 
 export function parseJSON(data: BufferSource | string): any {
   let text;
