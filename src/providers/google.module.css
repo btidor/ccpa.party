@@ -1,0 +1,18 @@
+.line {
+  margin-left: 3ch;
+  text-indent: -3ch;
+}
+
+.icon {
+  color: var(--dark);
+  font-weight: 900;
+}
+
+.major {
+  margin: 0 0.5ch 0 1ch;
+}
+
+.minor {
+  color: #999;
+  white-space: nowrap;
+}

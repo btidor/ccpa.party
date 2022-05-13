@@ -1,5 +1,10 @@
 // @flow
+import { DateTime } from "luxon";
 import * as React from "react";
+
+import { getSlugAndDay, parseCSV, parseJSON } from "common/parse";
+
+import styles from "providers/google.module.css";
 
 import type { DataFile, Entry, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
@@ -23,14 +28,78 @@ class Google implements Provider {
   privacyPolicy: string =
     "https://policies.google.com/privacy?hl=en#california";
 
-  timelineCategories: $ReadOnlyArray<TimelineCategory> = [];
+  timelineCategories: $ReadOnlyArray<TimelineCategory> = [
+    {
+      char: "a",
+      slug: "activity",
+      displayName: "Activity",
+      defaultEnabled: true,
+    },
+    {
+      char: "s",
+      slug: "security",
+      displayName: "Security Logs",
+      defaultEnabled: false,
+    },
+  ];
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
-    return []; // TODO
+    const entry = (
+      row: any,
+      category: string,
+      datetime: any,
+      context: any
+    ) => ({
+      type: "timeline",
+      provider: file.provider,
+      file: file.path,
+      category,
+      ...getSlugAndDay(datetime.toSeconds(), row),
+      context,
+      value: row,
+    });
+
+    if (file.path[2] === "Access Log Activity") {
+      if (file.path[3].startsWith("Activities - ")) {
+        return (await parseCSV(file.data)).map((row) =>
+          entry(row, "security", DateTime.fromSQL(row["Activity Timestamp"]), [
+            "🪪",
+            row["Product Name"] === "Other"
+              ? "Activity"
+              : `Accessed ${row["Product Name"]}`,
+            `from ${row["IP Address"]}`,
+          ])
+        );
+      }
+    } else if (file.path[2] === "My Activity") {
+      return (await parseJSON(file.data)).map((row) => {
+        let { title, header } = row;
+        if (row.details?.some((x) => x.name === "From Google Ads"))
+          header = "Google Ads";
+        if (
+          header === "Maps" &&
+          row.titleUrl?.startsWith("https://www.google.com/maps/place/")
+        )
+          title = `Viewed ${title}`;
+        return entry(row, "activity", DateTime.fromISO(row.time), [
+          "🖱",
+          title,
+          header,
+        ]);
+      });
+    }
+    return [];
   }
 
   render(entry: TimelineEntry): React.Node {
-    return <React.Fragment></React.Fragment>; // TODO
+    const [icon, major, minor] = entry.context;
+    return (
+      <div className={styles.line}>
+        <span className={styles.icon}>{icon}</span>
+        <span className={styles.major}>{major}</span>{" "}
+        <span className={styles.minor}>{minor}</span>
+      </div>
+    );
   }
 }
 
