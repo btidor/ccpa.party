@@ -1,6 +1,7 @@
 // @flow
 import * as React from "react";
 import { Link } from "react-router-dom";
+import { TrashIcon } from "@primer/octicons-react";
 
 import Logo from "components/Logo";
 import { Database } from "common/database";
@@ -91,9 +92,11 @@ function Request(props: Props): React.Node {
               <React.Fragment>
                 <Link to={`/${provider.slug}/timeline`}>Explore →</Link>
                 <div className={styles.grow}></div>
-                <button aria-label="reset" onClick={resetHandler}>
-                  &#x2a2f;
-                </button>
+                <div className={styles.reset}>
+                  <button aria-label="reset" onClick={resetHandler}>
+                    <TrashIcon />
+                  </button>
+                </div>
               </React.Fragment>
             ) : inProgress ? (
               <code>...</code>

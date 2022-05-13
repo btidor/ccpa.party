@@ -101,9 +101,15 @@
   flex: 1;
 }
 
-.compass button {
+.reset {
   margin-right: -0.5ch;
+}
+
+.reset button {
   padding: 0 0.5ch;
   font-size: 1.1em;
   font-weight: 900;
+}
+.reset button svg {
+  margin-bottom: 0.2em;
 }
