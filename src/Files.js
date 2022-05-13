@@ -26,16 +26,14 @@ const FileParseAction = (props: {|
   +provider: Provider,
 |}): React.Node =>
   process.env.NODE_ENV === "development" && (
-    <React.Suspense fallback={null}>
-      <div
-        className={styles.action}
-        onClick={() => {
-          props.provider.parse(props.file).then((e) => console.warn(e));
-        }}
-      >
-        <BeakerIcon />
-      </div>
-    </React.Suspense>
+    <div
+      className={styles.action}
+      onClick={() => {
+        props.provider.parse(props.file).then((e) => console.warn(e));
+      }}
+    >
+      <BeakerIcon />
+    </div>
   );
 
 const FileDownloadAction = (props: {| +file: DataFile |}): React.Node => (
