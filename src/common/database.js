@@ -80,81 +80,23 @@ export class Database {
     this._terminated = terminated;
     this._state = new Promise((resolve) =>
       // $FlowFixMe[prop-missing]
-      navigator.locks.request(dbInitLock, async () => {
-        // We encrypt the data and store the key in a cookie because (a) the
-        // browser cookie jar is encrypted using OS-level data protection APIs
-        // while IndexedDB is not, and (b) we can force the key to expire after
-        // 24 hours.
-        const db = await this._openDatabase();
-        const cookie = getCookie(keyCookie);
-        let cookieHash, key;
-        if (cookie) {
-          key = await window.crypto.subtle.importKey(
-            "raw",
-            b64dec(cookie),
-            "AES-GCM",
-            false,
-            keyUsages
-          );
-          cookieHash = b64enc(
-            await window.crypto.subtle.digest("SHA-256", b64dec(cookie))
-          );
-        }
-
-        const storedHash: string = await new Promise((resolve, reject) => {
-          const op = db
-            .transaction(dbStore)
-            .objectStore(dbStore)
-            .get(keyHashKey);
-          op.onsuccess = () => resolve((op.result: any));
-          op.onerror = (e) => reject(e);
-        });
-        if (storedHash && storedHash === cookieHash) {
-          // Success! Database was created with the current encryption key.
-          resolve({ db, key });
-        } else if (storedHash !== undefined) {
-          // Database exists, but was created with an older enryption key.
-          // Clear, then reload the page to reinitialize.
-          console.warn("Clearing IndexedDB...");
-          await new Promise((resolve, reject) => {
-            const op = db
-              .transaction(dbStore, "readwrite")
-              .objectStore(dbStore)
-              .clear();
-            op.onsuccess = () => resolve(op.result);
-            op.onerror = (e) => reject(e);
-          });
-          db.close();
-          terminated();
-          // promise never resolves, operations hang
-        } else {
-          // Database is empty; generate a new key (unless in read-only mode)
-          // and initialize it.
-          if (await this._generateAndSaveKey()) {
-            db.close();
-            terminated();
-            return; // promise never resolves, operations hang
-          } else {
-            // Read-only database. Resolve with undefined state so operations
-            // return empty results.
-            resolve();
-          }
-        }
-      })
+      navigator.locks.request(dbInitLock, async () =>
+        resolve(await this._initializeState())
+      )
     );
 
     this._rootIndex = (async () =>
       (await this._get(rootIndexKey, { named: true })) || {})();
   }
 
-  _openDatabase(): Promise<IDBDatabase> {
-    const terminated = this._terminated;
-    return new Promise((resolve, reject) => {
+  async _initializeState(): Promise<?AsyncState> {
+    // Open and initialize our IndexedDB database.
+    const db = await new Promise((resolve, reject) => {
       const op = window.indexedDB.open(dbName, dbVersion);
       op.onsuccess = () => {
         const db = op.result;
-        db.onversionchange = () => (db.close(), terminated());
-        db.onclose = () => terminated();
+        db.onversionchange = () => (db.close(), this._terminated());
+        db.onclose = () => this._terminated();
         resolve(db);
       };
       op.onerror = (e) => reject(e);
@@ -168,9 +110,62 @@ export class Database {
       };
       op.onblocked = () => op.result.close();
     });
+
+    // We encrypt the data and store the key in a cookie because (a) the browser
+    // cookie jar is encrypted using OS-level data protection APIs while
+    // IndexedDB is not, and (b) we can force the key to expire after 24 hours.
+    const cookie = getCookie(keyCookie);
+    let cookieHash, key;
+    if (cookie) {
+      key = await window.crypto.subtle.importKey(
+        "raw",
+        b64dec(cookie),
+        "AES-GCM",
+        false,
+        keyUsages
+      );
+      cookieHash = b64enc(
+        await window.crypto.subtle.digest("SHA-256", b64dec(cookie))
+      );
+    }
+
+    const storedHash: string = await new Promise((resolve, reject) => {
+      const op = db.transaction(dbStore).objectStore(dbStore).get(keyHashKey);
+      op.onsuccess = () => resolve((op.result: any));
+      op.onerror = (e) => reject(e);
+    });
+    if (storedHash && storedHash === cookieHash) {
+      // Success! Database was created with the current encryption key.
+      return { db, key };
+    } else if (storedHash !== undefined) {
+      // Database exists, but was created with an older enryption key.
+      // Clear, then reload the page to reinitialize.
+      console.warn("Clearing IndexedDB...");
+      await new Promise((resolve, reject) => {
+        const op = db
+          .transaction(dbStore, "readwrite")
+          .objectStore(dbStore)
+          .clear();
+        op.onsuccess = () => resolve(op.result);
+        op.onerror = (e) => reject(e);
+      });
+      db.close();
+      return await this._initializeState();
+    } else {
+      // Database is empty; generate a new key (unless in read-only mode)
+      // and initialize it.
+      if (await this._generateAndSaveKey(db)) {
+        db.close();
+        return await this._initializeState();
+      } else {
+        // Read-only database. Resolve with undefined state so operations
+        // return empty results.
+        return;
+      }
+    }
   }
 
-  async _generateAndSaveKey(): Promise<boolean> {
+  async _generateAndSaveKey(db: IDBDatabase): Promise<boolean> {
     return false;
   }
 
@@ -288,19 +283,16 @@ export class WritableDatabase extends ProviderScopedDatabase {
   |};
 
   constructor(provider: Provider, terminated: () => void) {
-    super(provider, terminated);
-    this._additions = { files: [], metadata: new Map(), timeline: [] };
-    // $FlowFixMe[prop-missing]
-    navigator.locks.request(dbWriteLock, () => {
-      return new Promise((resolve) => {
-        this._terminated = () => (resolve(), terminated());
-      });
+    const release = new Promise((resolve) => {
+      super(provider, () => (resolve(), terminated()));
+      this._additions = { files: [], metadata: new Map(), timeline: [] };
     });
+    // $FlowFixMe[prop-missing]
+    navigator.locks.request(dbWriteLock, () => release);
   }
 
-  async _generateAndSaveKey(): Promise<boolean> {
+  async _generateAndSaveKey(db: IDBDatabase): Promise<boolean> {
     console.warn("Initializing IndexedDB...");
-    const db = await this._openDatabase();
     const key = await window.crypto.getRandomValues(new Uint8Array(32));
     const keyHash = b64enc(await window.crypto.subtle.digest("SHA-256", key));
 
