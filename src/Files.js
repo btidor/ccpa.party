@@ -30,7 +30,10 @@ const FileParseAction = (props: {|
     <div
       className={styles.action}
       onClick={() => {
-        props.provider.parse(props.file).then((e) => console.warn(e));
+        props.provider
+          .parse(props.file)
+          .then((e) => console.warn(e))
+          .catch((e) => console.error(e));
       }}
     >
       <BeakerIcon />
