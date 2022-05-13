@@ -208,7 +208,13 @@ export class ProviderScopedDatabase extends Database {
     this._provider = provider;
     this._providerIndex = (async () => {
       const iv = (await this._rootIndex)[provider.slug];
-      return (iv && this._get(iv)) || { files: [], metadata: [], timeline: [] };
+      return (
+        (iv && (await this._get(iv))) || {
+          files: [],
+          metadata: [],
+          timeline: [],
+        }
+      );
     })();
   }
 

@@ -26,6 +26,12 @@ class ErrorBoundary extends React.Component<Props, State> {
     return { hasError: true };
   }
 
+  componentDidMount() {
+    window.addEventListener("unhandledrejection", () =>
+      this.setState({ hasError: true })
+    );
+  }
+
   render() {
     if (this.state.hasError) {
       return (
