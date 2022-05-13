@@ -9,10 +9,18 @@
 
 @font-face {
   /* subset containing just the emoji we use */
-  font-family: "Noto Emoji";
+  font-family: "Noto Emoji - Home";
   font-display: block;
   text-rendering: geometricPrecision;
   src: url("fonts/noto-emoji-subset.woff2") format("woff2");
+}
+
+@font-face {
+  /* TODO: subset */
+  font-family: "Noto Emoji - Provider";
+  font-display: block;
+  text-rendering: geometricPrecision;
+  src: url("fonts/noto-emoji.woff2") format("woff2");
 }
 
 @font-face {
