@@ -20,14 +20,29 @@
 .item {
   padding: 0 0.5rem;
   overflow-x: hidden;
+
   font-size: 15px;
   line-height: 1.4;
+
+  border: 1px solid transparent;
+  cursor: pointer;
 }
 
-.item:hover,
+.item:hover {
+  border: 1px solid var(--dark);
+}
+
 .item[aria-selected="true"] {
-  cursor: pointer;
   background-color: var(--dark);
+}
+
+.item[aria-selected="true"] .content {
+  filter: invert(1);
+  --dark: #fff; /* never invert custom colors */
+}
+
+.item[aria-selected="true"]:hover {
+  border: 1px solid #fff;
 }
 
 .last {

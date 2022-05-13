@@ -54,7 +54,7 @@ html {
 *,
 *:before,
 *:after {
-  background-color: inherit;
+  background-color: transparent;
   border: none;
   box-sizing: inherit;
   color: inherit;

@@ -50,16 +50,20 @@ function TimelineRow(props: Props): React.Node {
   } else {
     return (
       <div
-        onClick={() => row && setSelected(row.slug)}
-        className={styles.item + (isLast ? " " + styles.last : "")}
-        role="row"
         aria-selected={row && selected === row.slug}
+        className={[styles.item, isLast && styles.last]
+          .filter((x) => x)
+          .join(" ")}
+        role="row"
+        onClick={() => row && setSelected(row.slug)}
       >
-        {hydrated && metadata ? (
-          provider.render(hydrated, metadata)
-        ) : (
-          <React.Fragment>&nbsp;</React.Fragment>
-        )}
+        <span className={styles.content}>
+          {hydrated && metadata ? (
+            provider.render(hydrated, metadata)
+          ) : (
+            <React.Fragment>&nbsp;</React.Fragment>
+          )}
+        </span>
       </div>
     );
   }
