@@ -88,6 +88,20 @@ class Google implements Provider {
           header,
         ]);
       });
+    } else if (file.path[2] === "Drive") {
+      if (file.path.slice(-1)[0].endsWith("-info.json")) {
+        const parsed = await parseJSON(file.data);
+        if (parsed.last_modified_by_me) {
+          return [
+            entry(
+              parsed,
+              "activity",
+              DateTime.fromISO(parsed.last_modified_by_me),
+              ["🖱", `Edited "${parsed.title}"`, "Google Drive"]
+            ),
+          ];
+        }
+      }
     }
     return [];
   }
