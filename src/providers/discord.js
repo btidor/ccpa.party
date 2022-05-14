@@ -1,4 +1,5 @@
 // @flow
+import { DateTime } from "luxon";
 import * as React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -10,7 +11,7 @@ import {
   smartDecode,
 } from "common/parse";
 
-import styles from "providers/discord.module.css";
+import styles from "providers/simple.module.css";
 
 import type { DataFile, Entry, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
@@ -50,6 +51,21 @@ class Discord implements Provider {
   ];
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
+    const entry = (
+      row: any,
+      category: string,
+      datetime: any,
+      context: any
+    ) => ({
+      type: "timeline",
+      provider: file.provider,
+      file: file.path,
+      category,
+      ...getSlugAndDayTime(datetime.toSeconds(), row),
+      context,
+      value: row,
+    });
+
     if (file.skipped) return [];
     if (file.path.slice(1).join("/") === "servers/index.json") {
       return [
@@ -71,17 +87,13 @@ class Discord implements Provider {
         },
       ];
     } else if (file.path.slice(-1)[0] === "messages.csv") {
-      return (await parseCSV(file.data)).map(
-        (row) =>
-          ({
-            type: "timeline",
-            provider: file.provider,
-            file: file.path,
-            category: "message",
-            ...getSlugAndDayTime(new Date(row.Timestamp).getTime() / 1000, row),
-            context: file.path[2].slice(1),
-            value: row,
-          }: TimelineEntry)
+      return (await parseCSV(file.data)).map((row) =>
+        entry(
+          row,
+          "message",
+          DateTime.fromJSDate(new Date(row.Timestamp)),
+          file.path[2].slice(1)
+        )
       );
     } else if (file.path[1] === "activity") {
       return smartDecode(file.data)
@@ -89,19 +101,12 @@ class Discord implements Provider {
         .split("\n")
         .map((line) => {
           const parsed = parseJSON(line);
-          return ({
-            type: "timeline",
-            provider: file.provider,
-            file: file.path,
-            category: "activity",
-            ...getSlugAndDayTime(
-              // Trim quotes from timestamp
-              new Date(parsed.timestamp.slice(1, -1)).getTime() / 1000,
-              parsed
-            ),
-            context: null,
-            value: parsed,
-          }: TimelineEntry);
+          return entry(
+            parsed,
+            "activity",
+            DateTime.fromISO(parsed.timestamp.slice(1, -1)),
+            null
+          );
         });
     }
     return [];
@@ -112,9 +117,30 @@ class Discord implements Provider {
     time: ?string,
     metadata: $ReadOnlyMap<string, any>
   ): React.Node {
-    if (entry.category === "message") {
-      let markdown = entry.value.Contents;
-      markdown = markdown.replaceAll(
+    let icon, major, minor;
+    let isMarkdown = false;
+    if (entry.category === "activity") {
+      const channel =
+        metadata.get(`channel/${entry.value.channel_id}`) ||
+        metadata.get(`channel/${entry.value.channel}`);
+      const server = metadata.get(`servers`)?.[entry.value.guild_id];
+
+      icon = "🖱";
+      major = entry.value.event_type
+        .replace(/_/g, " ")
+        .replace(/\w\S*/g, (w) => " " + w[0].toUpperCase() + w.slice(1));
+      minor =
+        entry.value.type ||
+        entry.value.name ||
+        (channel?.name && `#${channel?.name} ${server ? `(${server}}` : ""}`) ||
+        (server && `in ${server}`) ||
+        (entry.value.ip && `from ${entry.value.ip}`);
+    } else if (entry.category === "message") {
+      const channel = metadata.get(`channel/${entry.context}`);
+
+      icon = "💬";
+      isMarkdown = true;
+      major = entry.value.Contents.replaceAll(
         /<(@!?|@&|#)([0-9]+)>/g,
         (original, type, snowflake) => {
           if (type === "@" || type === "@!") {
@@ -125,53 +151,43 @@ class Discord implements Provider {
             return "&unknown";
           } else if (type === "#") {
             const channel = metadata.get(`channel/${snowflake}`);
-            if (channel) return `#${channel.name}`;
+            return `#${channel?.name || "unknown"}`;
           }
           return original;
         }
       );
+      if (entry.value.Attachments) major += " [Attachment]";
 
-      return (
-        <React.Fragment>
-          <span className={styles.channel}>
-            {(() => {
-              const channel = metadata.get(`channel/${entry.context}`);
-              if (!channel) return "#unknown";
-              if ([1, 3].includes(channel.type)) return "DM";
-              if ([0, 2].includes(channel.type))
-                return `${channel.guild?.name} #${channel.name}`;
-              if ([10, 11, 12].includes(channel.type))
-                return `Thread: ${channel.name}`;
-              return "#unknown";
-            })()}
-          </span>
-          <ReactMarkdown
-            className={styles.markdown}
-            remarkPlugins={[remarkGfm]}
-            linkTarget="_blank"
-          >
-            {markdown}
-          </ReactMarkdown>
-          {entry.value.Attachments?.trim() && (
-            <div className={styles.pill}>Attachment</div>
-          )}
-        </React.Fragment>
-      );
+      if (channel && [1, 3].includes(channel.type)) minor = "in direct message";
+      else if (channel && [0, 2].includes(channel.type))
+        minor = `in #${channel.name} (${channel.guild.name})`;
+      else if (channel && [10, 11, 12].includes(channel.type))
+        minor = `in thread "${channel.name}" (${channel.guild.name})`;
+      else minor = "in unknown channel";
     } else {
-      const channel =
-        metadata.get(`channel/${entry.value.channel_id}`) ||
-        metadata.get(`channel/${entry.value.channel}`);
-      const server = metadata.get(`servers`)?.[entry.value.guild_id];
-      return (
-        <span className={styles.channel}>
-          {entry.value.event_type} {entry.value.type || entry.value.name}{" "}
-          {entry.value.source && ` from ${entry.value.source}`}
-          {channel
-            ? ` in ${channel.guild?.name}#${channel.name}`
-            : server && ` in ${server}`}
-        </span>
-      );
+      throw new Error("Unknown category: " + entry.category);
     }
+
+    return (
+      <div className={styles.line}>
+        <span className={styles.time}>{time}</span>
+        <span className={styles.icon}>{icon}</span>
+        <span className={styles.text}>
+          {isMarkdown ? (
+            <ReactMarkdown
+              className={styles.major}
+              remarkPlugins={[remarkGfm]}
+              linkTarget="_blank"
+            >
+              {major}
+            </ReactMarkdown>
+          ) : (
+            <span className={styles.major}>{major}</span>
+          )}
+          <span className={styles.minor}>{minor}</span>
+        </span>
+      </div>
+    );
   }
 }
 

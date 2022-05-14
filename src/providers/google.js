@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { getSlugAndDayTime, parseCSV, parseJSON } from "common/parse";
 
-import styles from "providers/google.module.css";
+import styles from "providers/simple.module.css";
 
 import type { DataFile, Entry, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
