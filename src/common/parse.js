@@ -86,12 +86,13 @@ export function smartDecodeText(text: string): string {
   throw new Error("Could not decode text to a printable Unicode string");
 }
 
-export function getSlugAndDay(
+export function getSlugAndDayTime(
   timestamp: number,
   value: any
 ): {|
   slug: string,
   day: string,
+  timestamp: number,
 |} {
   if (isNaN(timestamp)) throw new Error("Received NaN for timestamp");
   const hash = MurmurHash3(JSON.stringify(value));
@@ -106,5 +107,5 @@ export function getSlugAndDay(
     (date.getMonth() + 1).toString().padStart(2, "0") +
     "-" +
     date.getDate().toString().padStart(2, "0");
-  return { slug, day };
+  return { slug, day, timestamp };
 }

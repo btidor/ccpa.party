@@ -3,12 +3,11 @@ import * as React from "react";
 
 import styles from "components/DatePicker.module.css";
 
-import type { TimelineEntryKey } from "common/database";
-import type { Group } from "Timeline";
+import type { Entry, Group } from "components/TimelineRow";
 
 type Props = {|
   +index: number,
-  +rows: ?$ReadOnlyArray<TimelineEntryKey | Group>,
+  +rows: ?$ReadOnlyArray<Entry | Group>,
   +scrollToIndex: (number) => void,
 |};
 

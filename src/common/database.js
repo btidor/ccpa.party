@@ -30,6 +30,7 @@ export type TimelineEntryKey = {|
   +type: "timeline",
   +provider: string,
   +day: string,
+  +timestamp: number,
   +slug: string,
   +category: string,
   +iv?: string,
@@ -66,7 +67,7 @@ type RootIndex = {| [string]: string |}; // provider slug -> iv
 type ProviderIndex = {|
   files: Array<DataFileKey>,
   metadata: Array<[string, any]>,
-  timeline: Array<[string, number, string, string, string]>,
+  timeline: Array<[string, number, string, number, string, string]>,
 |};
 
 type AsyncState = {| +db: IDBDatabase, +key: any |};
@@ -236,10 +237,11 @@ export class ProviderScopedDatabase extends Database {
 
   async getTimelineEntries(): Promise<Array<TimelineEntryKey>> {
     return (await this._providerIndex).timeline.map(
-      ([iv, offset, day, slug, category]) => ({
+      ([iv, offset, day, timestamp, slug, category]) => ({
         type: "timeline",
         provider: this._provider.slug,
         day,
+        timestamp,
         slug,
         category,
         iv,
@@ -265,14 +267,15 @@ export class ProviderScopedDatabase extends Database {
 
   async getTimelineEntryBySlug(slug: string): Promise<?TimelineEntry> {
     const entry = (await this._providerIndex).timeline.find(
-      ([, , , s]) => s === slug
+      ([, , , , s]) => s === slug
     );
     if (!entry) return;
-    const [iv, offset, day, s, category] = entry;
+    const [iv, offset, day, timestamp, s, category] = entry;
     return this.hydrateTimelineEntry({
       type: "timeline",
       provider: this._provider.slug,
       day,
+      timestamp,
       slug: s,
       category,
       iv,
@@ -345,16 +348,17 @@ export class WritableDatabase extends ProviderScopedDatabase {
         batch.map(({ file, context, value }) => [file, context, value])
       );
       timelineIndex.push(
-        ...batch.map(({ day, slug, category }, i) => [
+        ...batch.map(({ day, timestamp, slug, category }, i) => [
           iv,
           i,
           day,
+          timestamp,
           slug,
           category,
         ])
       );
     }
-    timelineIndex.sort((a, b) => a[3].localeCompare(b[3]));
+    timelineIndex.sort((a, b) => a[4].localeCompare(b[4]));
 
     // Write provider index
     const iv = await this._put({

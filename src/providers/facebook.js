@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
 
-import { getSlugAndDay, parseJSON } from "common/parse";
+import { getSlugAndDayTime, parseJSON } from "common/parse";
 
 import type { DataFile, Entry, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
@@ -132,7 +132,7 @@ function discoverEntry(
         provider: file.provider,
         file: file.path,
         category,
-        ...getSlugAndDay(timestamp, obj),
+        ...getSlugAndDayTime(timestamp, obj),
         context: [timelineLabel || "unknown: " + file.path.join("/"), label],
         value: obj,
       }

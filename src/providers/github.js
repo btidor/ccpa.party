@@ -2,7 +2,7 @@
 import { DateTime } from "luxon";
 import * as React from "react";
 
-import { getSlugAndDay, parseJSON } from "common/parse";
+import { getSlugAndDayTime, parseJSON } from "common/parse";
 
 import type { DataFile, Entry, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
@@ -49,7 +49,7 @@ class GitHub implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromISO(item.created_at).toSeconds(),
               item
             ),

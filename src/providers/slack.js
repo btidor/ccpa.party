@@ -2,7 +2,7 @@
 import EmojiMap from "emoji-name-map";
 import * as React from "react";
 
-import { getSlugAndDay, parseJSON } from "common/parse";
+import { getSlugAndDayTime, parseJSON } from "common/parse";
 
 import styles from "providers/slack.module.css";
 
@@ -68,7 +68,7 @@ class Slack implements Provider {
             provider: file.provider,
             file: file.path,
             category: "integration",
-            ...getSlugAndDay(parseInt(log.date), log),
+            ...getSlugAndDayTime(parseInt(log.date), log),
             context: null,
             value: log,
           }: TimelineEntry)
@@ -81,7 +81,7 @@ class Slack implements Provider {
             provider: file.provider,
             file: file.path,
             category: "message",
-            ...getSlugAndDay(parseInt(message.ts), message),
+            ...getSlugAndDayTime(parseInt(message.ts), message),
             context: file.path[1],
             value: message,
           }: TimelineEntry)
@@ -91,6 +91,7 @@ class Slack implements Provider {
 
   render(
     entry: TimelineEntry,
+    time: ?string,
     metadata: $ReadOnlyMap<string, any>
   ): React.Node {
     const message = entry.value;

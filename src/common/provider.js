@@ -34,7 +34,11 @@ export interface Provider {
   +timelineCategories: $ReadOnlyArray<TimelineCategory>;
 
   parse(file: DataFile): Promise<$ReadOnlyArray<Entry>>;
-  render(entry: TimelineEntry, metadata: $ReadOnlyMap<string, any>): React.Node;
+  render(
+    entry: TimelineEntry,
+    time: ?string,
+    metadata: $ReadOnlyMap<string, any>
+  ): React.Node;
 }
 
 export const ProviderRegistry: $ReadOnlyArray<Provider> = [

@@ -1,4 +1,5 @@
 // @flow
+import { DateTime } from "luxon";
 import * as React from "react";
 
 import { ProviderScopedDatabase } from "common/database";
@@ -7,24 +8,24 @@ import styles from "components/TimelineRow.module.css";
 
 import type { MetadataEntry, TimelineEntryKey } from "common/database";
 import type { Provider } from "common/provider";
-import type { Group } from "Timeline";
+
+export type Entry = $ReadOnly<{| ...TimelineEntryKey, time: ?string |}>;
+
+export type Group = {|
+  +type: "group",
+  +value: string,
+  +first?: boolean,
+|};
 
 type Props = {|
   +db: ProviderScopedDatabase,
   +isLast: boolean,
   +metadata: ?$ReadOnlyMap<string, MetadataEntry>,
   +provider: Provider,
-  +row: TimelineEntryKey | Group,
+  +row: Entry | Group,
   +selected: ?string,
   +setSelected: (string) => any,
 |};
-
-const VerboseDateFormat = new Intl.DateTimeFormat("en-US", {
-  weekday: "long",
-  month: "long",
-  day: "numeric",
-  year: "numeric",
-});
 
 function TimelineRow(props: Props): React.Node {
   const { db, isLast, metadata, provider, row, selected, setSelected } = props;
@@ -32,9 +33,9 @@ function TimelineRow(props: Props): React.Node {
   const [hydrated, setHydrated] = React.useState();
   React.useEffect(() => {
     (async () => {
-      const hydrated =
-        row.type === "group" ? undefined : await db.hydrateTimelineEntry(row);
-      setHydrated(hydrated);
+      if (row.type === "group") return;
+      const { time, ...key } = row;
+      setHydrated(await db.hydrateTimelineEntry(key));
     })();
   }, [db, row]);
 
@@ -43,7 +44,7 @@ function TimelineRow(props: Props): React.Node {
       <React.Fragment>
         {!row.first && <hr className={styles.divider} />}
         <div className={styles.group} role="row">
-          {VerboseDateFormat.format(new Date(row.value))}
+          {DateTime.fromISO(row.value).toLocaleString(DateTime.DATE_HUGE)}
         </div>
       </React.Fragment>
     );
@@ -59,7 +60,7 @@ function TimelineRow(props: Props): React.Node {
       >
         <span className={styles.content}>
           {hydrated && metadata ? (
-            provider.render(hydrated, metadata)
+            provider.render(hydrated, row.time, metadata)
           ) : (
             <React.Fragment>&nbsp;</React.Fragment>
           )}

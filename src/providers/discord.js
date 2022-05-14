@@ -3,7 +3,12 @@ import * as React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import { getSlugAndDay, parseCSV, parseJSON, smartDecode } from "common/parse";
+import {
+  getSlugAndDayTime,
+  parseCSV,
+  parseJSON,
+  smartDecode,
+} from "common/parse";
 
 import styles from "providers/discord.module.css";
 
@@ -73,7 +78,7 @@ class Discord implements Provider {
             provider: file.provider,
             file: file.path,
             category: "message",
-            ...getSlugAndDay(new Date(row.Timestamp).getTime() / 1000, row),
+            ...getSlugAndDayTime(new Date(row.Timestamp).getTime() / 1000, row),
             context: file.path[2].slice(1),
             value: row,
           }: TimelineEntry)
@@ -89,7 +94,7 @@ class Discord implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               // Trim quotes from timestamp
               new Date(parsed.timestamp.slice(1, -1)).getTime() / 1000,
               parsed
@@ -104,6 +109,7 @@ class Discord implements Provider {
 
   render(
     entry: TimelineEntry,
+    time: ?string,
     metadata: $ReadOnlyMap<string, any>
   ): React.Node {
     if (entry.category === "message") {

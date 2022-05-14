@@ -1,4 +1,5 @@
 // @flow
+import { DateTime } from "luxon";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
@@ -6,6 +7,7 @@ import { Virtuoso } from "react-virtuoso";
 import { ProviderScopedDatabase } from "common/database";
 import { darkColor } from "common/provider";
 
+import DatePicker from "components/DatePicker";
 import FilePreview from "components/FilePreview";
 import FilterBar from "components/FilterBar";
 import Navigation from "components/Navigation";
@@ -14,20 +16,13 @@ import TimelineRow from "components/TimelineRow";
 
 import styles from "Drilldown.module.css";
 
-import type { TimelineEntryKey } from "common/database";
 import type { Provider } from "common/provider";
-import DatePicker from "components/DatePicker";
+import type { Entry, Group } from "components/TimelineRow";
 
 type Props = {|
   +provider: Provider,
   +filter?: string,
   +selected?: string,
-|};
-
-export type Group = {|
-  +type: "group",
-  +value: string,
-  +first?: boolean,
 |};
 
 function Timeline(props: Props): React.Node {
@@ -94,8 +89,9 @@ function Timeline(props: Props): React.Node {
       const filtered = entries.filter((entry) =>
         selectedCategories.has(entry.category)
       );
-      const rows = ([]: Array<TimelineEntryKey | Group>);
+      const rows = ([]: Array<Entry | Group>);
       let lastGroup;
+      let lastTime;
       for (const entry of filtered) {
         if (entry.day !== lastGroup) {
           rows.push({
@@ -105,7 +101,11 @@ function Timeline(props: Props): React.Node {
           });
           lastGroup = entry.day;
         }
-        rows.push(entry);
+        let time = DateTime.fromSeconds(entry.timestamp).toLocaleString(
+          DateTime.TIME_24_SIMPLE
+        );
+        lastTime === time ? (time = undefined) : (lastTime = time);
+        rows.push({ ...entry, time });
       }
       return rows;
     }

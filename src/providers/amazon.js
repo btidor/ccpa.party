@@ -2,7 +2,12 @@
 import { DateTime } from "luxon";
 import * as React from "react";
 
-import { smartDecode, getSlugAndDay, parseCSV, parseJSON } from "common/parse";
+import {
+  smartDecode,
+  getSlugAndDayTime,
+  parseCSV,
+  parseJSON,
+} from "common/parse";
 
 import type { DataFile, Entry, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
@@ -56,7 +61,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromISO(row["Timestamp"]).toSeconds(),
               row
             ),
@@ -72,7 +77,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromSQL(row["Account_Creation_Time"]).toSeconds(),
               row
             ),
@@ -88,7 +93,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "order",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromISO(row["creationDate"]).toSeconds(),
               row
             ),
@@ -106,7 +111,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["LastUpdatedTimeInUTC"],
                 "MM/dd/yyyy HH:mm",
@@ -128,7 +133,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["SelectionTimeInUTC"],
                 "MM/dd/yyyy HH:mm",
@@ -151,7 +156,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "billing",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromSQL(row["transaction_creation_date"], {
                 zone: "UTC",
               }).toSeconds(),
@@ -169,7 +174,10 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(DateTime.fromSQL(row["AddDate"]).toSeconds(), row),
+            ...getSlugAndDayTime(
+              DateTime.fromSQL(row["AddDate"]).toSeconds(),
+              row
+            ),
             context: `Added to Audible cart: ${row["Title"]}`,
             value: row,
           }: TimelineEntry)
@@ -182,7 +190,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "billing",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromSQL(row["IssueDate"]).toSeconds(),
               row
             ),
@@ -198,7 +206,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromSQL(row["StartDate"]).toSeconds(),
               row
             ),
@@ -214,7 +222,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "order",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromSQL(row["DateAdded"]).toSeconds(),
               row
             ),
@@ -230,7 +238,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "billing",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromSQL(row["TaxCreateDate"]).toSeconds(),
               row
             ),
@@ -246,7 +254,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromSQL(row["EventDate"]).toSeconds(),
               row
             ),
@@ -262,7 +270,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "order",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromSQL(row["OrderPlaceDate"]).toSeconds(),
               row
             ),
@@ -280,7 +288,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["ActionTimestamp"],
                 "M/d/yy h:mm:ss a z"
@@ -302,7 +310,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["ActionTimestamp"],
                 "M/d/yy h:mm:ss a z"
@@ -321,7 +329,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromISO(row["FirstTimeRegistered"]).toSeconds(),
               row
             ),
@@ -337,7 +345,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "order",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromSQL(row["OrderDate"]).toSeconds(),
               row
             ),
@@ -353,7 +361,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "order",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromSQL(row["OrderDate"]).toSeconds(),
               row
             ),
@@ -369,7 +377,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "billing",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromSQL(row["BenefitDate"]).toSeconds(),
               row
             ),
@@ -388,7 +396,7 @@ class Amazon implements Provider {
           provider: file.provider,
           file: file.path,
           category: "order",
-          ...getSlugAndDay(
+          ...getSlugAndDayTime(
             DateTime.fromISO(parsed.rights[0].acquiredDate).toSeconds(),
             parsed
           ),
@@ -404,7 +412,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromISO(
                 row["Customer modified date on device"]
               ).toSeconds(),
@@ -422,7 +430,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["last_updated_at"],
                 "MM/dd/yyyy"
@@ -441,7 +449,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "billing",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromISO(row["ClaimDate"]).toSeconds(),
               row
             ),
@@ -457,7 +465,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "billing",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromISO(row["StartDate"]).toSeconds(),
               row
             ),
@@ -473,7 +481,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "billing",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromISO(row["SubscriptionStartDate"]).toSeconds(),
               row
             ),
@@ -491,7 +499,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "billing",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromSQL(row["promotion_start_datetime"]).toSeconds(),
               row
             ),
@@ -507,7 +515,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromISO(row["end_timestamp"]).toSeconds(),
               row
             ),
@@ -526,7 +534,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(row["Timestamp"], "MM/dd/yyyy HH:mm", {
                 zone: "UTC",
               }).toSeconds(),
@@ -547,7 +555,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["App Last Updated Time"],
                 "MM/dd/yyyy HH:mm",
@@ -571,7 +579,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["Email Delivered Time"],
                 "MM/dd/yyyy HH:mm",
@@ -595,7 +603,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["Record Creation Date"],
                 "MM/dd/yyyy HH:mm",
@@ -617,7 +625,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(row["Recorded Time"], "MM/dd/yyyy HH:mm", {
                 zone: "UTC",
               }).toSeconds(),
@@ -635,7 +643,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["Message Sent Time"],
                 "MM/dd/yyyy HH:mm",
@@ -659,7 +667,7 @@ class Amazon implements Provider {
               provider: file.provider,
               file: file.path,
               category: "billing",
-              ...getSlugAndDay(
+              ...getSlugAndDayTime(
                 DateTime.fromFormat(
                   row["RegistrationDate"],
                   "MM/dd/yyyy HH:mm:ss z"
@@ -678,7 +686,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "order",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["order_datetime"],
                 "MM/dd/yyyy HH:mm"
@@ -699,7 +707,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["Created"],
                 "MM/dd/yyyy HH:mm"
@@ -719,7 +727,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromISO(row.creationTime).toSeconds(),
               row
             ),
@@ -735,7 +743,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromSQL(row["Timestamp"]).toSeconds(),
               row
             ),
@@ -751,7 +759,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["profileLastOnboardingTime"],
                 "MM/dd/yyyy HH:mm:ss",
@@ -771,7 +779,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(row["lastModified"], "MM/dd/yyyy HH:mm:ss", {
                 zone: "UTC",
               }).toSeconds(),
@@ -789,7 +797,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "billing",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               row["DateOfReturn"][0].match(/[0-9]/)
                 ? DateTime.fromSQL(row["DateOfReturn"], {
                     zone: "UTC",
@@ -814,7 +822,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "billing",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(row["Order Date"], "MM/dd/yyyy HH:mm:ss z", {
                 zone: "UTC",
               }).toSeconds(),
@@ -834,7 +842,7 @@ class Amazon implements Provider {
               provider: file.provider,
               file: file.path,
               category: "billing",
-              ...getSlugAndDay(
+              ...getSlugAndDayTime(
                 DateTime.fromFormat(
                   row["RefundCompletionDate"],
                   "MM/dd/yyyy HH:mm:ss z",
@@ -856,7 +864,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "billing",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["CreationDate"],
                 "MM/dd/yyyy HH:mm:ss z",
@@ -880,7 +888,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["App Registration Time"],
                 "MM/dd/yyyy HH:mm",
@@ -908,7 +916,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["Sent Time"],
                 "EEE MMM dd HH:mm:ss z yyyy"
@@ -927,7 +935,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "billing",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(row["creationTime"], "MM/dd/yyyy HH:mm", {
                 zone: "UTC",
               }).toSeconds(),
@@ -945,7 +953,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromISO(row["Timestamp"]).toSeconds(),
               row
             ),
@@ -964,7 +972,7 @@ class Amazon implements Provider {
               provider: file.provider,
               file: file.path,
               category: "activity",
-              ...getSlugAndDay(
+              ...getSlugAndDayTime(
                 DateTime.fromFormat(
                   row["buttonCreationTime (GMT)"],
                   "MM/dd/yyyy HH:mm",
@@ -991,7 +999,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromISO(row["Last search Time (GMT)"]).toSeconds(),
               row
             ),
@@ -1007,7 +1015,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "activity",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromFormat(row["Date"], "MM/dd/yyyy HH:mm", {
                 zone: "UTC",
               }).toSeconds(),
@@ -1025,7 +1033,7 @@ class Amazon implements Provider {
             provider: file.provider,
             file: file.path,
             category: "billing",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromSQL(row["TransactionCreationDate"]).toSeconds(),
               row
             ),

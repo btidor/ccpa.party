@@ -2,7 +2,12 @@
 import { DateTime } from "luxon";
 import * as React from "react";
 
-import { getSlugAndDay, parseJSON, parseCSV, smartDecode } from "common/parse";
+import {
+  getSlugAndDayTime,
+  parseJSON,
+  parseCSV,
+  smartDecode,
+} from "common/parse";
 
 import type { DataFile, Entry, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
@@ -71,7 +76,7 @@ class Apple implements Provider {
               provider: file.provider,
               file: file.path,
               category: "appleId",
-              ...getSlugAndDay(
+              ...getSlugAndDayTime(
                 DateTime.fromSQL(row["Last Update Date"], {
                   zone: "UTC",
                 }).toSeconds(),
@@ -88,7 +93,7 @@ class Apple implements Provider {
             provider: file.provider,
             file: file.path,
             category: "appleId",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromSQL(row["Device Added Date"], {
                 zone: "UTC",
               }).toSeconds(),
@@ -102,7 +107,7 @@ class Apple implements Provider {
             provider: file.provider,
             file: file.path,
             category: "appleId",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromSQL(row["Device Last Heartbeat Timestamp"], {
                 zone: "UTC",
               }).toSeconds(),
@@ -120,7 +125,7 @@ class Apple implements Provider {
               provider: file.provider,
               file: file.path,
               category: "appleId",
-              ...getSlugAndDay(
+              ...getSlugAndDayTime(
                 DateTime.fromSQL(row["Logged In Date"], {
                   zone: "UTC",
                 }).toSeconds(),
@@ -138,7 +143,7 @@ class Apple implements Provider {
               provider: file.provider,
               file: file.path,
               category: "appleId",
-              ...getSlugAndDay(
+              ...getSlugAndDayTime(
                 DateTime.fromSQL(row["Request Time"], {
                   zone: "UTC",
                 }).toSeconds(),
@@ -158,7 +163,7 @@ class Apple implements Provider {
               provider: file.provider,
               file: file.path,
               category: "store",
-              ...getSlugAndDay(
+              ...getSlugAndDayTime(
                 DateTime.fromSQL(row["Promotion Start Date"], {
                   zone: "UTC",
                 }).toSeconds(),
@@ -179,7 +184,7 @@ class Apple implements Provider {
               provider: file.provider,
               file: file.path,
               category: "store",
-              ...getSlugAndDay(
+              ...getSlugAndDayTime(
                 DateTime.fromISO(row["Activity Date"], {
                   zone: "UTC",
                 }).toSeconds(),
@@ -201,7 +206,7 @@ class Apple implements Provider {
                 provider: file.provider,
                 file: file.path,
                 category: "retail",
-                ...getSlugAndDay(
+                ...getSlugAndDayTime(
                   DateTime.fromISO(row["Order Date"], {
                     zone: "UTC",
                   }).toSeconds(),
@@ -226,7 +231,7 @@ class Apple implements Provider {
               provider: file.provider,
               file: file.path,
               category: "applecare",
-              ...getSlugAndDay(
+              ...getSlugAndDayTime(
                 DateTime.fromISO(row["TimeStamp"], {
                   zone: "UTC",
                 }).toSeconds(),
@@ -249,7 +254,7 @@ class Apple implements Provider {
               provider: file.provider,
               file: file.path,
               category: "applecare",
-              ...getSlugAndDay(
+              ...getSlugAndDayTime(
                 DateTime.fromISO(row["Repair Created Date"], {
                   zone: "UTC",
                 }).toSeconds(),
@@ -272,7 +277,7 @@ class Apple implements Provider {
               provider: file.provider,
               file: file.path,
               category: "applecare",
-              ...getSlugAndDay(
+              ...getSlugAndDayTime(
                 DateTime.fromISO(row["Creation Date"]).toSeconds(),
                 row
               ),
@@ -290,7 +295,7 @@ class Apple implements Provider {
                 provider: file.provider,
                 file: file.path,
                 category: "applecare",
-                ...getSlugAndDay(
+                ...getSlugAndDayTime(
                   DateTime.fromISO(row["Purchase Date"]).toSeconds(),
                   row
                 ),
@@ -305,7 +310,7 @@ class Apple implements Provider {
                 provider: file.provider,
                 file: file.path,
                 category: "applecare",
-                ...getSlugAndDay(
+                ...getSlugAndDayTime(
                   DateTime.fromISO(row["Warranty Start Date"]).toSeconds(),
                   row
                 ),
@@ -320,7 +325,7 @@ class Apple implements Provider {
                 provider: file.provider,
                 file: file.path,
                 category: "applecare",
-                ...getSlugAndDay(
+                ...getSlugAndDayTime(
                   DateTime.fromISO(row["Agreement Start Date"]).toSeconds(),
                   row
                 ),
@@ -341,7 +346,7 @@ class Apple implements Provider {
               provider: file.provider,
               file: file.path,
               category: "marketing",
-              ...getSlugAndDay(
+              ...getSlugAndDayTime(
                 DateTime.fromSQL(row["Registration_Timestamp"], {
                   zone: "UTC",
                 }).toSeconds(),
@@ -361,7 +366,7 @@ class Apple implements Provider {
                 provider: file.provider,
                 file: file.path,
                 category: "marketing",
-                ...getSlugAndDay(
+                ...getSlugAndDayTime(
                   DateTime.fromSQL(row["Delivery Time"].slice(0, -1), {
                     zone: "UTC",
                   }).toSeconds(),
@@ -379,7 +384,7 @@ class Apple implements Provider {
               provider: file.provider,
               file: file.path,
               category: "marketing",
-              ...getSlugAndDay(
+              ...getSlugAndDayTime(
                 DateTime.fromSQL(row["Response Time"], {
                   zone: "UTC",
                 }).toSeconds(),
@@ -399,7 +404,7 @@ class Apple implements Provider {
               provider: file.provider,
               file: file.path,
               category: "wallet",
-              ...getSlugAndDay(
+              ...getSlugAndDayTime(
                 DateTime.fromSQL(row[" Date Created"], {
                   zone: "UTC",
                 }).toSeconds(),
@@ -419,7 +424,7 @@ class Apple implements Provider {
             provider: file.provider,
             file: file.path,
             category: "wallet",
-            ...getSlugAndDay(
+            ...getSlugAndDayTime(
               DateTime.fromISO(parsed.relevantDate, {
                 zone: "UTC",
               }).toSeconds(),

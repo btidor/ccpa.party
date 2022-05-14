@@ -2,7 +2,7 @@
 import { DateTime } from "luxon";
 import * as React from "react";
 
-import { getSlugAndDay, parseCSV, parseJSON } from "common/parse";
+import { getSlugAndDayTime, parseCSV, parseJSON } from "common/parse";
 
 import styles from "providers/google.module.css";
 
@@ -54,7 +54,7 @@ class Google implements Provider {
       provider: file.provider,
       file: file.path,
       category,
-      ...getSlugAndDay(datetime.toSeconds(), row),
+      ...getSlugAndDayTime(datetime.toSeconds(), row),
       context,
       value: row,
     });
@@ -91,13 +91,16 @@ class Google implements Provider {
     return [];
   }
 
-  render(entry: TimelineEntry): React.Node {
+  render(entry: TimelineEntry, time: ?string): React.Node {
     const [icon, major, minor] = entry.context;
     return (
       <div className={styles.line}>
+        <span className={styles.time}>{time}</span>
         <span className={styles.icon}>{icon}</span>
-        <span className={styles.major}>{major}</span>{" "}
-        <span className={styles.minor}>{minor}</span>
+        <span className={styles.text}>
+          <span className={styles.major}>{major}</span>
+          <span className={styles.minor}>{minor}</span>
+        </span>
       </div>
     );
   }
