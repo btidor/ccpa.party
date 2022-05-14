@@ -20,10 +20,10 @@ class Google implements Provider {
   };
   waitTime: string = "a day or two";
   instructions: $ReadOnlyArray<string> = [
-    `check every box`,
     `for every row:`,
+    ` check the box &`,
     ` click "Multiple Formats"`,
-    `  change to JSON (or CSV)`,
+    ` - change to JSON (or CSV)`,
   ];
   singleFile: boolean = true;
   privacyPolicy: string =
