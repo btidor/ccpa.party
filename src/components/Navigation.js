@@ -59,10 +59,10 @@ function Navigation(props: Props): React.Node {
           <React.Fragment>
             {providers.map((provider) => (
               <option key={provider.slug} value={provider.slug}>
-                {provider.displayName}
+                {provider.displayName.toLowerCase()}
               </option>
             ))}
-            <option value={importTag}>+ Add More</option>
+            <option value={importTag}>+ import</option>
           </React.Fragment>
         ) : (
           <option key={provider.slug} value={provider.slug}>
