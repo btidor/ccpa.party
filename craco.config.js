@@ -9,7 +9,7 @@ module.exports = {
         "default-src 'none'",
         // Allow our scripts to run. Note: unsafe-inline is only needed for the
         // React dev tools extension.
-        "script-src 'self' 'unsafe-inline'",
+        "script-src 'self' 'unsafe-inline' blob:",
         // Allow React to inject styles into the page.
         "style-src 'unsafe-inline'",
         // Additional resources:
