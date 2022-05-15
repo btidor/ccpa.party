@@ -18,8 +18,8 @@ class Slack implements Provider {
     text: "Export Workspace Data",
     href: "https://slack.com/help/articles/201658943-Export-your-workspace-data",
   };
-  waitTime: string = "TODO";
-  instructions: $ReadOnlyArray<string> = [`workspace owners only`];
+  waitTime: string = "a few days";
+  instructions: $ReadOnlyArray<string> = [];
   singleFile: boolean = true;
   privacyPolicy: string =
     "https://slack.com/trust/privacy/privacy-policy#california-rights";
@@ -101,11 +101,10 @@ class Slack implements Provider {
     if (!users || !channels) throw new Error("Failed to load metadata");
 
     const channelName =
-      entry.context ||
-      channels.find((x) => x.id === message.channel)?.name ||
-      "unknown";
+      entry.context || channels.find((x) => x.id === message.channel)?.name;
+    let trailer = channelName && `#${channelName}`;
 
-    let name = message.user_name || "unknown";
+    let name = message.user_name || message.bot_id || "unknown";
     let style = {};
     const user = users.find((x) => x.id === (message.user || message.user_id));
     if (!!user) {
@@ -113,7 +112,6 @@ class Slack implements Provider {
       if (user.color) style = { color: `#${user.color}` };
     }
     let text = message.text;
-    let messageClass;
     if (message.files || message.attachments) {
       text = (
         <React.Fragment>
@@ -122,18 +120,16 @@ class Slack implements Provider {
       );
     }
     if (message.subtype === "channel_join") {
-      text = `joined #${channelName}`;
-      messageClass = styles.system;
+      text = undefined;
+      trailer = `joined #${channelName}`;
     }
     if (entry.category === "integration") {
-      const verb = message.change_type;
-      const name = message.app_type || message.service_type;
-      if (verb && name) {
-        text = `${verb} integration ${name}`;
-      } else {
-        text = JSON.stringify(message);
-      }
-      messageClass = styles.system;
+      let verb = message.change_type;
+      if (verb === "wildcard_resource_grant_created") verb = "created";
+      trailer = `${verb} integration ${
+        message.app_type || message.service_type
+      }`;
+      if (channelName) trailer += ` in #${channelName}`;
     }
     let key = 0;
     const handleElement = (element) => {
@@ -215,14 +211,12 @@ class Slack implements Provider {
     }
     return (
       <div className={styles.item}>
-        <div className={styles.prefix}>
-          <span className={styles.channel}>#{channelName}</span>
-        </div>
+        <div className={styles.time}>{time}</div>
         <div className={styles.message}>
           <span style={style} className={styles.username}>
             {name}
-          </span>{" "}
-          <span className={messageClass}>{text}</span>
+          </span>
+          {text} <span className={styles.trailer}>{trailer}</span>
         </div>
       </div>
     );

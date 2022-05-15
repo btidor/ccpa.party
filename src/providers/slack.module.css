@@ -1,11 +1,25 @@
 .item {
-  padding: 2px 4px;
-  border-radius: 4px;
   display: flex;
+  gap: 1ch;
+
+  /* use system (color) emoji */
+  font-family: "Plex Sans", monospace;
 }
 
-.prefix {
-  width: fit-content;
+.time,
+.channel {
+  flex: none;
+  width: 32.5px;
+  color: #999;
+  font-size: 0.8em;
+  font-weight: 500;
+  margin-top: 1px;
+  line-height: 20px;
+}
+
+.username {
+  font-weight: 900;
+  margin-right: 0.75ch;
 }
 
 .message {
@@ -14,33 +28,32 @@
   overflow-wrap: anywhere;
 }
 
+.trailer {
+  color: #999;
+  white-space: nowrap;
+}
+
 .item a {
-  color: #29d;
-  text-decoration: none;
+  color: var(--dark);
 }
 
 .item a:hover {
   text-decoration: underline;
 }
 
-.item ul {
-  margin: 0;
-  padding: 0;
-  list-style-position: inside;
+.item li {
+  margin-left: 1em;
+  list-style: disc;
 }
 
 .item blockquote {
-  margin: 4px 0;
-  border-left: 4px solid #dddddd;
-  border-radius: 2px;
-  padding: 0 0 0 16px;
+  border-left: 2px solid #dddddd;
+  margin: 4px;
+  padding-left: 8px;
 }
 
-.item pre,
-.item code {
-  background-color: #f7f7f7;
-  border: 1px solid #e2e2e2;
-  font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+.item blockquote:last-child::parent {
+  border: 1px solid red;
 }
 
 .item pre {
@@ -52,37 +65,19 @@
   overflow-x: scroll;
 }
 
-.item code {
-  color: #e01e5a;
-  padding: 2px 3px 1px;
-  border-radius: 3px;
-}
-
+.item code,
 .item .internal {
-  color: #1264a3;
-  padding: 0 2px 1px;
-  border-radius: 3px;
-  background-color: #e8f5fa;
+  color: var(--dark);
+  font-weight: 500;
 }
 
 .item .unknown {
+  color: var(--dark);
   font-size: 12px;
-  margin: 0 4px;
-  padding: 2px 3px 1px;
-  border-radius: 3px;
-  background-color: #e0e0e0;
+  font-weight: bold;
+  margin-right: 1ch;
 }
 
-.channel {
-  color: #606060;
-  font-size: 12px;
-  margin-right: 8px;
-}
-
-.username {
-  font-weight: 900;
-}
-
-.system {
-  color: #606060;
+.item .unknown:last-child {
+  margin-right: 0;
 }

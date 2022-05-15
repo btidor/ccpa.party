@@ -35,6 +35,7 @@
 
 .major a {
   color: var(--dark);
+  word-break: break-all;
 }
 
 .major a:hover {
