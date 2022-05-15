@@ -19,10 +19,11 @@ class Google implements Provider {
   };
   waitTime: string = "a day or two";
   instructions: $ReadOnlyArray<string> = [
-    `for every row:`,
-    ` check the box &`,
-    ` click "Multiple Formats"`,
-    ` - change to JSON (or CSV)`,
+    `check Access Log Activity`,
+    ``,
+    `under My Activity`,
+    ` click Multiple Formats`,
+    `  change HTML to JSON`,
   ];
   singleFile: boolean = true;
   privacyPolicy: string =
