@@ -4,10 +4,9 @@ import * as React from "react";
 
 import { getSlugAndDayTime, parseJSON } from "common/parse";
 
-import styles from "providers/slack.module.css";
-
 import type { DataFile, Entry, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
+import SimpleRecord, { Highlight, Pill } from "components/SimpleRecord";
 
 class Slack implements Provider {
   slug: string = "slack";
@@ -104,18 +103,19 @@ class Slack implements Provider {
       entry.context || channels.find((x) => x.id === message.channel)?.name;
     let trailer = channelName && `#${channelName}`;
 
-    let name = message.user_name || message.bot_id || "unknown";
-    let style = {};
     const user = users.find((x) => x.id === (message.user || message.user_id));
-    if (!!user) {
-      name = user.profile.display_name || user.profile.real_name;
-      if (user.color) style = { color: `#${user.color}` };
-    }
-    let text = message.text;
+    const username = {
+      display: user
+        ? user.profile.display_name || user.profile.real_name
+        : message.user_name || message.bot_id || "unknown",
+      color: user?.color && `#${user.color}`,
+    };
+    let text = message.text ? <span>{message.text}</span> : undefined;
     if (message.files || message.attachments) {
       text = (
         <React.Fragment>
-          {text} <span className={styles.unknown}>attachment</span>
+          {text}
+          <Pill>Attachment</Pill>
         </React.Fragment>
       );
     }
@@ -153,72 +153,58 @@ class Slack implements Provider {
       } else if (element.type === "rich_text_preformatted") {
         return <pre key={key}>{element.elements.flatMap(handleElement)}</pre>;
       } else if (element.type === "text") {
-        let node = <React.Fragment>{element.text}</React.Fragment>;
+        let node = <span>{element.text}</span>;
         if (element.style) {
           if (element.style.bold) node = <b>{node}</b>;
           if (element.style.italic) node = <i>{node}</i>;
           if (element.style.strike) node = <s>{node}</s>;
           if (element.style.code) node = <code>{node}</code>;
         }
-        return [<React.Fragment key={key}>{node}</React.Fragment>];
+        return [<span key={key}>{node}</span>];
       } else if (element.type === "emoji") {
         return [
-          <React.Fragment key={key}>
+          <span key={key}>
             {EmojiMap.get(element.name) || `:${element.name}:`}
-          </React.Fragment>,
+          </span>,
         ];
       } else if (element.type === "user") {
         const user = users.find((x) => x.id === element.user_id) || {};
         return [
-          <span key={key} className={styles.internal}>
+          <Highlight>
             @{user.display_name || user.real_name || "unknown"}
-          </span>,
+          </Highlight>,
         ];
       } else if (element.type === "channel") {
         const channel = channels.find((x) => x.id === element.channel_id) || {};
-        return [
-          <span key={key} className={styles.internal}>
-            #{channel.name || "unknown"}
-          </span>,
-        ];
+        return [<Highlight>#{channel.name || "unknown"}</Highlight>];
       } else if (element.type === "link") {
         return [
           <a href={element.url} key={key} target="_blank" rel="noreferrer">
-            {element.url}
+            {element.text || element.url}
           </a>,
         ];
       } else {
-        return [
-          <span key={key} className={styles.unknown}>
-            {element.type}
-          </span>,
-        ];
+        return [<Pill>{element.type}</Pill>];
       }
     };
     if (message.blocks) {
       text = message.blocks.flatMap((block) => {
         key++;
         if (block.type !== "rich_text") {
-          return (
-            <span key={key} className={styles.unknown}>
-              {block.type}
-            </span>
-          );
+          return <Pill>{block.type}</Pill>;
         } else {
           return block.elements.flatMap(handleElement);
         }
       });
     }
+
     return (
-      <div className={styles.item}>
-        <div className={styles.time}>{time}</div>
-        <div className={styles.message}>
-          <span style={style} className={styles.username}>
-            {name}
-          </span>
-          {text} <span className={styles.trailer}>{trailer}</span>
-        </div>
-      </div>
+      <SimpleRecord
+        time={time}
+        username={username}
+        body={text}
+        trailer={trailer}
+      />
     );
   }
 }

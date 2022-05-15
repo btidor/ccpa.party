@@ -3,8 +3,7 @@ import { DateTime } from "luxon";
 import * as React from "react";
 
 import { getSlugAndDayTime, parseCSV, parseJSON } from "common/parse";
-
-import styles from "providers/simple.module.css";
+import SimpleRecord from "components/SimpleRecord";
 
 import type { DataFile, Entry, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
@@ -107,16 +106,9 @@ class Google implements Provider {
   }
 
   render(entry: TimelineEntry, time: ?string): React.Node {
-    const [icon, major, minor] = entry.context;
+    const [icon, body, trailer] = entry.context;
     return (
-      <div className={styles.line}>
-        <span className={styles.time}>{time}</span>
-        <span className={styles.icon}>{icon}</span>
-        <span className={styles.text}>
-          <span className={styles.major}>{major}</span>
-          <span className={styles.minor}>{minor}</span>
-        </span>
-      </div>
+      <SimpleRecord time={time} icon={icon} body={body} trailer={trailer} />
     );
   }
 }

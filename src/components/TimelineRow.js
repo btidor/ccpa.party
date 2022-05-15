@@ -58,13 +58,13 @@ function TimelineRow(props: Props): React.Node {
         role="row"
         onClick={() => row && setSelected(row.slug)}
       >
-        <span className={styles.content}>
+        <div className={styles.content}>
           {hydrated && metadata ? (
             provider.render(hydrated, row.time, metadata)
           ) : (
             <React.Fragment>&nbsp;</React.Fragment>
           )}
-        </span>
+        </div>
       </div>
     );
   }

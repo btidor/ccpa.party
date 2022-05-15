@@ -28,6 +28,11 @@
   cursor: pointer;
 }
 
+.content {
+  display: flex;
+  gap: 1ch;
+}
+
 .item:hover {
   border: 1px solid var(--dark);
 }
@@ -39,6 +44,7 @@
 .item[aria-selected="true"] .content {
   filter: invert(1);
   --dark: #fff; /* never invert custom colors */
+  --whiteout: #fff;
 }
 
 .item[aria-selected="true"]:hover {

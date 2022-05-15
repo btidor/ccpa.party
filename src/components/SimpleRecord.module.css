@@ -1,0 +1,82 @@
+.time {
+  flex: none;
+  width: 32.5px;
+  color: var(--whiteout, #999);
+  font-size: 0.8em;
+  font-weight: 500;
+  margin-top: 3px;
+  line-height: 18px;
+}
+
+.username {
+  color: var(--whiteout, var(--custom));
+  font-weight: 900;
+  margin-right: 7px;
+}
+
+.content {
+  /* use system (color) emoji for user content */
+  font-family: "Plex Sans", monospace;
+}
+
+.trailer {
+  color: var(--whiteout, #999);
+  margin-left: 7px;
+}
+
+pre + .trailer,
+ul + .trailer,
+ol + .trailer,
+blockquote + .trailer,
+.pill + .trailer,
+.username + .trailer {
+  margin: 0;
+}
+
+.content a {
+  color: var(--dark);
+  word-break: break-all;
+}
+
+.content a:hover {
+  text-decoration: underline;
+}
+
+.content p {
+  display: inline;
+}
+
+.content li {
+  margin-left: 1em;
+  list-style: disc;
+}
+
+.content blockquote {
+  border-left: 2px solid var(--whiteout, #999);
+  margin: 2px 4px;
+  padding-left: 8px;
+}
+
+.highlight {
+  color: var(--dark);
+}
+
+.content code,
+.content pre {
+  color: var(--dark);
+  font-weight: 500;
+}
+
+.pill {
+  display: inline-block;
+  color: var(--dark);
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0 7px;
+}
+
+.pill:first-child,
+.username + .pill,
+.pill + .pill {
+  margin-left: 0;
+}

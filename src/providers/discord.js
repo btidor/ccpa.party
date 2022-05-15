@@ -10,8 +10,7 @@ import {
   parseJSON,
   smartDecode,
 } from "common/parse";
-
-import styles from "providers/simple.module.css";
+import SimpleRecord, { Pill } from "components/SimpleRecord";
 
 import type { DataFile, Entry, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
@@ -117,76 +116,70 @@ class Discord implements Provider {
     time: ?string,
     metadata: $ReadOnlyMap<string, any>
   ): React.Node {
-    let icon, major, minor;
-    let isMarkdown = false;
+    let icon, body, trailer;
     if (entry.category === "activity") {
       const channel =
         metadata.get(`channel/${entry.value.channel_id}`) ||
         metadata.get(`channel/${entry.value.channel}`);
-      const server = metadata.get(`servers`)?.[entry.value.guild_id];
+      const server =
+        metadata.get(`servers`)?.[entry.value.guild_id || entry.value.server];
 
       icon = "🖱";
-      major = entry.value.event_type
+      body = entry.value.event_type
         .replace(/_/g, " ")
         .replace(/\w\S*/g, (w) => " " + w[0].toUpperCase() + w.slice(1));
-      minor =
+      trailer =
         entry.value.type ||
         entry.value.name ||
-        (channel?.name && `#${channel?.name} ${server ? `(${server}}` : ""}`) ||
+        (channel?.name && `#${channel?.name} ${server ? `(${server})` : ""}`) ||
         (server && `in ${server}`) ||
         (entry.value.ip && `from ${entry.value.ip}`);
     } else if (entry.category === "message") {
       const channel = metadata.get(`channel/${entry.context}`);
 
       icon = "💬";
-      isMarkdown = true;
-      major = entry.value.Contents.replaceAll(
+      body = entry.value.Contents.replaceAll(
         /<(@!?|@&|#)([0-9]+)>/g,
         (original, type, snowflake) => {
           if (type === "@" || type === "@!") {
             // The users list isn't part of the export
-            return "@unknown";
+            return "`@unknown`";
           } else if (type === "@&") {
             // The roles list isn't part of the export
-            return "&unknown";
+            return "`&unknown`";
           } else if (type === "#") {
             const channel = metadata.get(`channel/${snowflake}`);
-            return `#${channel?.name || "unknown"}`;
+            return `\`#${channel?.name || "unknown"}\``;
           }
           return original;
         }
       );
-      if (entry.value.Attachments) major += " [Attachment]";
+      body = (
+        <ReactMarkdown remarkPlugins={[remarkGfm]} linkTarget="_blank">
+          {body}
+        </ReactMarkdown>
+      );
+      if (entry.value.Attachments)
+        body = (
+          <React.Fragment>
+            {body}
+            <Pill>Attachment</Pill>
+          </React.Fragment>
+        );
 
-      if (channel && [1, 3].includes(channel.type)) minor = "in direct message";
+      if (channel && [1, 3].includes(channel.type))
+        trailer = "in direct message";
       else if (channel && [0, 2].includes(channel.type))
-        minor = `in #${channel.name} (${channel.guild.name})`;
+        trailer = `in #${channel.name} (${channel.guild.name})`;
       else if (channel && [10, 11, 12].includes(channel.type))
-        minor = `in thread "${channel.name}" (${channel.guild.name})`;
-      else minor = "in unknown channel";
+        trailer = `in thread "${channel.name}" (${channel.guild.name})`;
+      else trailer = "in unknown channel";
     } else {
       throw new Error("Unknown category: " + entry.category);
     }
 
     return (
-      <div className={styles.line}>
-        <span className={styles.time}>{time}</span>
-        <span className={styles.icon}>{icon}</span>
-        <span className={styles.text}>
-          {isMarkdown ? (
-            <ReactMarkdown
-              className={styles.major}
-              remarkPlugins={[remarkGfm]}
-              linkTarget="_blank"
-            >
-              {major}
-            </ReactMarkdown>
-          ) : (
-            <span className={styles.major}>{major}</span>
-          )}
-          <span className={styles.minor}>{minor}</span>
-        </span>
-      </div>
+      <SimpleRecord time={time} icon={icon} body={body} trailer={trailer} />
     );
   }
 }

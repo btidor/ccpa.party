@@ -3,8 +3,7 @@ import { DateTime } from "luxon";
 import * as React from "react";
 
 import { getSlugAndDayTime, parseJSON } from "common/parse";
-
-import styles from "providers/simple.module.css";
+import SimpleRecord from "components/SimpleRecord";
 
 import type { DataFile, Entry, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
@@ -73,15 +72,15 @@ class GitHub implements Provider {
     if (supportedPrefixes.some((p) => file.path[1].startsWith(p))) {
       return parseJSON(file.data)
         .map((item) => {
-          let category, major, minor;
+          let category, title, trailer;
 
           if (item.type === "commit_comment" || item.type === "issue_comment") {
             category = "message";
-            major = body(item.body);
-            minor = `${object(item.user)} commented on ${object(item.url)}`;
+            title = body(item.body);
+            trailer = `${object(item.user)} commented on ${object(item.url)}`;
           } else if (item.type === "issue_event") {
             category = "activity";
-            major =
+            title =
               "Issue " +
               item.event
                 .replace(/_/g, " ")
@@ -89,21 +88,21 @@ class GitHub implements Provider {
                   /\w\S*/g,
                   (w) => " " + w[0].toUpperCase() + w.slice(1)
                 );
-            minor = `by ${object(item.actor)} on ${object(item.url)}`;
+            trailer = `by ${object(item.actor)} on ${object(item.url)}`;
           } else if (item.type === "issue") {
             category = "message";
-            major = item.title;
-            minor = `${object(item.user)} filed issue ${object(item.url)}`;
+            title = item.title;
+            trailer = `${object(item.user)} filed issue ${object(item.url)}`;
           } else if (item.type === "pull_request") {
             category = "message";
-            major = item.title;
-            minor = `${object(item.user)} created pull request ${object(
+            title = item.title;
+            trailer = `${object(item.user)} created pull request ${object(
               item.url
             )}`;
           } else if (item.type === "repository") {
             category = "activity";
-            major = "Repository Created";
-            minor = object(item.url);
+            title = "Repository Created";
+            trailer = object(item.url);
           } else {
             return undefined;
           }
@@ -118,7 +117,7 @@ class GitHub implements Provider {
               DateTime.fromISO(item.created_at).toSeconds(),
               item
             ),
-            context: [icon, major, minor],
+            context: [icon, title, trailer],
             value: item,
           }: TimelineEntry);
         })
@@ -128,16 +127,9 @@ class GitHub implements Provider {
   }
 
   render(entry: TimelineEntry, time: ?string): React.Node {
-    const [icon, major, minor] = entry.context;
+    const [icon, body, trailer] = entry.context;
     return (
-      <div className={styles.line}>
-        <span className={styles.time}>{time}</span>
-        <span className={styles.icon}>{icon}</span>
-        <span className={styles.text}>
-          <span className={styles.major}>{major}</span>
-          <span className={styles.minor}>{minor}</span>
-        </span>
-      </div>
+      <SimpleRecord time={time} icon={icon} body={body} trailer={trailer} />
     );
   }
 }
