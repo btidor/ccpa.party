@@ -74,7 +74,7 @@ export function smartDecode(data: BufferSource): string {
   }
 
   // Normalize line endings (csvtojson requires this)
-  return text.replace(/(\r|\n|\r\n)/g, "\n");
+  return text.replace(/(\r\n?)/g, "\n");
 }
 
 export function smartDecodeText(text: string): string {

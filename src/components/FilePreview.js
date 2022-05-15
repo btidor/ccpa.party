@@ -16,15 +16,17 @@ type Props = {|
   +filename?: string,
 |};
 
+const decodeFailureMessage = "🥗 Unable to decode text";
 const emptyMessage = "🥛 File is empty";
 const unknownMessage = "😕 Unknown file type";
 
 function displayText(data: BufferSource): React.Node {
   try {
     const raw = smartDecode(data);
-    return <pre>{raw}</pre>;
+    if (/^\n*$/.test(raw)) return <Placeholder>{emptyMessage}</Placeholder>;
+    else return <pre>{raw}</pre>;
   } catch {
-    return <Placeholder>🥗 Unable to decode text</Placeholder>;
+    return <Placeholder>{decodeFailureMessage}</Placeholder>;
   }
 }
 
@@ -116,11 +118,7 @@ function FilePreview(props: Props): React.Node {
   if (children === undefined || typeof children === "string") {
     node = <Placeholder>{children}</Placeholder>;
   } else if (children instanceof ArrayBuffer || ArrayBuffer.isView(children)) {
-    node = children.byteLength ? (
-      displayFile((children: any), filename || "")
-    ) : (
-      <Placeholder>{emptyMessage}</Placeholder>
-    );
+    node = displayFile((children: any), filename || "");
   } else {
     node = <pre>{JSON.stringify(children, undefined, 2)}</pre>;
   }
