@@ -40,7 +40,6 @@ class Slack implements Provider {
   ];
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
-    if (file.skipped) return [];
     if (file.path[1] === "users.json") {
       return [
         {

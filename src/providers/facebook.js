@@ -67,7 +67,6 @@ const settingLabels: { [string]: string } = {
 async function parseFile(
   file: DataFile
 ): Promise<$ReadOnlyArray<TimelineEntry>> {
-  if (file.skipped) return [];
   const ext = file.path.slice(-1)[0].split(".").slice(-1)[0];
   switch (ext) {
     case "json": {
@@ -181,7 +180,6 @@ class Facebook implements Provider {
   ];
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
-    if (file.skipped) return [];
     if (file.path[1] === "messages") {
       return []; // TODO: handle messages
     } else if (file.path[1] === "posts") {

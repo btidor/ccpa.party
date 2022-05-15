@@ -49,7 +49,6 @@ class Amazon implements Provider {
   ];
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
-    if (file.skipped) return [];
     if (
       file.path[1] === "Location" &&
       file.path[2]?.startsWith("Country of Residence")

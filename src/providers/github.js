@@ -60,7 +60,6 @@ class GitHub implements Provider {
       return parts.length > 1 ? parts[0] + " [...]" : parts[0];
     };
 
-    if (file.skipped) return [];
     const supportedPrefixes = [
       "commit_comments_",
       "issue_comments_",

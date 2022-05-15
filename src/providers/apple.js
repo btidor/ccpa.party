@@ -66,7 +66,6 @@ class Apple implements Provider {
   ];
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
-    if (file.skipped) return [];
     if (file.path[1] === "Apple ID account and device information") {
       if (file.path[2] === "Apple ID Account Information.csv") {
         return (await parseCSV(file.data)).map(

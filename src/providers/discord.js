@@ -65,7 +65,6 @@ class Discord implements Provider {
       value: row,
     });
 
-    if (file.skipped) return [];
     if (file.path.slice(1).join("/") === "servers/index.json") {
       return [
         {
