@@ -45,27 +45,36 @@ export async function parseCSV(
 // Some companies (e.g. Amazon, Facebook) mis-encode some of their files, for
 // instance by applying UTF-8 encoding twice.
 export function smartDecode(data: BufferSource): string {
-  // Simple UTF-8
+  // Try simple UTF-8
   let text = utf8Decoder.decode(data);
-  if (isPrintableUnicode(text)) return text;
 
-  // Double-encoded UTF-8
-  text = utf8Decoder.decode(
-    // $FlowFixMe[incompatible-call]
-    // $FlowFixMe[prop-missing]
-    Uint8Array.from(text, (x) => x.charCodeAt(0))
-  );
-  if (isPrintableUnicode(text)) return text;
+  if (!isPrintableUnicode(text)) {
+    // Try double-encoded UTF-8
+    text = utf8Decoder.decode(
+      // $FlowFixMe[incompatible-call]
+      // $FlowFixMe[prop-missing]
+      Uint8Array.from(text, (x) => x.charCodeAt(0))
+    );
 
-  // UTF-16 big-endian (used in some Apple JSON files)
-  text = utf16beDecoder.decode(data);
-  if (isPrintableUnicode(text)) return text;
+    if (!isPrintableUnicode(text)) {
+      // Try UTF-16 big-endian (used in some Apple JSON files)
+      text = utf16beDecoder.decode(data);
 
-  console.warn(
-    data,
-    Array.from(utf8Decoder.decode(data)).filter((c) => !printableRegExp.test(c))
-  );
-  throw new Error("Could not decode data to a printable Unicode string");
+      if (!isPrintableUnicode(text)) {
+        // Fail :(
+        console.warn(
+          data,
+          Array.from(utf8Decoder.decode(data)).filter(
+            (c) => !printableRegExp.test(c)
+          )
+        );
+        throw new Error("Could not decode data to a printable Unicode string");
+      }
+    }
+  }
+
+  // Normalize line endings (csvtojson requires this)
+  return text.replace(/(\r|\n|\r\n)/g, "\n");
 }
 
 export function smartDecodeText(text: string): string {
