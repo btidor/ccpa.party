@@ -116,7 +116,7 @@ function FilePreview(props: Props): React.Node {
 
   let node;
   if (children === undefined || typeof children === "string") {
-    node = <Placeholder>{children}</Placeholder>;
+    node = <pre>{children}</pre>;
   } else if (children instanceof ArrayBuffer || ArrayBuffer.isView(children)) {
     node = displayFile((children: any), filename || "");
   } else {
