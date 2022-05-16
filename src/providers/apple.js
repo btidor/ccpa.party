@@ -8,6 +8,7 @@ import {
   parseCSV,
   smartDecode,
 } from "common/parse";
+import SimpleRecord from "components/SimpleRecord";
 
 import type { DataFile, Entry, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
@@ -28,192 +29,303 @@ class Apple implements Provider {
 
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [
     {
-      char: "s",
-      slug: "store",
-      displayName: "App Store",
+      char: "c",
+      icon: "🪪",
+      slug: "account",
+      displayName: "Account",
+      defaultEnabled: true,
+    },
+    {
+      char: "a",
+      icon: "🖱",
+      slug: "activity",
+      displayName: "Activity",
       defaultEnabled: false,
     },
     {
       char: "i",
-      slug: "appleId",
-      displayName: "Apple ID",
-      defaultEnabled: true,
-    },
-    {
-      char: "c",
-      slug: "applecare",
-      displayName: "AppleCare",
+      icon: "🌥",
+      slug: "icloud",
+      displayName: "iCloud",
       defaultEnabled: true,
     },
     {
       char: "m",
-      slug: "marketing",
-      displayName: "Marketing",
-      defaultEnabled: true,
-    },
-    {
-      char: "r",
-      slug: "retail",
-      displayName: "Retail",
-      defaultEnabled: true,
-    },
-    {
-      char: "w",
-      slug: "wallet",
-      displayName: "Wallet",
+      icon: "🎶",
+      slug: "media",
+      displayName: "Media",
       defaultEnabled: true,
     },
   ];
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
+    const entry = (
+      row: any,
+      category: string,
+      datetime: any,
+      context: any
+    ) => ({
+      type: "timeline",
+      provider: file.provider,
+      file: file.path,
+      category,
+      ...getSlugAndDayTime(datetime.toSeconds(), row),
+      context,
+      value: row,
+    });
+
     if (file.path[1] === "Apple ID account and device information") {
       if (file.path[2] === "Apple ID Account Information.csv") {
-        return (await parseCSV(file.data)).map(
-          (row) =>
-            ({
-              type: "timeline",
-              provider: file.provider,
-              file: file.path,
-              category: "appleId",
-              ...getSlugAndDayTime(
-                DateTime.fromSQL(row["Last Update Date"], {
-                  zone: "UTC",
-                }).toSeconds(),
-                row
-              ),
-              context: "id.account.updated",
-              value: row,
-            }: TimelineEntry)
+        return (await parseCSV(file.data)).map((row) =>
+          entry(
+            row,
+            "account",
+            DateTime.fromSQL(row["Last Update Date"], {
+              zone: "UTC",
+            }),
+            ["Updated Apple ID account information"]
+          )
         );
       } else if (file.path[2] === "Apple ID Device Information.csv") {
         return (await parseCSV(file.data)).flatMap((row) => [
-          ({
-            type: "timeline",
-            provider: file.provider,
-            file: file.path,
-            category: "appleId",
-            ...getSlugAndDayTime(
-              DateTime.fromSQL(row["Device Added Date"], {
-                zone: "UTC",
-              }).toSeconds(),
-              row
-            ),
-            context: "id.device.added",
-            value: row,
-          }: TimelineEntry),
-          ({
-            type: "timeline",
-            provider: file.provider,
-            file: file.path,
-            category: "appleId",
-            ...getSlugAndDayTime(
-              DateTime.fromSQL(row["Device Last Heartbeat Timestamp"], {
-                zone: "UTC",
-              }).toSeconds(),
-              row
-            ),
-            context: "id.device.lastHeartbeat",
-            value: row,
-          }: TimelineEntry),
+          entry(
+            row,
+            "account",
+            DateTime.fromSQL(row["Device Added Date"], {
+              zone: "UTC",
+            }),
+            ["Added Device", row["Device Name"]]
+          ),
+          entry(
+            row,
+            "account",
+            DateTime.fromSQL(row["Device Last Heartbeat Timestamp"], {
+              zone: "UTC",
+            }),
+            [
+              "Device Last Heartbeat",
+              `${row["Device Name"]} at ${row["Device Last Heartbeat IP"]}`,
+            ]
+          ),
         ]);
       } else if (file.path[2] === "Apple ID SignOn Information.csv") {
-        return (await parseCSV(file.data)).map(
-          (row) =>
-            ({
-              type: "timeline",
-              provider: file.provider,
-              file: file.path,
-              category: "appleId",
-              ...getSlugAndDayTime(
-                DateTime.fromSQL(row["Logged In Date"], {
-                  zone: "UTC",
-                }).toSeconds(),
-                row
-              ),
-              context: "id.signon",
-              value: row,
-            }: TimelineEntry)
+        return (await parseCSV(file.data)).map((row) =>
+          entry(
+            row,
+            "account",
+            DateTime.fromSQL(row["Logged In Date"], {
+              zone: "UTC",
+            }),
+            [
+              "Latest Sign-on",
+              row["Application"] +
+                (row["IP Address"] !== "N/A"
+                  ? ` from ${row["IP Address"]}`
+                  : ""),
+            ]
+          )
         );
       } else if (file.path[2] === "Data & Privacy Request History.csv") {
-        return (await parseCSV(file.data)).map(
-          (row) =>
-            ({
-              type: "timeline",
-              provider: file.provider,
-              file: file.path,
-              category: "appleId",
-              ...getSlugAndDayTime(
-                DateTime.fromSQL(row["Request Time"], {
-                  zone: "UTC",
-                }).toSeconds(),
-                row
-              ),
-              context: "id.privacy",
-              value: row,
-            }: TimelineEntry)
+        return (await parseCSV(file.data)).map((row) =>
+          entry(
+            row,
+            "account",
+            DateTime.fromSQL(row["Request Time"], {
+              zone: "UTC",
+            }),
+            ["Submitted Data & Privacy Request"]
+          )
         );
       }
     } else if (file.path[1] === "Apple Media Services information") {
-      if (file.path[2] === "Direct Top-Up Promotions.csv") {
-        return (await parseCSV(file.data)).map(
-          (row) =>
-            ({
-              type: "timeline",
-              provider: file.provider,
-              file: file.path,
-              category: "store",
-              ...getSlugAndDayTime(
-                DateTime.fromSQL(row["Promotion Start Date"], {
-                  zone: "UTC",
-                }).toSeconds(),
-                row
-              ),
-              context: "media.promotion",
-              value: row,
-            }: TimelineEntry)
+      if (file.path.slice(-1)[0] === "Apple Music Likes and Dislikes.csv") {
+        return (await parseCSV(file.data)).map((row) =>
+          entry(row, "media", DateTime.fromISO(row["Created"]), [
+            (row["Preference"] === "LOVE"
+              ? "Loved"
+              : row["Preference"] === "DISLIKE"
+              ? "Disliked"
+              : "Marked") + " Track",
+            row["Item Description"],
+          ])
         );
+      } else if (file.path.slice(-1)[0] === "Apple Music Play Activity.csv") {
+        return ((await parseCSV(file.data))
+          .map(
+            (row) =>
+              row["Song Name"] &&
+              entry(
+                row,
+                "media",
+                DateTime.fromISO(
+                  row["Event Start Timestamp"] || row["Event End Timestamp"]
+                ),
+                [
+                  row["Event Type"] === "PLAY_END"
+                    ? "Played Track"
+                    : row["Event Type"] === "LYRIC_DISPLAY"
+                    ? "Viewed Lyrics"
+                    : "Media Event",
+                  row["Song Name"],
+                ]
+              )
+          )
+          .filter((x) => x): any);
+      } else if (
+        file.path.slice(-1)[0] ===
+        "Customer Device History - Computer Authorizations.csv"
+      ) {
+        return (await parseCSV(file.data)).map((row) =>
+          entry(row, "account", DateTime.fromISO(row["Associated Date"]), [
+            "Authorized iTunes",
+            row["Device Name"],
+          ])
+        );
+      } else if (
+        file.path.slice(-1)[0] ===
+        "In-App Subscription Family Sharing History.csv"
+      ) {
+        return (await parseCSV(file.data)).map((row) =>
+          entry(row, "account", DateTime.fromISO(row["Last Modified Date"]), [
+            row["Family Sharing Enabled"] === "Yes"
+              ? "Shared App with Family"
+              : "Un-shared App with Family",
+            row["App Name"],
+          ])
+        );
+      } else if (
+        file.path.slice(-1)[0] === "Store Free Transaction History.csv"
+      ) {
+        return (await parseCSV(file.data)).map((row) =>
+          entry(row, "account", DateTime.fromISO(row["Item Purchased Date"]), [
+            "Purchased App",
+            row["Item Description"],
+          ])
+        );
+      } else if (file.path.slice(-1)[0] === "Store Transaction History.csv") {
+        return (await parseCSV(file.data)).map((row) =>
+          entry(row, "account", DateTime.fromISO(row["Item Purchased Date"]), [
+            `Purchased ${
+              row["Content Type"].includes("Apps")
+                ? "App"
+                : row["Content Type"].endsWith("s")
+                ? row["Content Type"].slice(0, -1)
+                : row["Content Type"]
+            }`,
+            row["Item Description"],
+          ])
+        );
+      } else if (
+        file.path.slice(-1)[0] === "TV App Favorites and Activity.json"
+      ) {
+        return (await parseJSON(file.data)).events.map((item) =>
+          entry(
+            item,
+            "media",
+            DateTime.fromMillis(item.stored_event.timestamp),
+            [
+              "Watched Media",
+              item.event_interpretation.human_readable_media_description,
+            ]
+          )
+        );
+      } else if (
+        file.path.slice(-1)[0] === "App Store Click Activity.csv" ||
+        file.path.slice(-1)[0] === "Apple Music Click Activity.csv" ||
+        file.path.slice(-1)[0] === "Apps And Service Analytics.csv" ||
+        file.path.slice(-1)[0] ===
+          "TV App with Channel Support Click Activity.csv"
+      ) {
+        return (await parseCSV(file.data)).map((row) => {
+          let type = row["Event Type"];
+          type = type[0].toUpperCase() + type.slice(1);
+          return entry(
+            row,
+            "activity",
+            DateTime.fromISO(row["Event Date Time"]),
+            [
+              `${type} Event`,
+              row["App"] || row["App Name"] || row["Media Bundle App Name"],
+            ]
+          );
+        });
+      } else if (
+        file.path.slice(-1)[0] === "Limit Ad Tracking Information.csv"
+      ) {
+        return (await parseCSV(file.data)).map((row) =>
+          entry(row, "account", DateTime.fromISO(row["Created Date"]), [
+            "Limited Ad Tracking",
+          ])
+        );
+      } else if (file.path[2] === "Direct Top-Up Promotions.csv") {
+        return (await parseCSV(file.data)).map((row) =>
+          entry(row, "account", DateTime.fromSQL(row["Promotion Start Date"]), [
+            "Offered Promotion",
+            row["Promotion Details"],
+          ])
+        );
+      } else if (file.path[4] === "Game Center Data.json") {
+        const games = (await parseJSON(file.data)).games_state;
+        return games
+          .map((game) => [
+            game.leaderboard.map((board) =>
+              board.leaderboard_score.map((item) =>
+                entry(
+                  item,
+                  "icloud",
+                  DateTime.fromFormat(
+                    item.submitted_time_utc,
+                    "MM/dd/yyyy HH:mm:ss"
+                  ),
+                  [
+                    "Game Center Leaderboard",
+                    `${board.leaderboard_title} in ${game.game_name}`,
+                  ]
+                )
+              )
+            ),
+            game.achievements.map((item) =>
+              entry(
+                item,
+                "icloud",
+                DateTime.fromFormat(
+                  item.last_update_utc,
+                  "MM/dd/yyyy HH:mm:ss"
+                ),
+                [
+                  "Game Center Achievement",
+                  `${item.achievements_title} in ${game.game_name}`,
+                ]
+              )
+            ),
+          ])
+          .flat(3);
       } else if (
         file.path[3] ===
         "iTunes and App-Book Re-download and Update History.csv"
       ) {
-        return (await parseCSV(file.data)).map(
-          (row) =>
-            ({
-              type: "timeline",
-              provider: file.provider,
-              file: file.path,
-              category: "store",
-              ...getSlugAndDayTime(
-                DateTime.fromISO(row["Activity Date"], {
-                  zone: "UTC",
-                }).toSeconds(),
-                row
-              ),
-              context: "media.download",
-              value: row,
-            }: TimelineEntry)
+        return (await parseCSV(file.data)).map((row) =>
+          entry(
+            row,
+            "activity",
+            DateTime.fromISO(row["Activity Date"], { zone: "UTC" }),
+            ["Updated App", row["Item Description"]]
+          )
         );
       }
     } else if (file.path[1] === "Apple Online and Retail Stores") {
       if (file.path[3] === "Online Purchase History.csv") {
         return (await parseCSV(file.data))
           .slice(1) // strip duplciated header
-          .map(
-            (row) =>
-              ({
-                type: "timeline",
-                provider: file.provider,
-                file: file.path,
-                category: "retail",
-                ...getSlugAndDayTime(
-                  DateTime.fromISO(row["Order Date"], {
-                    zone: "UTC",
-                  }).toSeconds(),
-                  row
-                ),
-                context: "retail.purchase",
-                value: row,
-              }: TimelineEntry)
+          .map((row) =>
+            entry(
+              row,
+              "account",
+              DateTime.fromISO(row["Order Date"], {
+                zone: "UTC",
+              }),
+              ["Placed Online Order", row["Description"]]
+            )
           );
       }
     } else if (file.path[1] === "AppleCare") {
@@ -223,22 +335,15 @@ class Apple implements Provider {
           .split("\n")
           .slice(4, -1)
           .join("\n");
-        return (await parseCSV(stripped)).map(
-          (row) =>
-            ({
-              type: "timeline",
-              provider: file.provider,
-              file: file.path,
-              category: "applecare",
-              ...getSlugAndDayTime(
-                DateTime.fromISO(row["TimeStamp"], {
-                  zone: "UTC",
-                }).toSeconds(),
-                row
-              ),
-              context: "care.repair",
-              value: row,
-            }: TimelineEntry)
+        return (await parseCSV(stripped)).map((row) =>
+          entry(
+            row,
+            "account",
+            DateTime.fromISO(row["TimeStamp"], {
+              zone: "UTC",
+            }),
+            ["AppleCare Repair", row["Serial Number"]]
+          )
         );
       } else if (file.path[4] === "AppleCare Repairs and Service.csv") {
         // Strip out footer
@@ -246,22 +351,15 @@ class Apple implements Provider {
           .split("\n")
           .slice(0, -1)
           .join("\n");
-        return (await parseCSV(stripped)).map(
-          (row) =>
-            ({
-              type: "timeline",
-              provider: file.provider,
-              file: file.path,
-              category: "applecare",
-              ...getSlugAndDayTime(
-                DateTime.fromISO(row["Repair Created Date"], {
-                  zone: "UTC",
-                }).toSeconds(),
-                row
-              ),
-              context: "care.repair",
-              value: row,
-            }: TimelineEntry)
+        return (await parseCSV(stripped)).map((row) =>
+          entry(
+            row,
+            "account",
+            DateTime.fromISO(row["Repair Created Date"], {
+              zone: "UTC",
+            }),
+            ["AppleCare Repair", row["Serial Number"]]
+          )
         );
       } else if (file.path[4] === "AppleCare Cases.csv") {
         // Strip out footer
@@ -269,68 +367,42 @@ class Apple implements Provider {
           .split("\n")
           .slice(0, -3)
           .join("\n");
-        return (await parseCSV(stripped)).map(
-          (row) =>
-            ({
-              type: "timeline",
-              provider: file.provider,
-              file: file.path,
-              category: "applecare",
-              ...getSlugAndDayTime(
-                DateTime.fromISO(row["Creation Date"]).toSeconds(),
-                row
-              ),
-              context: "care.case",
-              value: row,
-            }: TimelineEntry)
+        return (await parseCSV(stripped)).map((row) =>
+          entry(row, "account", DateTime.fromISO(row["Creation Date"]), [
+            "Created AppleCare Case",
+            row["Case Title"],
+          ])
         );
       } else if (file.path[4] === "AppleCare Device Details.csv") {
         const parts = smartDecode(file.data).split(/\n\n+/);
         return [
-          ...(await parseCSV(parts[0])).map(
-            (row) =>
-              ({
-                type: "timeline",
-                provider: file.provider,
-                file: file.path,
-                category: "applecare",
-                ...getSlugAndDayTime(
-                  DateTime.fromISO(row["Purchase Date"]).toSeconds(),
-                  row
-                ),
-                context: "care.device",
-                value: row,
-              }: TimelineEntry)
+          ...(await parseCSV(parts[0])).map((row) =>
+            entry(row, "account", DateTime.fromISO(row["Purchase Date"]), [
+              "Purchased Device",
+              row["Product Description"],
+            ])
           ),
-          ...(await parseCSV(parts[1])).map(
-            (row) =>
-              ({
-                type: "timeline",
-                provider: file.provider,
-                file: file.path,
-                category: "applecare",
-                ...getSlugAndDayTime(
-                  DateTime.fromISO(row["Warranty Start Date"]).toSeconds(),
-                  row
-                ),
-                context: "care.warranty",
-                value: row,
-              }: TimelineEntry)
+          ...(await parseCSV(parts[1])).map((row) =>
+            entry(
+              row,
+              "account",
+              DateTime.fromISO(row["Warranty Start Date"]),
+              ["Warranty Started", row["Serial Number"]]
+            )
           ),
-          ...(await parseCSV(parts[2])).map(
-            (row) =>
-              ({
-                type: "timeline",
-                provider: file.provider,
-                file: file.path,
-                category: "applecare",
-                ...getSlugAndDayTime(
-                  DateTime.fromISO(row["Agreement Start Date"]).toSeconds(),
-                  row
-                ),
-                context: "care.agreement",
-                value: row,
-              }: TimelineEntry)
+        ];
+      }
+    } else if (file.path[1] === "iCloud Drive") {
+      if (file.path[4] === "UbiquitousCards" && file.path[6] === "pass.json") {
+        const parsed = parseJSON(file.data);
+        return [
+          entry(
+            parsed,
+            "icloud",
+            DateTime.fromISO(parsed.relevantDate, {
+              zone: "UTC",
+            }),
+            ["Wallet Pass", parsed.description]
           ),
         ];
       }
@@ -338,222 +410,152 @@ class Apple implements Provider {
       if (
         file.path[2] === "Device Registration History Pre iOS8 and Yosemite.csv"
       ) {
-        return (await parseCSV(file.data)).map(
-          (row) =>
-            ({
-              type: "timeline",
-              provider: file.provider,
-              file: file.path,
-              category: "marketing",
-              ...getSlugAndDayTime(
-                DateTime.fromSQL(row["Registration_Timestamp"], {
-                  zone: "UTC",
-                }).toSeconds(),
-                row
-              ),
-              context: "marketing.device",
-              value: row,
-            }: TimelineEntry)
+        return (await parseCSV(file.data)).map((row) =>
+          entry(
+            row,
+            "activity",
+            DateTime.fromSQL(row["Registration_Timestamp"], {
+              zone: "UTC",
+            }),
+            ["Registered Device (Marketing)", row["Serial_Nr"]]
+          )
         );
       } else if (file.path[2] === "Marketing Communications Delivery.csv") {
         return (await parseCSV(file.data))
           .slice(1) // strip duplciated header
-          .map(
-            (row) =>
-              ({
-                type: "timeline",
-                provider: file.provider,
-                file: file.path,
-                category: "marketing",
-                ...getSlugAndDayTime(
-                  DateTime.fromSQL(row["Delivery Time"].slice(0, -1), {
-                    zone: "UTC",
-                  }).toSeconds(),
-                  row
-                ),
-                context: "marketing.communication",
-                value: row,
-              }: TimelineEntry)
+          .map((row) =>
+            entry(
+              row,
+              "activity",
+              DateTime.fromSQL(row["Delivery Time"].slice(0, -1), {
+                zone: "UTC",
+              }),
+              ["Received Marketing Email", row["Communication Name"].slice(1)]
+            )
           );
       } else if (file.path[2] === "Marketing Communications Response.csv") {
-        return (await parseCSV(file.data)).map(
-          (row) =>
-            ({
-              type: "timeline",
-              provider: file.provider,
-              file: file.path,
-              category: "marketing",
-              ...getSlugAndDayTime(
-                DateTime.fromSQL(row["Response Time"], {
-                  zone: "UTC",
-                }).toSeconds(),
-                row
-              ),
-              context: "marketing.response",
-              value: row,
-            }: TimelineEntry)
+        return (await parseCSV(file.data)).map((row) => {
+          let action = row["Response Type"];
+          action = action[0].toUpperCase() + action.slice(1);
+          return entry(
+            row,
+            "activity",
+            DateTime.fromSQL(row["Response Time"], {
+              zone: "UTC",
+            }),
+            [`Marketing Email ${action}`, row["Communication Name"]]
+          );
+        });
+      }
+    } else if (file.path[1] === "Other data") {
+      if (file.path[3] === "Apple Features Using iCloud") {
+        if (file.path[4] === "Mail" && file.path[5] === "Recents.xml") {
+          const dom = new DOMParser().parseFromString(
+            smartDecode(file.data),
+            "text/xml"
+          );
+          const entries = dom.getElementsByTagName("dict");
+          const messages = [...entries].filter((d) =>
+            [...d.children].some(
+              (c) => c.nodeName === "key" && c.innerHTML === "t"
+            )
+          );
+          return messages.flatMap((msg) => {
+            const dates =
+              [...msg.children]
+                .find((c) => c.nodeName === "key" && c.innerHTML === "t")
+                ?.nextElementSibling?.getElementsByTagName("date") || [];
+            const address = [...msg.children].find(
+              (c) => c.nodeName === "key" && c.innerHTML === "address"
+            )?.nextElementSibling?.innerHTML;
+            return [...dates].map((date) =>
+              entry(msg.innerHTML, "icloud", DateTime.fromISO(date.innerHTML), [
+                "Mail Message",
+                address,
+              ])
+            );
+          });
+        } else if (
+          file.path[4] === "Wi-Fi" &&
+          file.path[5] === "KnownNetworks.xml"
+        ) {
+          const dom = new DOMParser().parseFromString(
+            smartDecode(file.data),
+            "text/xml"
+          );
+          const root = dom.getElementsByTagName("array")[0];
+          return [...root.children].map((item) => {
+            const keys = item.getElementsByTagName("key");
+            const name = keys[0]?.innerHTML;
+            const added = [...keys].find((k) => k.innerHTML === "added_at")
+              ?.nextElementSibling?.innerHTML;
+            return entry(
+              item.innerHTML,
+              "icloud",
+              DateTime.fromFormat(added, "LLL dd yyyy HH:mm:ss", {
+                zone: "UTC",
+              }),
+              ["Added  Wi-Fi Network", name]
+            );
+          });
+        }
+      } else if (file.path[3] === "iCloudUsageData Set1.csv") {
+        const lines = smartDecode(file.data).split("\n");
+        const groups = new Map();
+        let buffer = [];
+        let header = "";
+        for (const line of lines) {
+          if (line.startsWith('"')) {
+            buffer.push(line);
+          } else {
+            if (header) groups.set(header, buffer);
+            buffer = [];
+            header = line;
+          }
+        }
+        if (header) groups.set(header, buffer);
+
+        const registration = groups.get(
+          "iCloud: Device registration from an iCloud enabled device"
         );
+        if (registration) {
+          return (await parseCSV(registration.join("\n"))).map((row) =>
+            entry(row, "icloud", new DateTime.fromSQL(row["Date"]), [
+              `Device ${row["Event Code"] === "reboot" ? "Reboot" : "Sync"}`,
+              row["Device Type"],
+            ])
+          );
+        }
       }
     } else if (file.path[1] === "Wallet Activity") {
       if (file.path[2] === "Apple Pay Cards.csv") {
-        return (await parseCSV(file.data)).map(
-          (row) =>
-            ({
-              type: "timeline",
-              provider: file.provider,
-              file: file.path,
-              category: "wallet",
-              ...getSlugAndDayTime(
-                DateTime.fromSQL(row[" Date Created"], {
-                  zone: "UTC",
-                }).toSeconds(),
-                row
-              ),
-              context: "wallet.card",
-              value: row,
-            }: TimelineEntry)
+        return (await parseCSV(file.data)).map((row) =>
+          entry(
+            row,
+            "account",
+            DateTime.fromSQL(row[" Date Created"], {
+              zone: "UTC",
+            }),
+            ["Enrolled Apple Pay Card", row[" Card Name"]]
+          )
         );
-      }
-    } else if (file.path[1] === "iCloud Drive") {
-      if (file.path[4] === "UbiquitousCards" && file.path[6] === "pass.json") {
-        const parsed = parseJSON(file.data);
-        return [
-          ({
-            type: "timeline",
-            provider: file.provider,
-            file: file.path,
-            category: "wallet",
-            ...getSlugAndDayTime(
-              DateTime.fromISO(parsed.relevantDate, {
-                zone: "UTC",
-              }).toSeconds(),
-              parsed
-            ),
-            context: "wallet.pass",
-            value: parsed,
-          }: TimelineEntry),
-        ];
       }
     }
     return [];
   }
 
-  render(entry: TimelineEntry): React.Node {
-    if (entry.context === "id.account.updated") {
-      return (
-        <React.Fragment>Updated Apple ID account information</React.Fragment>
-      );
-    } else if (entry.context === "id.device.added") {
-      return (
-        <React.Fragment>
-          Added device <i>{entry.value["Device Name"]}</i>
-        </React.Fragment>
-      );
-    } else if (entry.context === "id.device.lastHeartbeat") {
-      return (
-        <React.Fragment>
-          Heartbeat from device <i>{entry.value["Device Name"]}</i> at{" "}
-          <i>{entry.value["Device Last Heartbeat IP"]}</i>
-        </React.Fragment>
-      );
-    } else if (entry.context === "id.signon") {
-      return (
-        <React.Fragment>
-          Logged in to <i>{entry.value["Application"]}</i>{" "}
-          {entry.value["IP Address"] !== "N/A" && (
-            <React.Fragment>
-              from <i>{entry.value["IP Address"]}</i>
-            </React.Fragment>
-          )}
-        </React.Fragment>
-      );
-    } else if (entry.context === "id.privacy") {
-      return (
-        <React.Fragment>Submitted Data &amp; Privacy request</React.Fragment>
-      );
-    } else if (entry.context === "media.promotion") {
-      return (
-        <React.Fragment>Offered Apple Media Services promotion</React.Fragment>
-      );
-    } else if (entry.context === "media.download") {
-      return (
-        <React.Fragment>
-          Downloaded or updated app <i>{entry.value["Item Description"]}</i>
-        </React.Fragment>
-      );
-    } else if (entry.context === "retail.purchase") {
-      return (
-        <React.Fragment>
-          Purchased <i>{entry.value["Description"]}</i>
-        </React.Fragment>
-      );
-    } else if (entry.context === "care.repair") {
-      return (
-        <React.Fragment>
-          AppleCare repair for <i>{entry.value["Serial Number"]}</i>{" "}
-          {entry.value["Description"] && <i>({entry.value["Description"]})</i>}
-        </React.Fragment>
-      );
-    } else if (entry.context === "care.case") {
-      return (
-        <React.Fragment>
-          Created AppleCare case for <i>{entry.value["Serial Number"]}</i>:{" "}
-          {entry.value["Case Title"]}
-        </React.Fragment>
-      );
-    } else if (entry.context === "care.device") {
-      return (
-        <React.Fragment>
-          Purchased device <i>{entry.value["Serial Number"]}</i> (
-          {entry.value["Product Description"]})
-        </React.Fragment>
-      );
-    } else if (entry.context === "care.warranty") {
-      return (
-        <React.Fragment>
-          Warranty started for <i>{entry.value["Serial Number"]}</i>
-        </React.Fragment>
-      );
-    } else if (entry.context === "care.agreement") {
-      return (
-        <React.Fragment>
-          AppleCare agreement started for <i>{entry.value["Serial Number"]}</i>
-        </React.Fragment>
-      );
-    } else if (entry.context === "marketing.device") {
-      return (
-        <React.Fragment>
-          Registered device <i>{entry.value["Serial_Nr"]}</i>
-        </React.Fragment>
-      );
-    } else if (entry.context === "marketing.communication") {
-      return (
-        <React.Fragment>
-          Marketing email: <i>{entry.value["Communication Name"].slice(1)}</i>
-        </React.Fragment>
-      );
-    } else if (entry.context === "marketing.response") {
-      return (
-        <React.Fragment>
-          Marketing email {entry.value["Response Type"]}:{" "}
-          <i>{entry.value["Communication Name"]}</i>
-        </React.Fragment>
-      );
-    } else if (entry.context === "wallet.card") {
-      return (
-        <React.Fragment>
-          Added Apple Pay card <i>{entry.value[" Card Name"]}</i> to{" "}
-          {entry.value[" Device Type"]}
-        </React.Fragment>
-      );
-    } else if (entry.context === "wallet.pass") {
-      return (
-        <React.Fragment>
-          Wallet Pass: <i>{entry.value.description}</i>
-        </React.Fragment>
-      );
-    }
-    return <React.Fragment>Unknown</React.Fragment>;
+  render(entry: TimelineEntry, time: ?string): React.Node {
+    const [body, trailer] = entry.context;
+    return (
+      <SimpleRecord
+        time={time}
+        icon={
+          this.timelineCategories.find((c) => c.slug === entry.category)?.icon
+        }
+        body={body}
+        trailer={trailer}
+      />
+    );
   }
 }
 

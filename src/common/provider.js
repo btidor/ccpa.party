@@ -16,6 +16,7 @@ import type { DataFile, Entry, TimelineEntry } from "common/database";
 export type TimelineCategory = {|
   +slug: string,
   +char: string, // single-character identifier for URLs
+  +icon?: string,
   +displayName: string,
   +defaultEnabled: boolean,
 |};

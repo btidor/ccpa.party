@@ -3,7 +3,8 @@ import csv from "csvtojson";
 import MurmurHash3 from "imurmurhash";
 
 const printableRegExp =
-  /^(\p{L}|\p{M}|\p{N}|\p{S}|\p{P}|\p{Z}|\p{Cf}|\n|\r|\t)*$/u;
+  // U+F8FF is the Apple logo on macOS
+  /^(\p{L}|\p{M}|\p{N}|\p{S}|\p{P}|\p{Z}|\p{Cf}|\n|\r|\t|\u{f8ff})*$/u;
 const utf8Decoder = new TextDecoder("utf-8");
 const utf16beDecoder = new TextDecoder("utf-16be");
 const jsonReviver = (key: any, value: any): any =>
