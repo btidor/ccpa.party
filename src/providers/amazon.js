@@ -8,6 +8,7 @@ import {
   parseCSV,
   parseJSON,
 } from "common/parse";
+import SimpleRecord from "components/SimpleRecord";
 
 import type { DataFile, Entry, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
@@ -31,18 +32,28 @@ class Amazon implements Provider {
     {
       char: "a",
       slug: "activity",
+      icon: "🖱",
       displayName: "Activity",
       defaultEnabled: true,
     },
     {
       char: "b",
       slug: "billing",
+      icon: "💵",
       displayName: "Billing",
       defaultEnabled: true,
     },
     {
+      char: "n",
+      icon: "🔔",
+      slug: "notification",
+      displayName: "Notifications",
+      defaultEnabled: false,
+    },
+    {
       char: "o",
       slug: "order",
+      icon: "🚚",
       displayName: "Orders",
       defaultEnabled: true,
     },
@@ -64,7 +75,7 @@ class Amazon implements Provider {
               DateTime.fromISO(row["Timestamp"]).toSeconds(),
               row
             ),
-            context: `Set Alexa country of residence to ${row["Country"]}`,
+            context: ["Set Alexa country of residence", row["Country"]],
             value: row,
           }: TimelineEntry)
       );
@@ -80,7 +91,7 @@ class Amazon implements Provider {
               DateTime.fromSQL(row["Account_Creation_Time"]).toSeconds(),
               row
             ),
-            context: `Created music account in ${row["Music_Territory"]}`,
+            context: ["Created Music Account", row["Music_Territory"]],
             value: row,
           }: TimelineEntry)
       );
@@ -96,7 +107,10 @@ class Amazon implements Provider {
               DateTime.fromISO(row["creationDate"]).toSeconds(),
               row
             ),
-            context: `Added to music library: ${row["title"]} from ${row["albumName"]}`,
+            context: [
+              "Added to Music Library",
+              `${row["title"]} (${row["albumName"]})`,
+            ],
             value: row,
           }: TimelineEntry)
       );
@@ -118,7 +132,7 @@ class Amazon implements Provider {
               ).toSeconds(),
               row
             ),
-            context: `AmazonSmile summary`,
+            context: ["AmazonSmile Summary"],
             value: row,
           }: TimelineEntry)
       );
@@ -140,7 +154,7 @@ class Amazon implements Provider {
               ).toSeconds(),
               row
             ),
-            context: `Selected AmazonSmile charity ${row["CharityName"]}`,
+            context: ["Selected AmazonSmile Charity", row["CharityName"]],
             value: row,
           }: TimelineEntry)
       );
@@ -161,7 +175,7 @@ class Amazon implements Provider {
               }).toSeconds(),
               row
             ),
-            context: `App store subscription`,
+            context: ["App Store Subscription", row["transaction_item_id"]],
             value: row,
           }: TimelineEntry)
       );
@@ -177,7 +191,7 @@ class Amazon implements Provider {
               DateTime.fromSQL(row["AddDate"]).toSeconds(),
               row
             ),
-            context: `Added to Audible cart: ${row["Title"]}`,
+            context: ["Added to Audible Cart", row["Title"]],
             value: row,
           }: TimelineEntry)
       );
@@ -193,7 +207,7 @@ class Amazon implements Provider {
               DateTime.fromSQL(row["IssueDate"]).toSeconds(),
               row
             ),
-            context: `Received Audible credit`,
+            context: ["Received Audible Credit"],
             value: row,
           }: TimelineEntry)
       );
@@ -209,7 +223,7 @@ class Amazon implements Provider {
               DateTime.fromSQL(row["StartDate"]).toSeconds(),
               row
             ),
-            context: `Activated Audible with ${row["DeviceCategory"]}`,
+            context: ["Activated Audible", row["DeviceCategory"]],
             value: row,
           }: TimelineEntry)
       );
@@ -225,7 +239,7 @@ class Amazon implements Provider {
               DateTime.fromSQL(row["DateAdded"]).toSeconds(),
               row
             ),
-            context: `Added to Audible library: ${row["Title"]}`,
+            context: ["Added to Audible Library", row["Title"]],
             value: row,
           }: TimelineEntry)
       );
@@ -241,7 +255,7 @@ class Amazon implements Provider {
               DateTime.fromSQL(row["TaxCreateDate"]).toSeconds(),
               row
             ),
-            context: `Audible billing event for ${row["OfferName"]}`,
+            context: ["Audible Billing Event", row["OfferName"]],
             value: row,
           }: TimelineEntry)
       );
@@ -257,7 +271,7 @@ class Amazon implements Provider {
               DateTime.fromSQL(row["EventDate"]).toSeconds(),
               row
             ),
-            context: `Audible membership event: ${row["BusinessEventTypeName"]}`,
+            context: ["Audible Membership Event", row["BusinessEventTypeName"]],
             value: row,
           }: TimelineEntry)
       );
@@ -273,34 +287,14 @@ class Amazon implements Provider {
               DateTime.fromSQL(row["OrderPlaceDate"]).toSeconds(),
               row
             ),
-            context: `Audible purchase: ${row["Title"]}`,
+            context: ["Audible Purchase", row["Title"]],
             value: row,
           }: TimelineEntry)
       );
     } else if (
-      file.path[4] === "CustomerCommunicationExperience.Preferences.csv"
-    ) {
-      return (await parseCSV(file.data)).map(
-        (row) =>
-          ({
-            type: "timeline",
-            provider: file.provider,
-            file: file.path,
-            category: "activity",
-            ...getSlugAndDayTime(
-              DateTime.fromFormat(
-                row["ActionTimestamp"],
-                "M/d/yy h:mm:ss a z"
-              ).toSeconds(),
-              row
-            ),
-            context: `Notification event`,
-            value: row,
-          }: TimelineEntry)
-      );
-    } else if (
+      file.path[4] === "CustomerCommunicationExperience.Preferences.csv" ||
       file.path[4] ===
-      "CustomerCommunicationExperience.PreferencesEmailHistory.csv"
+        "CustomerCommunicationExperience.PreferencesEmailHistory.csv"
     ) {
       return (await parseCSV(file.data)).map(
         (row) =>
@@ -308,7 +302,7 @@ class Amazon implements Provider {
             type: "timeline",
             provider: file.provider,
             file: file.path,
-            category: "activity",
+            category: "notification",
             ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["ActionTimestamp"],
@@ -316,7 +310,7 @@ class Amazon implements Provider {
               ).toSeconds(),
               row
             ),
-            context: `Notification event`,
+            context: ["Notification Event", row["NotificationTopic"]],
             value: row,
           }: TimelineEntry)
       );
@@ -332,7 +326,7 @@ class Amazon implements Provider {
               DateTime.fromISO(row["FirstTimeRegistered"]).toSeconds(),
               row
             ),
-            context: `Registered device: ${row["AccountName"]}`,
+            context: ["Registered Device", row["AccountName"]],
             value: row,
           }: TimelineEntry)
       );
@@ -348,7 +342,7 @@ class Amazon implements Provider {
               DateTime.fromSQL(row["OrderDate"]).toSeconds(),
               row
             ),
-            context: `Ordered digital item: ${row["Title"]}`,
+            context: ["Digital Order", row["Title"]],
             value: row,
           }: TimelineEntry)
       );
@@ -364,7 +358,7 @@ class Amazon implements Provider {
               DateTime.fromSQL(row["OrderDate"]).toSeconds(),
               row
             ),
-            context: `Digital order ${row["OrderId"]}`,
+            context: ["Digital Order", row["OrderId"]],
             value: row,
           }: TimelineEntry)
       );
@@ -375,34 +369,15 @@ class Amazon implements Provider {
             type: "timeline",
             provider: file.provider,
             file: file.path,
-            category: "billing",
+            category: "notification",
             ...getSlugAndDayTime(
               DateTime.fromSQL(row["BenefitDate"]).toSeconds(),
               row
             ),
-            context: `Qualified for promotion`,
+            context: ["Qualified for Promotion"],
             value: row,
           }: TimelineEntry)
       );
-    } else if (
-      file.path[1].startsWith("Digital.Content.Ownership.") &&
-      file.path[1].endsWith(".json")
-    ) {
-      const parsed = parseJSON(file.data);
-      return [
-        ({
-          type: "timeline",
-          provider: file.provider,
-          file: file.path,
-          category: "order",
-          ...getSlugAndDayTime(
-            DateTime.fromISO(parsed.rights[0].acquiredDate).toSeconds(),
-            parsed
-          ),
-          context: `Acquired digital item ${parsed.resource.ASIN}`,
-          value: parsed,
-        }: TimelineEntry),
-      ];
     } else if (file.path[1] === "whispersync.csv") {
       return (await parseCSV(file.data)).map(
         (row) =>
@@ -417,7 +392,13 @@ class Amazon implements Provider {
               ).toSeconds(),
               row
             ),
-            context: `Whispersync ${row["Annotation Type"]}`,
+            context: [
+              `Whispersync ${row["Annotation Type"]
+                .split(".")[1]
+                .split("_")
+                .map((w) => w[0].toUpperCase() + w.slice(1))
+                .join(" ")}`,
+            ],
             value: row,
           }: TimelineEntry)
       );
@@ -436,7 +417,7 @@ class Amazon implements Provider {
               ).toSeconds(),
               row
             ),
-            context: `Seen in Prime Video territory: ${row["last_seen_territory"]}`,
+            context: ["Prime Video Location", row["last_seen_territory"]],
             value: row,
           }: TimelineEntry)
       );
@@ -452,7 +433,7 @@ class Amazon implements Provider {
               DateTime.fromISO(row["ClaimDate"]).toSeconds(),
               row
             ),
-            context: `Recipient redeemed gift: ${row["Title"]}`,
+            context: ["Recipient Redeemed Gift", row["Title"]],
             value: row,
           }: TimelineEntry)
       );
@@ -468,7 +449,7 @@ class Amazon implements Provider {
               DateTime.fromISO(row["StartDate"]).toSeconds(),
               row
             ),
-            context: `Started receiving subscription benefits for ${row["ServiceProvider"]}`,
+            context: ["Received Benefits", row["ServiceProvider"]],
             value: row,
           }: TimelineEntry)
       );
@@ -484,7 +465,7 @@ class Amazon implements Provider {
               DateTime.fromISO(row["SubscriptionStartDate"]).toSeconds(),
               row
             ),
-            context: `Started subscription on ${row["Marketplace"]}`,
+            context: ["Started Subscription", row["Marketplace"]],
             value: row,
           }: TimelineEntry)
       );
@@ -497,12 +478,12 @@ class Amazon implements Provider {
             type: "timeline",
             provider: file.provider,
             file: file.path,
-            category: "billing",
+            category: "notification",
             ...getSlugAndDayTime(
               DateTime.fromSQL(row["promotion_start_datetime"]).toSeconds(),
               row
             ),
-            context: `Qualified for Kindle promotion`,
+            context: ["Offered Kindle Promotion"],
             value: row,
           }: TimelineEntry)
       );
@@ -518,7 +499,7 @@ class Amazon implements Provider {
               DateTime.fromISO(row["end_timestamp"]).toSeconds(),
               row
             ),
-            context: `Read from Kindle book ${row["ASIN"]}`,
+            context: ["Read Kindle Book", row["ASIN"]],
             value: row,
           }: TimelineEntry)
       );
@@ -532,14 +513,14 @@ class Amazon implements Provider {
             type: "timeline",
             provider: file.provider,
             file: file.path,
-            category: "activity",
+            category: "notification",
             ...getSlugAndDayTime(
               DateTime.fromFormat(row["Timestamp"], "MM/dd/yyyy HH:mm", {
                 zone: "UTC",
               }).toSeconds(),
               row
             ),
-            context: `Kindle notification`,
+            context: ["Kindle Notification"],
             value: row,
           }: TimelineEntry)
       );
@@ -564,7 +545,10 @@ class Amazon implements Provider {
               ).toSeconds(),
               row
             ),
-            context: `Updated ${row["Application"]} app on ${row["Device"]}`,
+            context: [
+              "Updated App",
+              `${row["Application"]} on ${row["Device"]}`,
+            ],
             value: row,
           }: TimelineEntry)
       );
@@ -577,7 +561,7 @@ class Amazon implements Provider {
             type: "timeline",
             provider: file.provider,
             file: file.path,
-            category: "activity",
+            category: "notification",
             ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["Email Delivered Time"],
@@ -588,7 +572,7 @@ class Amazon implements Provider {
               ).toSeconds(),
               row
             ),
-            context: `Email ${row["Email Delivery Status"]}`,
+            context: [`Email ${row["Email Delivery Status"]}`],
             value: row,
           }: TimelineEntry)
       );
@@ -601,7 +585,7 @@ class Amazon implements Provider {
             type: "timeline",
             provider: file.provider,
             file: file.path,
-            category: "activity",
+            category: "notification",
             ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["Record Creation Date"],
@@ -612,7 +596,7 @@ class Amazon implements Provider {
               ).toSeconds(),
               row
             ),
-            context: `Email ${row["Event Type"]}`,
+            context: [`Email ${row["Event Type"]}`],
             value: row,
           }: TimelineEntry)
       );
@@ -623,14 +607,14 @@ class Amazon implements Provider {
             type: "timeline",
             provider: file.provider,
             file: file.path,
-            category: "activity",
+            category: "notification",
             ...getSlugAndDayTime(
               DateTime.fromFormat(row["Recorded Time"], "MM/dd/yyyy HH:mm", {
                 zone: "UTC",
               }).toSeconds(),
               row
             ),
-            context: `Push notification to ${row["Device"]}`,
+            context: ["Push Notification"],
             value: row,
           }: TimelineEntry)
       );
@@ -641,7 +625,7 @@ class Amazon implements Provider {
             type: "timeline",
             provider: file.provider,
             file: file.path,
-            category: "activity",
+            category: "notification",
             ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["Message Sent Time"],
@@ -652,7 +636,7 @@ class Amazon implements Provider {
               ).toSeconds(),
               row
             ),
-            context: `Sent notification`,
+            context: ["Sent Notification"],
             value: row,
           }: TimelineEntry)
       );
@@ -673,7 +657,7 @@ class Amazon implements Provider {
                 ).toSeconds(),
                 row
               ),
-              context: `Added card ****${row["LastDigits"]}`,
+              context: ["Added Card", `****${row["LastDigits"]}`],
               value: row,
             }: TimelineEntry)
         );
@@ -692,7 +676,7 @@ class Amazon implements Provider {
               ).toSeconds(),
               row
             ),
-            context: `Whole Foods purchase: ${row["product_name_purchased"]}`,
+            context: ["Whole Foods Order", row["product_name_purchased"]],
             value: row,
           }: TimelineEntry)
       );
@@ -713,7 +697,7 @@ class Amazon implements Provider {
               ).toSeconds(),
               row
             ),
-            context: `Whole Foods key registered`,
+            context: ["Whole Foods Key Registered"],
             value: row,
           }: TimelineEntry)
       );
@@ -730,7 +714,7 @@ class Amazon implements Provider {
               DateTime.fromISO(row.creationTime).toSeconds(),
               row
             ),
-            context: `Logged in`,
+            context: ["Logged In"],
             value: row,
           }: TimelineEntry)
       );
@@ -741,12 +725,12 @@ class Amazon implements Provider {
             type: "timeline",
             provider: file.provider,
             file: file.path,
-            category: "activity",
+            category: "notification",
             ...getSlugAndDayTime(
               DateTime.fromSQL(row["Timestamp"]).toSeconds(),
               row
             ),
-            context: `Message: ${row["MessageSubject"]}`,
+            context: ["Seller Message", row["MessageSubject"]],
             value: row,
           }: TimelineEntry)
       );
@@ -766,7 +750,7 @@ class Amazon implements Provider {
               ).toSeconds(),
               row
             ),
-            context: `Updated customer profile`,
+            context: ["Updated Customer Profile"],
             value: row,
           }: TimelineEntry)
       );
@@ -784,7 +768,7 @@ class Amazon implements Provider {
               }).toSeconds(),
               row
             ),
-            context: `Updated privacy settings`,
+            context: ["Updated Privacy Settings"],
             value: row,
           }: TimelineEntry)
       );
@@ -807,9 +791,13 @@ class Amazon implements Provider {
                   ).toSeconds(),
               row
             ),
-            context: `${row["Resolution"] || "Refund/Return"}: ${
+            context: [
+              `${row["Resolution"] || "Refund/Return"}`,
               row["ReturnReason"]
-            }`,
+                .split(" ")
+                .map((w) => w[0].toUpperCase() + w.slice(1))
+                .join(" "),
+            ],
             value: row,
           }: TimelineEntry)
       );
@@ -820,14 +808,14 @@ class Amazon implements Provider {
             type: "timeline",
             provider: file.provider,
             file: file.path,
-            category: "billing",
+            category: "order",
             ...getSlugAndDayTime(
               DateTime.fromFormat(row["Order Date"], "MM/dd/yyyy HH:mm:ss z", {
                 zone: "UTC",
               }).toSeconds(),
               row
             ),
-            context: `Ordered ${row["Product Name"]}`,
+            context: ["Order", row["Product Name"]],
             value: row,
           }: TimelineEntry)
       );
@@ -851,7 +839,7 @@ class Amazon implements Provider {
                 ).toSeconds(),
                 row
               ),
-              context: `Payment ${row["DisbursementType"]}`,
+              context: [`Payment ${row["DisbursementType"]}`],
               value: row,
             }: TimelineEntry)
         );
@@ -873,7 +861,13 @@ class Amazon implements Provider {
               ).toSeconds(),
               row
             ),
-            context: `Return: ${row["ReversalReason"]}`,
+            context: [
+              `Return ${
+                row["ReversalAmountState"] === "Final"
+                  ? "Finalized"
+                  : row["ReversalAmountState"]
+              }`,
+            ],
             value: row,
           }: TimelineEntry)
       );
@@ -897,7 +891,7 @@ class Amazon implements Provider {
               ).toSeconds(),
               row
             ),
-            context: `Registered app on ${row["Device"]}`,
+            context: ["Registered App", row["Device"]],
             value: row,
           }: TimelineEntry)
       );
@@ -914,7 +908,7 @@ class Amazon implements Provider {
             type: "timeline",
             provider: file.provider,
             file: file.path,
-            category: "activity",
+            category: "notification",
             ...getSlugAndDayTime(
               DateTime.fromFormat(
                 row["Sent Time"],
@@ -922,7 +916,7 @@ class Amazon implements Provider {
               ).toSeconds(),
               row
             ),
-            context: `Sent notification`,
+            context: ["Notification"],
             value: row,
           }: TimelineEntry)
       );
@@ -940,7 +934,7 @@ class Amazon implements Provider {
               }).toSeconds(),
               row
             ),
-            context: `Used promotion: ${row["promotionDescription"]}`,
+            context: ["Used Promotion", row["promotionDescription"]],
             value: row,
           }: TimelineEntry)
       );
@@ -956,7 +950,7 @@ class Amazon implements Provider {
               DateTime.fromISO(row["Timestamp"]).toSeconds(),
               row
             ),
-            context: `Region authority: ${row["City"]}`,
+            context: ["Detected Region", row["City"]],
             value: row,
           }: TimelineEntry)
       );
@@ -981,31 +975,40 @@ class Amazon implements Provider {
                 ).toSeconds(),
                 row
               ),
-              context: `Created Dash button: ${row["productTitle"].slice(
-                1,
-                -1
-              )}`,
+              context: [
+                "Created Dash Button",
+                row["productTitle"].slice(1, -1),
+              ],
               value: row,
             }: TimelineEntry)
         );
     } else if (
       file.path[1] === "Retail.Search-Data.Retail.Customer-Engagement.csv"
     ) {
-      return (await parseCSV(file.data)).map(
-        (row) =>
-          ({
-            type: "timeline",
-            provider: file.provider,
-            file: file.path,
-            category: "activity",
-            ...getSlugAndDayTime(
-              DateTime.fromISO(row["Last search Time (GMT)"]).toSeconds(),
-              row
-            ),
-            context: `Searched: ${row["First Search Query String"]}`,
-            value: row,
-          }: TimelineEntry)
-      );
+      return (await parseCSV(file.data)).map((row) => {
+        let query;
+        try {
+          const params = new URLSearchParams(row["First Search Query String"]);
+          if (params.has("field-keywords")) {
+            query = params.get("field-keywords");
+          } else if (params.has("k")) {
+            query = params.get("k");
+          }
+        } catch {}
+
+        return ({
+          type: "timeline",
+          provider: file.provider,
+          file: file.path,
+          category: "activity",
+          ...getSlugAndDayTime(
+            DateTime.fromISO(row["Last search Time (GMT)"]).toSeconds(),
+            row
+          ),
+          context: ["Search", query],
+          value: row,
+        }: TimelineEntry);
+      });
     } else if (file.path[1].startsWith("Retail.ShoppingProfile.")) {
       return (await parseCSV(file.data)).map(
         (row) =>
@@ -1020,7 +1023,7 @@ class Amazon implements Provider {
               }).toSeconds(),
               row
             ),
-            context: `Profile: ${row["Question"]}`,
+            context: ["Profile Attribute"],
             value: row,
           }: TimelineEntry)
       );
@@ -1036,7 +1039,10 @@ class Amazon implements Provider {
               DateTime.fromSQL(row["TransactionCreationDate"]).toSeconds(),
               row
             ),
-            context: `Transaction: ${row["TransactionReason"]}`,
+            context: [
+              "Transaction",
+              row["TransactionReason"].replace(/(.)([A-Z])/g, "$1 $2"),
+            ],
             value: row,
           }: TimelineEntry)
       );
@@ -1044,8 +1050,18 @@ class Amazon implements Provider {
     return [];
   }
 
-  render(entry: TimelineEntry): React.Node {
-    return <React.Fragment>{entry.context}</React.Fragment>;
+  render(entry: TimelineEntry, time: ?string): React.Node {
+    const [body, trailer] = entry.context;
+    return (
+      <SimpleRecord
+        time={time}
+        icon={
+          this.timelineCategories.find((c) => c.slug === entry.category)?.icon
+        }
+        body={body}
+        trailer={trailer}
+      />
+    );
   }
 }
 

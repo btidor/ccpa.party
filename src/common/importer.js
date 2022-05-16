@@ -57,10 +57,15 @@ export async function importFiles(
         skipped: undefined,
       }: DataFile);
       await db.putFile(dataFile);
-      const parsed = await provider.parse(dataFile);
-      for (const entry of parsed) {
-        if (entry.type === "metadata") await db.putMetadata(entry);
-        else if (entry.type === "timeline") await db.putTimelineEntry(entry);
+      try {
+        const parsed = await provider.parse(dataFile);
+        for (const entry of parsed) {
+          if (entry.type === "metadata") await db.putMetadata(entry);
+          else if (entry.type === "timeline") await db.putTimelineEntry(entry);
+        }
+      } catch (e) {
+        console.warn("Error importing " + dataFile.path.join("/"));
+        throw e;
       }
       return;
     }
