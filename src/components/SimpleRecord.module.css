@@ -8,6 +8,10 @@
   line-height: 18px;
 }
 
+.icon {
+  color: var(--whiteout, var(--dark));
+}
+
 .username {
   color: var(--whiteout, var(--custom));
   font-weight: 900;
