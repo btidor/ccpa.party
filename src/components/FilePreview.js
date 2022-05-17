@@ -53,8 +53,9 @@ function displayFile(data: BufferSource, filename: string): React.Node {
     case "html": {
       // Blob iframes inherit the Content Security Policy of their parent. Here
       // this prevents them from loading resources from the network (except from
-      // our server). As an additional precaution, we apply a sandbox policy
-      // that prevents scripts from running.
+      // our server; with caveats: https://btidor.dev/content-security-policy).
+      // As an additional precaution, we apply a sandbox policy that prevents
+      // scripts from running.
       //
       // We set a unique key here to prevent React from trying to re-use the
       // iframe for different documents, which triggers a bug in Firefox.
@@ -73,22 +74,21 @@ function displayFile(data: BufferSource, filename: string): React.Node {
       );
     }
     case "pdf": {
-      const url = URL.createObjectURL(
-        new Blob([data], {
-          type: "application/pdf",
-        })
-      );
+      const url =
+        URL.createObjectURL(
+          new Blob([data], {
+            type: "application/pdf",
+          })
+        ) + "#toolbar=0";
       return (
-        // See above for iframe-related warnings. Firefox uses PDF.js to render
-        // PDFs and requires allow-scripts for it to run. Fortunately, browsers
-        // do seem to respect the MIME type set in the Blob constructor, so
-        // crafting an HTML file with a *.pdf extension won't work.
-        <iframe
-          key={filename}
-          src={url}
-          sandbox="allow-scripts"
-          title={filename}
-        ></iframe>
+        // Unfortunately, Chrome won't load its PDF viewer in an iframe if
+        // sandboxing is enabled, no matter which options are passed
+        // (crbug.com/413851). As a result, we have to disable sandboxing
+        // completely on this frame. Fortunately, browsers do respect the MIME
+        // type set in the Blob constructor, so crafting a file with the
+        // contents "<script>...</script>" and a *.pdf extension won't achieve
+        // script execution.
+        <iframe key={filename} src={url} title={filename}></iframe>
       );
     }
     case "avif":

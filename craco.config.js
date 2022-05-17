@@ -40,8 +40,6 @@ module.exports = {
         // Prevent all form submissions (makes it more difficult to exfiltrate
         // data).
         "form-action 'none'",
-        // Lock things down a little extra (not sure how much this does).
-        "sandbox allow-scripts allow-same-origin allow-popups",
       ].join("; "),
       "Cross-Origin-Embedder-Policy": "require-corp",
       "Cross-Origin-Opener-Policy": "same-origin",
