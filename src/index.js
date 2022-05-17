@@ -4,6 +4,7 @@ import * as ReactDOMClient from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
 import App from "App";
+import plausible from "plausible";
 
 import "index.css";
 
@@ -15,3 +16,5 @@ root.render(
     </BrowserRouter>
   </React.StrictMode>
 );
+
+plausible();
