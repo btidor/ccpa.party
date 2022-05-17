@@ -100,6 +100,7 @@ function Timeline(props: Props): React.Node {
             first: lastGroup === undefined,
           });
           lastGroup = entry.day;
+          lastTime = undefined;
         }
         let time = DateTime.fromSeconds(entry.timestamp).toLocaleString(
           DateTime.TIME_24_SIMPLE
