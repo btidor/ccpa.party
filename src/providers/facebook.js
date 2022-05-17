@@ -147,7 +147,7 @@ class Facebook implements Provider {
     text: "Download Your Information",
     href: "https://www.facebook.com/ccpa/download_your_information/",
   };
-  waitTime: string = "TODO";
+  waitTime: string = "1-2 hours";
   instructions: $ReadOnlyArray<string> = ["select format JSON"];
   singleFile: boolean = true;
   privacyPolicy: string = "https://www.facebook.com/legal/policy/ccpa";

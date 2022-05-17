@@ -17,7 +17,7 @@ class Google implements Provider {
     text: "Google Takeout",
     href: "https://takeout.google.com/",
   };
-  waitTime: string = "a day or two";
+  waitTime: string = "1-2 days";
   instructions: $ReadOnlyArray<string> = [
     `check Access Log Activity`,
     ``,

@@ -17,7 +17,7 @@ class Netflix implements Provider {
     text: "Get My Info",
     href: "https://www.netflix.com/account/getmyinfo",
   };
-  waitTime: string = "a day or two";
+  waitTime: string = "a day";
   instructions: $ReadOnlyArray<string> = [];
   singleFile: boolean = true;
   privacyPolicy: string = "https://help.netflix.com/legal/privacy#ccpa";
