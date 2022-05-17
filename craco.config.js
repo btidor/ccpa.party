@@ -11,7 +11,7 @@ module.exports = {
         // React dev tools extension.
         "script-src 'self' 'unsafe-inline' blob:",
         // Allow React to inject styles into the page.
-        "style-src 'unsafe-inline'",
+        "style-src 'self' 'unsafe-inline'",
         // Additional resources:
         "font-src 'self'",
         "manifest-src 'self'",
