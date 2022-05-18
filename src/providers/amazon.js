@@ -29,6 +29,8 @@ class Amazon implements Provider {
   privacyPolicy: string =
     "https://www.amazon.com/gp/help/customer/display.html?nodeId=GC5HB5DVMU5Y8CJ2";
 
+  metadataFiles: $ReadOnlyArray<string | RegExp> = [];
+
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [
     {
       char: "a",

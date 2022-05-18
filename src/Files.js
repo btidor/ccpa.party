@@ -30,7 +30,7 @@ const FileParseAction = (props: {|
       className={styles.action}
       onClick={() => {
         props.provider
-          .parse(props.file)
+          .parse(props.file, new Map())
           .then((e) => console.warn(e))
           .catch((e) => console.error(e));
       }}

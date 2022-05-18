@@ -24,6 +24,8 @@ class GitHub implements Provider {
   privacyPolicy: string =
     "https://docs.github.com/en/site-policy/privacy-policies/githubs-notice-about-the-california-consumer-privacy-act";
 
+  metadataFiles: $ReadOnlyArray<string | RegExp> = [];
+
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [
     {
       char: "a",

@@ -10,7 +10,7 @@ import {
   parseJSON,
   smartDecode,
 } from "common/parse";
-import SimpleRecord, { Pill } from "components/SimpleRecord";
+import { Pill } from "components/SimpleRecord";
 
 import type { DataFile, TimelineContext, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
@@ -37,6 +37,11 @@ class Discord implements Provider {
   privacyPolicy: string =
     "https://discord.com/privacy#information-for-california-users";
 
+  metadataFiles: $ReadOnlyArray<string | RegExp> = [
+    "servers/index.json",
+    /^channels\/c[0-9]+\/channel.json/,
+  ];
+
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [
     {
       char: "a",
@@ -54,7 +59,10 @@ class Discord implements Provider {
     },
   ];
 
-  async parse(file: DataFile): Promise<$ReadOnlyArray<TimelineEntry>> {
+  async parse(
+    file: DataFile,
+    metadata: Map<string, any>
+  ): Promise<$ReadOnlyArray<TimelineEntry>> {
     const entry = (
       row: any,
       category: string,
@@ -69,31 +77,19 @@ class Discord implements Provider {
     });
 
     if (file.path.slice(1).join("/") === "servers/index.json") {
-      return [
-        {
-          type: "metadata",
-          provider: file.provider,
-          key: "servers",
-          value: parseJSON(file.data),
-        },
-      ];
+      metadata.set("servers", parseJSON(file.data));
+      console.warn("SERVERS", metadata);
     } else if (file.path.slice(-1)[0] === "channel.json") {
       const value = parseJSON(file.data);
-      return [
-        {
-          type: "metadata",
-          provider: file.provider,
-          key: `channel/${value.id}`,
-          value,
-        },
-      ];
+      console.warn("CHANNEL", metadata);
+      metadata.set(`channel/${value.id}`, value);
     } else if (file.path.slice(-1)[0] === "messages.csv") {
       return (await parseCSV(file.data)).map((row) =>
         entry(
           row,
           "message",
           DateTime.fromJSDate(new Date(row.Timestamp)),
-          file.path[2].slice(1)
+          null
         )
       );
     } else if (file.path[1] === "activity") {
@@ -113,77 +109,70 @@ class Discord implements Provider {
     return [];
   }
 
-  render(
-    entry: TimelineEntry,
-    time: ?string,
-    metadata: $ReadOnlyMap<string, any>
-  ): React.Node {
-    let icon, body, trailer;
-    if (entry.category === "activity") {
-      const channel =
-        metadata.get(`channel/${entry.value.channel_id}`) ||
-        metadata.get(`channel/${entry.value.channel}`);
-      const server =
-        metadata.get(`servers`)?.[entry.value.guild_id || entry.value.server];
+  render: (TimelineEntry, $ReadOnlyMap<string, any>) => [?React.Node, ?string] =
+    (entry, metadata) => {
+      let body, trailer;
+      if (entry.category === "activity") {
+        const channel =
+          metadata.get(`channel/${entry.value.channel_id}`) ||
+          metadata.get(`channel/${entry.value.channel}`);
+        const server =
+          metadata.get(`servers`)?.[entry.value.guild_id || entry.value.server];
 
-      icon = "🖱";
-      body = entry.value.event_type
-        .replace(/_/g, " ")
-        .replace(/\w\S*/g, (w) => " " + w[0].toUpperCase() + w.slice(1));
-      trailer =
-        entry.value.type ||
-        entry.value.name ||
-        (channel?.name && `#${channel?.name} ${server ? `(${server})` : ""}`) ||
-        (server && `in ${server}`) ||
-        (entry.value.ip && `from ${entry.value.ip}`);
-    } else if (entry.category === "message") {
-      const channel = metadata.get(`channel/${entry.context}`);
+        body = entry.value.event_type
+          .replace(/_/g, " ")
+          .replace(/\w\S*/g, (w) => " " + w[0].toUpperCase() + w.slice(1));
+        trailer =
+          entry.value.type ||
+          entry.value.name ||
+          (channel?.name &&
+            `#${channel?.name} ${server ? `(${server})` : ""}`) ||
+          (server && `in ${server}`) ||
+          (entry.value.ip && `from ${entry.value.ip}`);
+      } else if (entry.category === "message") {
+        const channel = metadata.get(`channel/${entry.file[2].slice(1)}`);
 
-      icon = "💬";
-      body = entry.value.Contents.replaceAll(
-        /<(@!?|@&|#)([0-9]+)>/g,
-        (original, type, snowflake) => {
-          if (type === "@" || type === "@!") {
-            // The users list isn't part of the export
-            return "`@unknown`";
-          } else if (type === "@&") {
-            // The roles list isn't part of the export
-            return "`&unknown`";
-          } else if (type === "#") {
-            const channel = metadata.get(`channel/${snowflake}`);
-            return `\`#${channel?.name || "unknown"}\``;
+        body = entry.value.Contents.replaceAll(
+          /<(@!?|@&|#)([0-9]+)>/g,
+          (original, type, snowflake) => {
+            if (type === "@" || type === "@!") {
+              // The users list isn't part of the export
+              return "`@unknown`";
+            } else if (type === "@&") {
+              // The roles list isn't part of the export
+              return "`&unknown`";
+            } else if (type === "#") {
+              const channel = metadata.get(`channel/${snowflake}`);
+              return `\`#${channel?.name || "unknown"}\``;
+            }
+            return original;
           }
-          return original;
-        }
-      );
-      body = (
-        <ReactMarkdown remarkPlugins={[remarkGfm]} linkTarget="_blank">
-          {body}
-        </ReactMarkdown>
-      );
-      if (entry.value.Attachments)
-        body = (
-          <React.Fragment>
-            {body}
-            <Pill>Attachment</Pill>
-          </React.Fragment>
         );
+        body = (
+          <ReactMarkdown remarkPlugins={[remarkGfm]} linkTarget="_blank">
+            {body}
+          </ReactMarkdown>
+        );
+        if (entry.value.Attachments)
+          body = (
+            <React.Fragment>
+              {body}
+              <Pill>Attachment</Pill>
+            </React.Fragment>
+          );
 
-      if (channel && [1, 3].includes(channel.type))
-        trailer = "in direct message";
-      else if (channel && [0, 2].includes(channel.type))
-        trailer = `in #${channel.name} (${channel.guild.name})`;
-      else if (channel && [10, 11, 12].includes(channel.type))
-        trailer = `in thread "${channel.name}" (${channel.guild.name})`;
-      else trailer = "in unknown channel";
-    } else {
-      throw new Error("Unknown category: " + entry.category);
-    }
-
-    return (
-      <SimpleRecord time={time} icon={icon} body={body} trailer={trailer} />
-    );
-  }
+        if (channel && [1, 3].includes(channel.type))
+          trailer = "in direct message";
+        else if (channel && [0, 2].includes(channel.type))
+          trailer = `in #${channel.name} (${channel.guild.name})`;
+        else if (channel && [10, 11, 12].includes(channel.type))
+          trailer = `in thread "${channel.name}" (${channel.guild.name})`;
+        else trailer = "in unknown channel";
+      } else {
+        throw new Error("Unknown category: " + entry.category);
+      }
+      return [body, trailer];
+    };
 }
 
 export default Discord;

@@ -8,6 +8,7 @@ import Google from "providers/google";
 import Netflix from "providers/netflix";
 import Slack from "providers/slack";
 
+import type { Node } from "react";
 import type { DataFile, TimelineEntry } from "common/database";
 
 export type TimelineCategory = {|
@@ -33,9 +34,20 @@ export interface Provider {
   +singleFile: boolean;
   +privacyPolicy: string;
 
+  +metadataFiles: $ReadOnlyArray<string | RegExp>;
   +timelineCategories: $ReadOnlyArray<TimelineCategory>;
 
-  parse(file: DataFile): Promise<$ReadOnlyArray<TimelineEntry>>;
+  parse(
+    file: DataFile,
+    metadata: Map<string, any>
+  ): Promise<$ReadOnlyArray<TimelineEntry>>;
+
+  +render?: (
+    entry: TimelineEntry,
+    metadata: $ReadOnlyMap<string, any>
+  ) =>
+    | [?Node, ?string]
+    | [?Node, ?string, ?{| display: string, color: ?string |}];
 }
 
 export const ProviderRegistry: $ReadOnlyArray<Provider> = [

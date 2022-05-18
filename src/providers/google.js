@@ -30,6 +30,8 @@ class Google implements Provider {
   privacyPolicy: string =
     "https://policies.google.com/privacy?hl=en#california";
 
+  metadataFiles: $ReadOnlyArray<string | RegExp> = [];
+
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [
     {
       char: "a",

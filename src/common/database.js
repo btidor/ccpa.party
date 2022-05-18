@@ -29,6 +29,7 @@ export type TimelineEntryKey = {|
 |};
 
 export type TimelineContext =
+  | null
   | [string]
   | [string, ?string]
   | [string, ?string, ?{| display: string, color: ?string |}];
@@ -493,7 +494,7 @@ export class WritableDatabase extends ProviderScopedDatabase {
   }
 
   putMetadata(metadata: Map<string, any>): void {
-    metadata.forEach((k, v) => this._additions.metadata.set(k, v));
+    metadata.forEach((v, k) => this._additions.metadata.set(k, v));
   }
 
   putTimelineEntry(entry: TimelineEntry): void {

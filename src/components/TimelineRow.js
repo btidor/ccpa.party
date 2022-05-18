@@ -26,6 +26,7 @@ export type Group = {|
 type Props = {|
   +db: ProviderScopedDatabase,
   +isLast: boolean,
+  +metadata: $ReadOnlyMap<string, any>,
   +provider: Provider,
   +row: Entry | Group,
   +selected: ?string,
@@ -33,7 +34,7 @@ type Props = {|
 |};
 
 function TimelineRow(props: Props): React.Node {
-  const { db, isLast, row, selected, setSelected } = props;
+  const { db, isLast, metadata, provider, row, selected, setSelected } = props;
 
   const [hydrated, setHydrated] = React.useState();
   React.useEffect(() => {
@@ -67,14 +68,17 @@ function TimelineRow(props: Props): React.Node {
           {hydrated ? (
             (() => {
               // $FlowFixMe[invalid-tuple-index]
-              const [body, trailer, username] = hydrated.context;
+              // $FlowFixMe[incompatible-use]
+              const [body, trailer, username] =
+                provider.render?.(hydrated, metadata) || hydrated.context;
               return (
                 <SimpleRecord
                   time={row.time}
                   username={username}
                   icon={
-                    this.timelineCategories.find((c) => c.slug === row.category)
-                      ?.icon
+                    provider.timelineCategories.find(
+                      (c) => c.slug === row.category
+                    )?.icon
                   }
                   body={body}
                   trailer={trailer}

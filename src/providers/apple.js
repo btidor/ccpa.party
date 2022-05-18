@@ -28,6 +28,8 @@ class Apple implements Provider {
   singleFile: boolean = false;
   privacyPolicy: string = "https://www.apple.com/legal/privacy/california/";
 
+  metadataFiles: $ReadOnlyArray<string | RegExp> = [];
+
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [
     {
       char: "c",

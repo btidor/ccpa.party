@@ -31,6 +31,8 @@ export async function importFiles(
     return;
   }
 
+  const metadata = new Map();
+
   const processEntry = async (
     path: $ReadOnlyArray<string>,
     data: BufferSource
@@ -58,7 +60,7 @@ export async function importFiles(
       }: DataFile);
       db.putFile(dataFile);
       try {
-        (await provider.parse(dataFile)).forEach((entry) =>
+        (await provider.parse(dataFile, metadata)).forEach((entry) =>
           db.putTimelineEntry(entry)
         );
       } catch (e) {
@@ -97,6 +99,7 @@ export async function importFiles(
       throw new Error("Unknown file: " + path.slice(-1)[0]);
     }
   }
+  db.putMetadata(metadata);
   await db.commit();
   if (process.env.NODE_ENV === "development") {
     console.warn(`Time: ${(new Date().getTime() - start) / 1000}s`);

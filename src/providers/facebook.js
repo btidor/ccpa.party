@@ -110,6 +110,8 @@ class Facebook implements Provider {
   singleFile: boolean = true;
   privacyPolicy: string = "https://www.facebook.com/legal/policy/ccpa";
 
+  metadataFiles: $ReadOnlyArray<string | RegExp> = [];
+
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [
     {
       char: "a",

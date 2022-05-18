@@ -3,10 +3,10 @@ import EmojiMap from "emoji-name-map";
 import * as React from "react";
 
 import { getSlugAndDayTime, parseJSON } from "common/parse";
+import { Highlight, Pill } from "components/SimpleRecord";
 
 import type { DataFile, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
-import SimpleRecord, { Highlight, Pill } from "components/SimpleRecord";
 
 class Slack implements Provider {
   slug: string = "slack";
@@ -27,6 +27,11 @@ class Slack implements Provider {
     "https://slack.com/trust/privacy/privacy-policy#california-rights";
   // Also: https://slack.com/trust/compliance/ccpa-faq
 
+  metadataFiles: $ReadOnlyArray<string | RegExp> = [
+    "channels.json",
+    "users.json",
+  ];
+
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [
     {
       char: "m",
@@ -44,25 +49,16 @@ class Slack implements Provider {
     },
   ];
 
-  async parse(file: DataFile): Promise<$ReadOnlyArray<TimelineEntry>> {
+  async parse(
+    file: DataFile,
+    metadata: Map<string, any>
+  ): Promise<$ReadOnlyArray<TimelineEntry>> {
     if (file.path[1] === "users.json") {
-      return [
-        {
-          type: "metadata",
-          provider: file.provider,
-          key: "users",
-          value: parseJSON(file.data),
-        },
-      ];
+      metadata.set("users", parseJSON(file.data));
+      return [];
     } else if (file.path[1] === "channels.json") {
-      return [
-        {
-          type: "metadata",
-          provider: file.provider,
-          key: "channels",
-          value: parseJSON(file.data),
-        },
-      ];
+      metadata.set("channels", parseJSON(file.data));
+      return [];
     } else if (file.path[1] === "integration_logs.json") {
       return parseJSON(file.data).map(
         (log) =>
@@ -81,18 +77,20 @@ class Slack implements Provider {
             file: file.path,
             category: "message",
             ...getSlugAndDayTime(parseInt(message.ts), message),
-            context: file.path[1],
+            context: null,
             value: message,
           }: TimelineEntry)
       );
     }
   }
 
-  render(
-    entry: TimelineEntry,
-    time: ?string,
-    metadata: $ReadOnlyMap<string, any>
-  ): React.Node {
+  render: (
+    TimelineEntry,
+    $ReadOnlyMap<string, any>
+  ) => [?React.Node, ?string, ?{| display: string, color: ?string |}] = (
+    entry,
+    metadata
+  ) => {
     const message = entry.value;
     const users = metadata.get("users");
     const channels = metadata.get("channels");
@@ -100,7 +98,9 @@ class Slack implements Provider {
     if (!users || !channels) throw new Error("Failed to load metadata");
 
     const channelName =
-      entry.context || channels.find((x) => x.id === message.channel)?.name;
+      entry.category === "message"
+        ? entry.file[1]
+        : channels.find((x) => x.id === message.channel)?.name;
     let trailer = channelName && `#${channelName}`;
 
     const user = users.find((x) => x.id === (message.user || message.user_id));
@@ -198,15 +198,8 @@ class Slack implements Provider {
       });
     }
 
-    return (
-      <SimpleRecord
-        time={time}
-        username={username}
-        body={text}
-        trailer={trailer}
-      />
-    );
-  }
+    return [text, trailer, username];
+  };
 }
 
 export default Slack;

@@ -23,6 +23,8 @@ class Netflix implements Provider {
   singleFile: boolean = true;
   privacyPolicy: string = "https://help.netflix.com/legal/privacy#ccpa";
 
+  metadataFiles: $ReadOnlyArray<string | RegExp> = [];
+
   timelineCategories: $ReadOnlyArray<TimelineCategory> = [
     {
       char: "c",
