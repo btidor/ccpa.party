@@ -1,5 +1,5 @@
 .outer {
-  --dark: var(--dark-hex);
+  --neon: var(--neon-hex);
   height: 100vh;
   height: -webkit-fill-available;
   display: flex;
@@ -10,7 +10,7 @@
 
 @supports (color: color(rec2020 0 0 0)) {
   .outer {
-    --dark: var(--dark-hdr);
+    --neon: var(--neon-hdr);
   }
 }
 
@@ -55,7 +55,7 @@
   padding-left: 0.5rem;
 
   color: #000;
-  background-color: var(--dark);
+  background-color: var(--neon);
 
   display: flex;
   overflow: hidden;
@@ -86,12 +86,12 @@
 }
 
 .action:hover {
-  color: var(--dark);
+  color: var(--neon);
   background-color: #000;
 }
 
 .box {
   flex-grow: 1;
-  border: 1px solid var(--dark);
+  border: 1px solid var(--neon);
   padding: 0.25rem;
 }

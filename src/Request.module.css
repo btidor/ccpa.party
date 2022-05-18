@@ -1,6 +1,6 @@
 .request {
-  --dark: var(--dark-hex);
-  color: var(--dark);
+  --neon: var(--neon-hex);
+  color: var(--neon);
 
   height: auto;
   min-height: 100vh;
@@ -15,14 +15,14 @@
 
 @supports (color: color(rec2020 0 0 0)) {
   .request {
-    --dark: var(--dark-hdr);
+    --neon: var(--neon-hdr);
   }
 }
 
 .request section {
   margin: 2em auto;
   padding: 2em;
-  border: 2px solid var(--dark);
+  border: 2px solid var(--neon);
 }
 
 @media only screen and (max-width: 420px) {
@@ -75,7 +75,7 @@
 
 .instruction a,
 .compass label {
-  color: var(--dark);
+  color: var(--neon);
   font-weight: 550;
 }
 

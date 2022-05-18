@@ -95,8 +95,8 @@ function Files(props: Props): React.Node {
     <div
       className={styles.outer}
       style={{
-        "--dark-hex": props.provider.darkColor,
-        "--dark-hdr": props.provider.darkColorHDR,
+        "--neon-hex": props.provider.neonColor,
+        "--neon-hdr": props.provider.neonColorHDR,
       }}
     >
       <Navigation provider={provider} pageSlug="files" />

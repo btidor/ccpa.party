@@ -18,8 +18,8 @@ class Amazon implements Provider {
   displayName: string = "Amazon";
 
   brandColor: string = "#ff9900";
-  darkColor: string = "#ff7100";
-  darkColorHDR: string = "color(rec2020 0.84192 0.48607 -0.05713)";
+  neonColor: string = "#ff7100";
+  neonColorHDR: string = "color(rec2020 0.84192 0.48607 -0.05713)";
 
   requestLink: {| href: string, text: string |} = {
     text: "Request My Data",

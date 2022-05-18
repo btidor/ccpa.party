@@ -4,7 +4,7 @@
   line-height: 2;
   text-align: center;
 
-  color: var(--dark);
+  color: var(--neon);
   background-color: #000;
 
   display: flex;
@@ -38,7 +38,7 @@
   width: 194px;
   height: 48px;
 
-  border: 2px solid var(--dark);
+  border: 2px solid var(--neon);
   padding: 0.125rem 1rem;
   text-align: right;
 

@@ -100,8 +100,8 @@ class Facebook implements Provider {
   displayName: string = "Facebook";
 
   brandColor: string = "#1877f2";
-  darkColor: string = "#009eff";
-  darkColorHDR: string = "color(rec2020 0.12623 0.5874 1.52179)";
+  neonColor: string = "#009eff";
+  neonColorHDR: string = "color(rec2020 0.12623 0.5874 1.52179)";
 
   requestLink: {| href: string, text: string |} = {
     text: "Download Your Information",
@@ -301,7 +301,7 @@ class Facebook implements Provider {
     return (
       <SimpleRecord
         time={time}
-        username={username && { display: username, color: this.darkColor }}
+        username={username && { display: username, color: this.neonColor }}
         icon={
           this.timelineCategories.find((c) => c.slug === entry.category)?.icon
         }

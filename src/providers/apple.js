@@ -18,8 +18,8 @@ class Apple implements Provider {
   displayName: string = "Apple";
 
   brandColor: string = "#ffb900";
-  darkColor: string = "#e08800";
-  darkColorHDR: string = "color(rec2020 0.75646 0.54656 -0.09204)";
+  neonColor: string = "#e08800";
+  neonColorHDR: string = "color(rec2020 0.75646 0.54656 -0.09204)";
 
   requestLink: {| href: string, text: string |} = {
     text: "Data and Privacy",

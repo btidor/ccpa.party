@@ -13,8 +13,8 @@ class Slack implements Provider {
   displayName: string = "Slack";
 
   brandColor: string = "#4a154b";
-  darkColor: string = "#f0f";
-  darkColorHDR: string = "color(rec2020 0.92827 0.25757 1.11361)";
+  neonColor: string = "#f0f";
+  neonColorHDR: string = "color(rec2020 0.92827 0.25757 1.11361)";
 
   requestLink: {| href: string, text: string |} = {
     text: "Export Workspace Data",

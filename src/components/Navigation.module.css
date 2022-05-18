@@ -3,7 +3,7 @@
   align-items: center;
   white-space: nowrap;
 
-  color: var(--dark);
+  color: var(--neon);
   font-family: "Cascadia Mono", monospace;
   font-size: 14px;
 }
@@ -19,13 +19,13 @@
   margin-right: 2vw;
 
   background-color: transparent;
-  border: 1px solid var(--dark);
+  border: 1px solid var(--neon);
   font-weight: 600;
   text-transform: lowercase;
 }
 
 .header select:focus-visible {
-  border: 1px dashed var(--dark);
+  border: 1px dashed var(--neon);
   margin: 0 2vw 0 0;
 }
 

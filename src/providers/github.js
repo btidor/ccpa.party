@@ -13,8 +13,8 @@ class GitHub implements Provider {
   displayName: string = "GitHub";
 
   brandColor: string = "#6e5494";
-  darkColor: string = "#bd65ff";
-  darkColorHDR: string = "color(rec2020 0.69493 0.4398 1.36255)";
+  neonColor: string = "#bd65ff";
+  neonColorHDR: string = "color(rec2020 0.69493 0.4398 1.36255)";
 
   requestLink: {| href: string, text: string |} = {
     text: "Account Settings",

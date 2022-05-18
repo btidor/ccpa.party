@@ -9,7 +9,7 @@
 }
 
 .icon {
-  color: var(--whiteout, var(--dark));
+  color: var(--whiteout, var(--neon));
 }
 
 .username {
@@ -38,7 +38,7 @@ blockquote + .trailer,
 }
 
 .content a {
-  color: var(--dark);
+  color: var(--neon);
   word-break: break-all;
 }
 
@@ -62,18 +62,18 @@ blockquote + .trailer,
 }
 
 .highlight {
-  color: var(--dark);
+  color: var(--neon);
 }
 
 .content code,
 .content pre {
-  color: var(--dark);
+  color: var(--neon);
   font-weight: 500;
 }
 
 .pill {
   display: inline-block;
-  color: var(--dark);
+  color: var(--neon);
   font-size: 12px;
   font-weight: 600;
   margin: 0 7px;

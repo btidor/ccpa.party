@@ -20,8 +20,8 @@ class Discord implements Provider {
   displayName: string = "Discord";
 
   brandColor: string = "#5865f2";
-  darkColor: string = "#4087ff";
-  darkColorHDR: string = "color(rec2020 0.4889 0.52224 1.46496)";
+  neonColor: string = "#4087ff";
+  neonColorHDR: string = "color(rec2020 0.4889 0.52224 1.46496)";
 
   requestLink: {| href: string, text: string |} = {
     text: "Discord",

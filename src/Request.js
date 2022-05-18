@@ -46,8 +46,8 @@ function Request(props: Props): React.Node {
     <main
       className={styles.request}
       style={{
-        "--dark-hex": provider.darkColor,
-        "--dark-hdr": provider.darkColorHDR,
+        "--neon-hex": provider.neonColor,
+        "--neon-hdr": provider.neonColorHDR,
       }}
     >
       {/* HACK: place extra <div>s so that vertical spacing gets distriuted

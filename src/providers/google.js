@@ -13,8 +13,8 @@ class Google implements Provider {
   displayName: string = "Google";
 
   brandColor: string = "#34a853";
-  darkColor: string = "#00c300";
-  darkColorHDR: string = "color(rec2020 0.1856 0.71527 0.06415)";
+  neonColor: string = "#00c300";
+  neonColorHDR: string = "color(rec2020 0.1856 0.71527 0.06415)";
 
   requestLink: {| href: string, text: string |} = {
     text: "Google Takeout",

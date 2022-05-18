@@ -13,8 +13,8 @@ class Netflix implements Provider {
   displayName: string = "Netflix";
 
   brandColor: string = "#e50914";
-  darkColor: string = "#ff0006";
-  darkColorHDR: string = "color(rec2020 1.0185 0.26889 0.13682)";
+  neonColor: string = "#ff0006";
+  neonColorHDR: string = "color(rec2020 1.0185 0.26889 0.13682)";
 
   requestLink: {| href: string, text: string |} = {
     text: "Get My Info",

@@ -21,7 +21,7 @@
 .item:hover,
 .item[aria-selected="true"] {
   cursor: pointer;
-  background-color: var(--dark);
+  background-color: var(--neon);
 }
 
 .item svg {

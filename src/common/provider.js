@@ -26,8 +26,8 @@ export interface Provider {
 
   +brandColor: string;
   // derived from brandColor by provider.test.js...
-  +darkColor: string;
-  +darkColorHDR: string;
+  +neonColor: string;
+  +neonColorHDR: string;
 
   +requestLink: {| text: string, href: string |};
   +instructions: $ReadOnlyArray<string>;

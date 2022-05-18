@@ -30,7 +30,7 @@ function Home(): React.Node {
     <main className={styles.home} ref={ref}>
       <section>
         <div className={styles.intro}>
-          <div className={styles.logo} style={{ "--dark": "#fff" }}>
+          <div className={styles.logo} style={{ "--neon": "#fff" }}>
             <Logo block="home" party="glow" />
           </div>
           <p>
@@ -48,8 +48,8 @@ function Home(): React.Node {
             <div
               key={provider.slug}
               style={{
-                "--dark-hex": provider.darkColor,
-                "--dark-hdr": provider.darkColorHDR,
+                "--neon-hex": provider.neonColor,
+                "--neon-hdr": provider.neonColorHDR,
               }}
             >
               <span>{imported?.has(provider.slug) && "␥"}</span>
