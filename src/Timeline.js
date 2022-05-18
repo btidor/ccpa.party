@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 
 import { ProviderScopedDatabase } from "common/database";
-import { darkColor } from "common/provider";
 
 import DatePicker from "components/DatePicker";
 import FilePreview from "components/FilePreview";
@@ -158,7 +157,10 @@ function Timeline(props: Props): React.Node {
   return (
     <div
       className={styles.outer}
-      style={{ "--dark": darkColor(props.provider) }}
+      style={{
+        "--dark-hex": props.provider.darkColor,
+        "--dark-hdr": props.provider.darkColorHDR,
+      }}
     >
       <Navigation provider={provider} pageSlug="timeline" />
       <main className={styles.drilldown}>

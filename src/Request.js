@@ -5,7 +5,6 @@ import { TrashIcon } from "@primer/octicons-react";
 
 import { Database } from "common/database";
 import { importFiles, resetProvider } from "common/importer";
-import { darkColor } from "common/provider";
 
 import Logo from "components/Logo";
 
@@ -44,7 +43,13 @@ function Request(props: Props): React.Node {
 
   const inputRef = React.useRef<?HTMLInputElement>();
   return (
-    <main className={styles.request} style={{ "--dark": darkColor(provider) }}>
+    <main
+      className={styles.request}
+      style={{
+        "--dark-hex": provider.darkColor,
+        "--dark-hdr": provider.darkColorHDR,
+      }}
+    >
       {/* HACK: place extra <div>s so that vertical spacing gets distriuted
           in a 2:3 ratio above/below the <section> */}
       <div></div>

@@ -3,7 +3,7 @@ import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import { Database } from "common/database";
-import { ProviderRegistry, darkColor } from "common/provider";
+import { ProviderRegistry } from "common/provider";
 
 import Logo from "components/Logo";
 
@@ -45,7 +45,13 @@ function Home(): React.Node {
         </div>
         <nav>
           {ProviderRegistry.map((provider) => (
-            <div key={provider.slug} style={{ "--dark": darkColor(provider) }}>
+            <div
+              key={provider.slug}
+              style={{
+                "--dark-hex": provider.darkColor,
+                "--dark-hdr": provider.darkColorHDR,
+              }}
+            >
               <span>{imported?.has(provider.slug) && "␥"}</span>
               <Link to={`/${provider.slug}`}>{provider.displayName}</Link>
             </div>

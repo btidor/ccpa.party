@@ -29,37 +29,40 @@
 
 .intro {
   scroll-snap-align: start;
-}
 
-.home nav {
-  scroll-snap-align: end;
-}
-
-.intro {
   display: flex;
   flex-direction: column;
   gap: 1.5em;
   align-items: flex-end;
+  text-align: right;
 }
 
 .logo {
   margin: 0 -1rem;
 }
 
-.intro p {
-  font-weight: bold;
-  text-align: right;
+.home nav {
+  scroll-snap-align: end;
 }
 
 .home nav div {
-  color: var(--dark);
-  font-weight: bold;
+  color: var(--dark-hex);
   text-transform: lowercase;
+}
+
+@supports (color: color(rec2020 0 0 0)) {
+  .home nav div {
+    color: var(--dark-hdr);
+  }
 }
 
 .home nav span {
   display: inline-block;
   width: 2ch;
+}
+
+.home nav a {
+  font-weight: 500;
 }
 
 .home nav a:hover {

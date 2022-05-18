@@ -5,7 +5,6 @@ import { BeakerIcon, DesktopDownloadIcon } from "@primer/octicons-react";
 
 import { ProviderScopedDatabase } from "common/database";
 import { fileSizeLimitMB } from "common/importer";
-import { darkColor } from "common/provider";
 
 import FilePreview from "components/FilePreview";
 import FileTree from "components/FileTree";
@@ -95,7 +94,10 @@ function Files(props: Props): React.Node {
   return (
     <div
       className={styles.outer}
-      style={{ "--dark": darkColor(props.provider) }}
+      style={{
+        "--dark-hex": props.provider.darkColor,
+        "--dark-hdr": props.provider.darkColorHDR,
+      }}
     >
       <Navigation provider={provider} pageSlug="files" />
       <main className={styles.drilldown}>

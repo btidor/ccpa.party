@@ -1,10 +1,17 @@
 .outer {
+  --dark: var(--dark-hex);
   height: 100vh;
   height: -webkit-fill-available;
   display: flex;
   flex-direction: column;
   padding: 2vw;
   gap: 1vw;
+}
+
+@supports (color: color(rec2020 0 0 0)) {
+  .outer {
+    --dark: var(--dark-hdr);
+  }
 }
 
 .drilldown {
