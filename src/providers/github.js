@@ -30,12 +30,14 @@ class GitHub implements Provider {
     {
       char: "a",
       slug: "activity",
+      icon: "🖱",
       displayName: "Activity",
       defaultEnabled: true,
     },
     {
       char: "m",
       slug: "message",
+      icon: "💬",
       displayName: "Messages",
       defaultEnabled: true,
     },

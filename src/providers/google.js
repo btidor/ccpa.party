@@ -36,12 +36,14 @@ class Google implements Provider {
     {
       char: "a",
       slug: "activity",
+      icon: "🖱",
       displayName: "Activity",
       defaultEnabled: true,
     },
     {
       char: "s",
       slug: "security",
+      icon: "🪪",
       displayName: "Security Logs",
       defaultEnabled: false,
     },

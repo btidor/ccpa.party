@@ -31,12 +31,14 @@ class Slack implements Provider {
     {
       char: "m",
       slug: "message",
+      icon: "",
       displayName: "Messages",
       defaultEnabled: true,
     },
     {
       char: "i",
       slug: "integration",
+      icon: "",
       displayName: "Integration Logs",
       defaultEnabled: false,
     },

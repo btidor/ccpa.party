@@ -41,12 +41,14 @@ class Discord implements Provider {
     {
       char: "a",
       slug: "activity",
+      icon: "🖱",
       displayName: "Activity",
       defaultEnabled: false,
     },
     {
       char: "m",
       slug: "message",
+      icon: "💬",
       displayName: "Sent Messages",
       defaultEnabled: true,
     },
