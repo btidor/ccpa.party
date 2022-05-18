@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
 
-import styles from "components/SimpleRecord.module.css";
+import styles from "components/Record.module.css";
 
 type Props = {|
   +time?: ?string,
@@ -19,7 +19,7 @@ export const Pill = (props: {| +children: React.Node |}): React.Node => (
   <div className={styles.pill}>{props.children}</div>
 );
 
-function SimpleRecord(props: Props): React.Node {
+function Record(props: Props): React.Node {
   const { time, icon, username, body, trailer } = props;
   return (
     <React.Fragment>
@@ -41,4 +41,4 @@ function SimpleRecord(props: Props): React.Node {
   );
 }
 
-export default SimpleRecord;
+export default Record;

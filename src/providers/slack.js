@@ -3,7 +3,7 @@ import EmojiMap from "emoji-name-map";
 import * as React from "react";
 
 import { getSlugAndDayTime, parseJSON } from "common/parse";
-import { Highlight, Pill } from "components/SimpleRecord";
+import { Highlight, Pill } from "components/Record";
 
 import type { DataFile, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";

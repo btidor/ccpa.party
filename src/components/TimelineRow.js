@@ -3,13 +3,12 @@ import { DateTime } from "luxon";
 import * as React from "react";
 
 import { ProviderScopedDatabase } from "common/database";
+import Record from "components/Record";
 
 import styles from "components/TimelineRow.module.css";
 
 import type { TimelineEntryKey } from "common/database";
 import type { Provider } from "common/provider";
-
-import SimpleRecord from "components/SimpleRecord"; // TODO
 
 export type Entry = $ReadOnly<{|
   isGroup: false,
@@ -72,7 +71,7 @@ function TimelineRow(props: Props): React.Node {
               const [body, trailer, username] =
                 provider.render?.(hydrated, metadata) || hydrated.context;
               return (
-                <SimpleRecord
+                <Record
                   time={row.time}
                   username={username}
                   icon={

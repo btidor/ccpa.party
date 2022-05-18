@@ -10,7 +10,7 @@ import {
   parseJSON,
   smartDecode,
 } from "common/parse";
-import { Pill } from "components/SimpleRecord";
+import { Pill } from "components/Record";
 
 import type { DataFile, TimelineContext, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
