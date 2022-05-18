@@ -67,8 +67,6 @@ class Slack implements Provider {
       return parseJSON(file.data).map(
         (log) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "integration",
             ...getSlugAndDayTime(parseInt(log.date), log),
@@ -80,8 +78,6 @@ class Slack implements Provider {
       return parseJSON(file.data).map(
         (message) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "message",
             ...getSlugAndDayTime(parseInt(message.ts), message),

@@ -110,8 +110,6 @@ class GitHub implements Provider {
           }
 
           return ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category,
             ...getSlugAndDayTime(

@@ -19,16 +19,7 @@ export type DataFileKey = {|
 
 export type DataFile = {| ...DataFileKey, +data: BufferSource |};
 
-export type MetadataEntry = {|
-  +type: "metadata",
-  +provider: string,
-  +key: string,
-  +value: any,
-|};
-
 export type TimelineEntryKey = {|
-  +type: "timeline",
-  +provider: string,
   +day: string,
   +timestamp: number,
   +slug: string,
@@ -251,8 +242,6 @@ export class ProviderScopedDatabase extends Database {
   async getTimelineEntries(): Promise<Array<TimelineEntryKey>> {
     return (await this._providerIndex).timeline.map(
       ([iv, offset, day, timestamp, slug, category]) => ({
-        type: "timeline",
-        provider: this._provider.slug,
         day,
         timestamp,
         slug,
@@ -285,8 +274,6 @@ export class ProviderScopedDatabase extends Database {
     if (!entry) return;
     const [iv, offset, day, timestamp, s, category] = entry;
     return this.hydrateTimelineEntry({
-      type: "timeline",
-      provider: this._provider.slug,
       day,
       timestamp,
       slug: s,
@@ -505,9 +492,8 @@ export class WritableDatabase extends ProviderScopedDatabase {
     this._additions.files.push(file);
   }
 
-  putMetadata(metadata: MetadataEntry): void {
-    const { key, value } = metadata;
-    this._additions.metadata.set(key, value);
+  putMetadata(metadata: Map<string, any>): void {
+    metadata.forEach((k, v) => this._additions.metadata.set(k, v));
   }
 
   putTimelineEntry(entry: TimelineEntry): void {

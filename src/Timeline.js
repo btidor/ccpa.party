@@ -90,8 +90,8 @@ function Timeline(props: Props): React.Node {
       for (const entry of filtered) {
         if (entry.day !== lastGroup) {
           rows.push({
-            type: "group",
-            value: entry.day,
+            isGroup: true,
+            day: entry.day,
             first: lastGroup === undefined,
           });
           lastGroup = entry.day;
@@ -101,7 +101,7 @@ function Timeline(props: Props): React.Node {
           DateTime.TIME_24_SIMPLE
         );
         lastTime === time ? (time = undefined) : (lastTime = time);
-        rows.push({ ...entry, time });
+        rows.push({ ...entry, time, isGroup: false });
       }
       return rows;
     }
@@ -139,8 +139,7 @@ function Timeline(props: Props): React.Node {
   React.useEffect(() => {
     if (!loaded && virtuoso.current && rows) {
       const index =
-        selected &&
-        rows.findIndex((e) => e.type === "timeline" && e.slug === selected);
+        selected && rows.findIndex((e) => !e.isGroup && e.slug === selected);
       index && virtuoso.current.scrollToIndex(index - 3);
       setLoaded(true);
     }

@@ -24,19 +24,18 @@ function DatePicker(props: Props): React.Node {
   let node;
   const row = rows?.[index];
   if (row && rows) {
-    const value = row.type === "timeline" ? row.day : row.value;
     node = (
       <React.Fragment>
         <label>
-          {VerboseDateFormat.format(new Date(value))}
+          {VerboseDateFormat.format(new Date(row.day))}
           <input
             type="date"
-            value={value}
+            value={row.day}
             onChange={(e) => {
               let target = 0;
               for (const [index, item] of rows.entries()) {
-                if (item.type !== "group") continue;
-                if (item.value < e.target.value) break;
+                if (!item.isGroup) continue;
+                if (item.day < e.target.value) break;
                 target = index;
               }
               scrollToIndex(target);

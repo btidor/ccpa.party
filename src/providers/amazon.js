@@ -68,8 +68,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -84,8 +82,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -100,8 +96,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "order",
             ...getSlugAndDayTime(
@@ -121,8 +115,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -143,8 +135,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -166,8 +156,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "billing",
             ...getSlugAndDayTime(
@@ -184,8 +172,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -200,8 +186,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "billing",
             ...getSlugAndDayTime(
@@ -216,8 +200,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -232,8 +214,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "order",
             ...getSlugAndDayTime(
@@ -248,8 +228,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "billing",
             ...getSlugAndDayTime(
@@ -264,8 +242,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -280,8 +256,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "order",
             ...getSlugAndDayTime(
@@ -300,8 +274,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "notification",
             ...getSlugAndDayTime(
@@ -319,8 +291,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -335,8 +305,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "order",
             ...getSlugAndDayTime(
@@ -351,8 +319,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "order",
             ...getSlugAndDayTime(
@@ -367,8 +333,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "notification",
             ...getSlugAndDayTime(
@@ -383,8 +347,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -407,8 +369,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -426,8 +386,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "billing",
             ...getSlugAndDayTime(
@@ -442,8 +400,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "billing",
             ...getSlugAndDayTime(
@@ -458,8 +414,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "billing",
             ...getSlugAndDayTime(
@@ -476,8 +430,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "notification",
             ...getSlugAndDayTime(
@@ -492,8 +444,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -511,8 +461,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "notification",
             ...getSlugAndDayTime(
@@ -532,8 +480,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -559,8 +505,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "notification",
             ...getSlugAndDayTime(
@@ -583,8 +527,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "notification",
             ...getSlugAndDayTime(
@@ -605,8 +547,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "notification",
             ...getSlugAndDayTime(
@@ -623,8 +563,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "notification",
             ...getSlugAndDayTime(
@@ -647,8 +585,6 @@ class Amazon implements Provider {
         .map(
           (row) =>
             ({
-              type: "timeline",
-              provider: file.provider,
               file: file.path,
               category: "billing",
               ...getSlugAndDayTime(
@@ -666,8 +602,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "order",
             ...getSlugAndDayTime(
@@ -687,8 +621,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -707,8 +639,6 @@ class Amazon implements Provider {
       return parsed.authenticationSessionRecords.map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -723,8 +653,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "notification",
             ...getSlugAndDayTime(
@@ -739,8 +667,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -759,8 +685,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -777,8 +701,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "billing",
             ...getSlugAndDayTime(
@@ -806,8 +728,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "order",
             ...getSlugAndDayTime(
@@ -826,8 +746,6 @@ class Amazon implements Provider {
         .map(
           (row) =>
             ({
-              type: "timeline",
-              provider: file.provider,
               file: file.path,
               category: "billing",
               ...getSlugAndDayTime(
@@ -848,8 +766,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "billing",
             ...getSlugAndDayTime(
@@ -878,8 +794,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -906,8 +820,6 @@ class Amazon implements Provider {
       return (await parseCSV(raw)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "notification",
             ...getSlugAndDayTime(
@@ -925,8 +837,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "billing",
             ...getSlugAndDayTime(
@@ -943,8 +853,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -962,8 +870,6 @@ class Amazon implements Provider {
         .map(
           (row) =>
             ({
-              type: "timeline",
-              provider: file.provider,
               file: file.path,
               category: "activity",
               ...getSlugAndDayTime(
@@ -998,8 +904,6 @@ class Amazon implements Provider {
         } catch {}
 
         return ({
-          type: "timeline",
-          provider: file.provider,
           file: file.path,
           category: "activity",
           ...getSlugAndDayTime(
@@ -1014,8 +918,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "activity",
             ...getSlugAndDayTime(
@@ -1032,8 +934,6 @@ class Amazon implements Provider {
       return (await parseCSV(file.data)).map(
         (row) =>
           ({
-            type: "timeline",
-            provider: file.provider,
             file: file.path,
             category: "billing",
             ...getSlugAndDayTime(

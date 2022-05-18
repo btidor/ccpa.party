@@ -54,8 +54,6 @@ class Google implements Provider {
       datetime: any,
       context: TimelineContext
     ) => ({
-      type: "timeline",
-      provider: file.provider,
       file: file.path,
       category,
       ...getSlugAndDayTime(datetime.toSeconds(), row),
