@@ -3,7 +3,6 @@ import { DateTime } from "luxon";
 import * as React from "react";
 
 import { getSlugAndDayTime, parseJSON } from "common/parse";
-import { darkColor } from "common/provider";
 import SimpleRecord from "components/SimpleRecord";
 
 import type { DataFile, Entry, TimelineEntry } from "common/database";
@@ -99,7 +98,10 @@ const mappers = {
 class Facebook implements Provider {
   slug: string = "facebook";
   displayName: string = "Facebook";
-  color: string = "#1877f2";
+
+  brandColor: string = "#1877f2";
+  darkColor: string = "#009eff";
+  darkColorHDR: string = "color(rec2020 0.12623 0.5874 1.52179)";
 
   requestLink: {| href: string, text: string |} = {
     text: "Download Your Information",
@@ -299,7 +301,7 @@ class Facebook implements Provider {
     return (
       <SimpleRecord
         time={time}
-        username={username && { display: username, color: darkColor(this) }}
+        username={username && { display: username, color: this.darkColor }}
         icon={
           this.timelineCategories.find((c) => c.slug === entry.category)?.icon
         }

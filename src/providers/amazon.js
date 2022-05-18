@@ -16,7 +16,10 @@ import type { Provider, TimelineCategory } from "common/provider";
 class Amazon implements Provider {
   slug: string = "amazon";
   displayName: string = "Amazon";
-  color: string = "#ff9900";
+
+  brandColor: string = "#ff9900";
+  darkColor: string = "#ff7100";
+  darkColorHDR: string = "color(rec2020 0.84192 0.48607 -0.05713)";
 
   requestLink: {| href: string, text: string |} = {
     text: "Request My Data",

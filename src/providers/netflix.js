@@ -11,7 +11,10 @@ import type { Provider, TimelineCategory } from "common/provider";
 class Netflix implements Provider {
   slug: string = "netflix";
   displayName: string = "Netflix";
-  color: string = "#e50914";
+
+  brandColor: string = "#e50914";
+  darkColor: string = "#ff0006";
+  darkColorHDR: string = "color(rec2020 1.0185 0.26889 0.13682)";
 
   requestLink: {| href: string, text: string |} = {
     text: "Get My Info",

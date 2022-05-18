@@ -11,7 +11,10 @@ import SimpleRecord, { Highlight, Pill } from "components/SimpleRecord";
 class Slack implements Provider {
   slug: string = "slack";
   displayName: string = "Slack";
-  color: string = "#4a154b";
+
+  brandColor: string = "#4a154b";
+  darkColor: string = "#f0f";
+  darkColorHDR: string = "color(rec2020 0.92827 0.25757 1.11361)";
 
   requestLink: {| href: string, text: string |} = {
     text: "Export Workspace Data",

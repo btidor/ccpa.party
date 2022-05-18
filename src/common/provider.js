@@ -1,5 +1,4 @@
 // @flow
-import Color from "colorjs.io";
 import * as React from "react";
 
 import Amazon from "providers/amazon";
@@ -24,7 +23,11 @@ export type TimelineCategory = {|
 export interface Provider {
   +slug: string;
   +displayName: string;
-  +color: string;
+
+  +brandColor: string;
+  // derived from brandColor by provider.test.js...
+  +darkColor: string;
+  +darkColorHDR: string;
 
   +requestLink: {| text: string, href: string |};
   +instructions: $ReadOnlyArray<string>;
@@ -60,18 +63,3 @@ export const ProviderLookup: $ReadOnlyMap<string, Provider> = new Map<
 ProviderRegistry.forEach((provider) =>
   (ProviderLookup: any).set(provider.slug, provider)
 );
-
-export function darkColor(provider: Provider): string {
-  const color = new Color(provider.color)
-    .to("rec2020")
-    .toGamut({ space: "rec2020" })
-    .set("lightness", 65)
-    .set("chroma", 132);
-  // $FlowFixMe[cannot-resolve-name]
-  if (CSS?.supports?.("color", color.toString())) return color.toString();
-
-  return color
-    .to("srgb")
-    .toGamut({ method: "clip", space: "srgb" })
-    .toString({ format: "hex" });
-}

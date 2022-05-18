@@ -18,7 +18,10 @@ import type { Provider, TimelineCategory } from "common/provider";
 class Discord implements Provider {
   slug: string = "discord";
   displayName: string = "Discord";
-  color: string = "#5865f2";
+
+  brandColor: string = "#5865f2";
+  darkColor: string = "#4087ff";
+  darkColorHDR: string = "color(rec2020 0.4889 0.52224 1.46496)";
 
   requestLink: {| href: string, text: string |} = {
     text: "Discord",

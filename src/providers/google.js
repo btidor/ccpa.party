@@ -11,7 +11,10 @@ import type { Provider, TimelineCategory } from "common/provider";
 class Google implements Provider {
   slug: string = "google";
   displayName: string = "Google";
-  color: string = "#34a853";
+
+  brandColor: string = "#34a853";
+  darkColor: string = "#00c300";
+  darkColorHDR: string = "color(rec2020 0.1856 0.71527 0.06415)";
 
   requestLink: {| href: string, text: string |} = {
     text: "Google Takeout",
