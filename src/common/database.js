@@ -503,16 +503,16 @@ export class WritableDatabase extends ProviderScopedDatabase {
     });
   }
 
-  async putFile(file: DataFile): Promise<void> {
+  putFile(file: DataFile): void {
     this._additions.files.push(file);
   }
 
-  async putMetadata(metadata: MetadataEntry): Promise<void> {
+  putMetadata(metadata: MetadataEntry): void {
     const { key, value } = metadata;
     this._additions.metadata.set(key, value);
   }
 
-  async putTimelineEntry(entry: TimelineEntry): Promise<void> {
+  putTimelineEntry(entry: TimelineEntry): void {
     if (!this._additions.timelineDedup.has(entry.slug)) {
       this._additions.timeline.push(entry);
       this._additions.timelineDedup.add(entry.slug);

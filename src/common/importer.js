@@ -47,7 +47,7 @@ export async function importFiles(
         data: new ArrayBuffer(0),
         skipped: "tooLarge",
       }: DataFile);
-      await db.putFile(dataFile);
+      db.putFile(dataFile);
       return;
     } else {
       const dataFile = ({
@@ -56,13 +56,11 @@ export async function importFiles(
         data,
         skipped: undefined,
       }: DataFile);
-      await db.putFile(dataFile);
+      db.putFile(dataFile);
       try {
-        const parsed = await provider.parse(dataFile);
-        for (const entry of parsed) {
-          if (entry.type === "metadata") await db.putMetadata(entry);
-          else if (entry.type === "timeline") await db.putTimelineEntry(entry);
-        }
+        (await provider.parse(dataFile)).forEach((entry) =>
+          db.putTimelineEntry(entry)
+        );
       } catch (e) {
         console.warn("Error importing " + dataFile.path.join("/"));
         throw e;
