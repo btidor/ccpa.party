@@ -12,7 +12,12 @@ import {
 } from "common/parse";
 import SimpleRecord, { Pill } from "components/SimpleRecord";
 
-import type { DataFile, Entry, TimelineEntry } from "common/database";
+import type {
+  DataFile,
+  Entry,
+  TimelineContext,
+  TimelineEntry,
+} from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
 
 class Discord implements Provider {
@@ -59,7 +64,7 @@ class Discord implements Provider {
       row: any,
       category: string,
       datetime: any,
-      context: any
+      context: TimelineContext
     ) => ({
       type: "timeline",
       provider: file.provider,

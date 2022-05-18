@@ -47,21 +47,17 @@ function Timeline(props: Props): React.Node {
   );
 
   // Load *all* timeline entries from the database (unhydrated: these are just
-  // the keys), as well as the provider-specific metadata.
+  // the keys).
   const [entries, setEntries] = React.useState();
-  const [metadata, setMetadata] = React.useState();
   React.useEffect(() => {
     // When `provider` changes, immediately unset `entries` and `metadata`. This
     // prevents downstream components from performing their initialization with
     // incorrect data.
     setEntries();
-    setMetadata();
     (async () => {
       const entries = await db.getTimelineEntries();
       entries.reverse(); // sort in descending order by timestamp/slug
       setEntries(entries);
-
-      setMetadata(await db.getMetadata());
     })();
   }, [db, provider]);
 
@@ -197,7 +193,6 @@ function Timeline(props: Props): React.Node {
                     <TimelineRow
                       db={db}
                       isLast={index === rows.length - 1}
-                      metadata={metadata}
                       provider={provider}
                       row={rows[index]}
                       selected={selected}

@@ -37,10 +37,15 @@ export type TimelineEntryKey = {|
   +offset?: number,
 |};
 
+export type TimelineContext =
+  | [string]
+  | [string, ?string]
+  | [string, ?string, ?{| display: string, color: ?string |}];
+
 export type TimelineEntry = {|
   ...TimelineEntryKey,
   +file: $ReadOnlyArray<string>,
-  +context: any,
+  +context: TimelineContext,
   +value: { [string]: any },
 |};
 

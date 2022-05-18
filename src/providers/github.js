@@ -1,9 +1,7 @@
 // @flow
 import { DateTime } from "luxon";
-import * as React from "react";
 
 import { getSlugAndDayTime, parseJSON } from "common/parse";
-import SimpleRecord from "components/SimpleRecord";
 
 import type { DataFile, Entry, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
@@ -111,7 +109,6 @@ class GitHub implements Provider {
             return undefined;
           }
 
-          const icon = category === "activity" ? "🖱" : "💬";
           return ({
             type: "timeline",
             provider: file.provider,
@@ -121,20 +118,13 @@ class GitHub implements Provider {
               DateTime.fromISO(item.created_at).toSeconds(),
               item
             ),
-            context: [icon, title, trailer],
+            context: [title, trailer],
             value: item,
           }: TimelineEntry);
         })
         .filter((x) => x);
     }
     return [];
-  }
-
-  render(entry: TimelineEntry, time: ?string): React.Node {
-    const [icon, body, trailer] = entry.context;
-    return (
-      <SimpleRecord time={time} icon={icon} body={body} trailer={trailer} />
-    );
   }
 }
 

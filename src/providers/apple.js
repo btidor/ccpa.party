@@ -1,6 +1,5 @@
 // @flow
 import { DateTime } from "luxon";
-import * as React from "react";
 
 import {
   getSlugAndDayTime,
@@ -8,9 +7,8 @@ import {
   parseCSV,
   smartDecode,
 } from "common/parse";
-import SimpleRecord from "components/SimpleRecord";
 
-import type { DataFile, Entry, TimelineEntry } from "common/database";
+import type { DataFile, Entry, TimelineContext } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
 
 class Apple implements Provider {
@@ -66,7 +64,7 @@ class Apple implements Provider {
       row: any,
       category: string,
       datetime: any,
-      context: any
+      context: TimelineContext
     ) => ({
       type: "timeline",
       provider: file.provider,
@@ -545,20 +543,6 @@ class Apple implements Provider {
       }
     }
     return [];
-  }
-
-  render(entry: TimelineEntry, time: ?string): React.Node {
-    const [body, trailer] = entry.context;
-    return (
-      <SimpleRecord
-        time={time}
-        icon={
-          this.timelineCategories.find((c) => c.slug === entry.category)?.icon
-        }
-        body={body}
-        trailer={trailer}
-      />
-    );
   }
 }
 

@@ -1,6 +1,5 @@
 // @flow
 import { DateTime } from "luxon";
-import * as React from "react";
 
 import {
   smartDecode,
@@ -8,7 +7,6 @@ import {
   parseCSV,
   parseJSON,
 } from "common/parse";
-import SimpleRecord from "components/SimpleRecord";
 
 import type { DataFile, Entry, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
@@ -1051,20 +1049,6 @@ class Amazon implements Provider {
       );
     }
     return [];
-  }
-
-  render(entry: TimelineEntry, time: ?string): React.Node {
-    const [body, trailer] = entry.context;
-    return (
-      <SimpleRecord
-        time={time}
-        icon={
-          this.timelineCategories.find((c) => c.slug === entry.category)?.icon
-        }
-        body={body}
-        trailer={trailer}
-      />
-    );
   }
 }
 

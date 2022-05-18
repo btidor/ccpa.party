@@ -1,6 +1,4 @@
 // @flow
-import * as React from "react";
-
 import Amazon from "providers/amazon";
 import Apple from "providers/apple";
 import Discord from "providers/discord";
@@ -10,7 +8,7 @@ import Google from "providers/google";
 import Netflix from "providers/netflix";
 import Slack from "providers/slack";
 
-import type { DataFile, Entry, TimelineEntry } from "common/database";
+import type { DataFile, Entry } from "common/database";
 
 export type TimelineCategory = {|
   +slug: string,
@@ -38,11 +36,6 @@ export interface Provider {
   +timelineCategories: $ReadOnlyArray<TimelineCategory>;
 
   parse(file: DataFile): Promise<$ReadOnlyArray<Entry>>;
-  render(
-    entry: TimelineEntry,
-    time: ?string,
-    metadata: $ReadOnlyMap<string, any>
-  ): React.Node;
 }
 
 export const ProviderRegistry: $ReadOnlyArray<Provider> = [

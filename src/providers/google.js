@@ -1,11 +1,9 @@
 // @flow
 import { DateTime } from "luxon";
-import * as React from "react";
 
 import { getSlugAndDayTime, parseCSV, parseJSON } from "common/parse";
-import SimpleRecord from "components/SimpleRecord";
 
-import type { DataFile, Entry, TimelineEntry } from "common/database";
+import type { DataFile, Entry, TimelineContext } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
 
 class Google implements Provider {
@@ -54,7 +52,7 @@ class Google implements Provider {
       row: any,
       category: string,
       datetime: any,
-      context: any
+      context: TimelineContext
     ) => ({
       type: "timeline",
       provider: file.provider,
@@ -69,7 +67,6 @@ class Google implements Provider {
       if (file.path[3].startsWith("Activities - ")) {
         return (await parseCSV(file.data)).map((row) =>
           entry(row, "security", DateTime.fromSQL(row["Activity Timestamp"]), [
-            "🪪",
             row["Product Name"] === "Other"
               ? "Activity"
               : `Accessed ${row["Product Name"]}`,
@@ -88,7 +85,6 @@ class Google implements Provider {
         )
           title = `Viewed ${title}`;
         return entry(row, "activity", DateTime.fromISO(row.time), [
-          "🖱",
           title,
           header,
         ]);
@@ -102,20 +98,13 @@ class Google implements Provider {
               parsed,
               "activity",
               DateTime.fromISO(parsed.last_modified_by_me),
-              ["🖱", `Edited "${parsed.title}"`, "Google Drive"]
+              [`Edited "${parsed.title}"`, "Google Drive"]
             ),
           ];
         }
       }
     }
     return [];
-  }
-
-  render(entry: TimelineEntry, time: ?string): React.Node {
-    const [icon, body, trailer] = entry.context;
-    return (
-      <SimpleRecord time={time} icon={icon} body={body} trailer={trailer} />
-    );
   }
 }
 
