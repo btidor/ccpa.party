@@ -4,7 +4,7 @@ import * as ReactDOMClient from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
 import App from "App";
-import plausible from "plausible";
+import plausible from "common/plausible";
 
 import "index.css";
 
