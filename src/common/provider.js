@@ -8,7 +8,7 @@ import Google from "providers/google";
 import Netflix from "providers/netflix";
 import Slack from "providers/slack";
 
-import type { DataFile, Entry } from "common/database";
+import type { DataFile, TimelineEntry } from "common/database";
 
 export type TimelineCategory = {|
   +slug: string,
@@ -35,7 +35,7 @@ export interface Provider {
 
   +timelineCategories: $ReadOnlyArray<TimelineCategory>;
 
-  parse(file: DataFile): Promise<$ReadOnlyArray<Entry>>;
+  parse(file: DataFile): Promise<$ReadOnlyArray<TimelineEntry>>;
 }
 
 export const ProviderRegistry: $ReadOnlyArray<Provider> = [

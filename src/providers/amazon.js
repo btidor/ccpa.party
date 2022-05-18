@@ -8,7 +8,7 @@ import {
   parseJSON,
 } from "common/parse";
 
-import type { DataFile, Entry, TimelineEntry } from "common/database";
+import type { DataFile, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
 
 class Amazon implements Provider {
@@ -60,7 +60,7 @@ class Amazon implements Provider {
     },
   ];
 
-  async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
+  async parse(file: DataFile): Promise<$ReadOnlyArray<TimelineEntry>> {
     if (
       file.path[1] === "Location" &&
       file.path[2]?.startsWith("Country of Residence")

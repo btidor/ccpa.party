@@ -3,7 +3,7 @@ import { DateTime } from "luxon";
 
 import { getSlugAndDayTime, parseJSON } from "common/parse";
 
-import type { DataFile, Entry, TimelineContext } from "common/database";
+import type { DataFile, TimelineContext, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
 
 const categories = {
@@ -148,7 +148,7 @@ class Facebook implements Provider {
     },
   ];
 
-  async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
+  async parse(file: DataFile): Promise<$ReadOnlyArray<TimelineEntry>> {
     const entry = (
       row: any,
       category: string,

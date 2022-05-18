@@ -12,12 +12,7 @@ import {
 } from "common/parse";
 import SimpleRecord, { Pill } from "components/SimpleRecord";
 
-import type {
-  DataFile,
-  Entry,
-  TimelineContext,
-  TimelineEntry,
-} from "common/database";
+import type { DataFile, TimelineContext, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
 
 class Discord implements Provider {
@@ -59,7 +54,7 @@ class Discord implements Provider {
     },
   ];
 
-  async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
+  async parse(file: DataFile): Promise<$ReadOnlyArray<TimelineEntry>> {
     const entry = (
       row: any,
       category: string,

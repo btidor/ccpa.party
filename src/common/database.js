@@ -49,8 +49,6 @@ export type TimelineEntry = {|
   +value: { [string]: any },
 |};
 
-export type Entry = MetadataEntry | TimelineEntry;
-
 const dbName = "ccpa.party";
 const dbVersion = 1;
 const dbStore = "encrypted";

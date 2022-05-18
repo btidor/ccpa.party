@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { getSlugAndDayTime, parseJSON } from "common/parse";
 
-import type { DataFile, Entry, TimelineEntry } from "common/database";
+import type { DataFile, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
 import SimpleRecord, { Highlight, Pill } from "components/SimpleRecord";
 
@@ -44,7 +44,7 @@ class Slack implements Provider {
     },
   ];
 
-  async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
+  async parse(file: DataFile): Promise<$ReadOnlyArray<TimelineEntry>> {
     if (file.path[1] === "users.json") {
       return [
         {

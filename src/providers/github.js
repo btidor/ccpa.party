@@ -3,7 +3,7 @@ import { DateTime } from "luxon";
 
 import { getSlugAndDayTime, parseJSON } from "common/parse";
 
-import type { DataFile, Entry, TimelineEntry } from "common/database";
+import type { DataFile, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
 
 class GitHub implements Provider {
@@ -41,7 +41,7 @@ class GitHub implements Provider {
     },
   ];
 
-  async parse(file: DataFile): Promise<$ReadOnlyArray<Entry>> {
+  async parse(file: DataFile): Promise<$ReadOnlyArray<TimelineEntry>> {
     const object = (url) => {
       const parts = url.split("/");
       const repo = parts[4];
