@@ -24,10 +24,12 @@ function DatePicker(props: Props): React.Node {
   let node;
   const row = rows?.[index];
   if (row && rows) {
+    const parts = row.day.split("-").map((x) => parseInt(x));
+    const date = new Date(parts[0], parts[1] - 1, parts[2]);
     node = (
       <React.Fragment>
         <label>
-          {VerboseDateFormat.format(new Date(row.day))}
+          {VerboseDateFormat.format(date)}
           <input
             type="date"
             value={row.day}
