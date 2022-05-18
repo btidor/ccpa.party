@@ -68,7 +68,7 @@ export function darkColor(provider: Provider): string {
     .set("lightness", 65)
     .set("chroma", 132);
   // $FlowFixMe[cannot-resolve-name]
-  if (CSS.supports("color", color.toString())) return color.toString();
+  if (CSS?.supports?.("color", color.toString())) return color.toString();
 
   return color
     .to("srgb")

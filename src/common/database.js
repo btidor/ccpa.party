@@ -79,12 +79,22 @@ export class Database {
 
   constructor(terminated: () => void) {
     this._terminated = terminated;
-    this._state = new Promise((resolve) =>
+    this._state = new Promise((resolve) => {
       // $FlowFixMe[prop-missing]
-      navigator.locks.request(dbInitLock, async () =>
-        resolve(await this._initializeState())
-      )
-    );
+      if (!navigator.locks || !window.indexedDB || !window.crypto?.subtle) {
+        console.error("Browser not supported:", [
+          // $FlowFixMe[prop-missing]
+          !!navigator.locks,
+          !!window.indexedDB,
+          !!window.crypto?.subtle,
+        ]);
+      } else {
+        // $FlowFixMe[incompatible-use]
+        navigator.locks.request(dbInitLock, async () =>
+          resolve(await this._initializeState())
+        );
+      }
+    });
 
     this._rootIndex = (async () =>
       (await this._get(rootIndexKey, { named: true })) || {})();

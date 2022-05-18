@@ -13,9 +13,7 @@ function Home(): React.Node {
   const location = useLocation();
   const ref = React.useRef<?HTMLElement>(null);
   React.useEffect(
-    () =>
-      (ref.current && ref.current.scrollTo(location.state ? 9999 : 0, 0)) ||
-      undefined,
+    () => ref.current?.scrollTo?.(location.state ? 9999 : 0, 0),
     [location, ref]
   );
 
