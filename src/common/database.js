@@ -351,15 +351,16 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
     metadataIndex.sort();
 
     // Write timeline entries and compute index
-    const timelineIndex = [];
+    const workingIndex = [];
+    const writeQueue = [];
     for (let i = 0; i < this._additions.timeline.length; i += batchSize) {
       const batch = this._additions.timeline.slice(i, i + batchSize);
-      const iv = await this._put(
+      writeQueue.push(
         batch.map(({ file, context, value }) => [file, context, value])
       );
-      timelineIndex.push(
-        ...batch.map(({ day, timestamp, slug, category }, i) => [
-          iv,
+      workingIndex.push(
+        batch.map(({ day, timestamp, slug, category }, i) => [
+          undefined,
           i,
           day,
           timestamp,
@@ -368,6 +369,11 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
         ])
       );
     }
+    const ivs = await this._puts(writeQueue);
+    for (let i = 0; i < ivs.length; i++) {
+      workingIndex[i].forEach((row) => (row[0] = ivs[i]));
+    }
+    const timelineIndex = workingIndex.flat(1);
     timelineIndex.sort((a, b) => a[4].localeCompare(b[4]));
 
     // Write provider index
