@@ -206,10 +206,10 @@ export class Database {
 }
 
 export class ProviderScopedDatabase extends Database {
-  _provider: Provider;
+  _provider: Provider<any>;
   _providerIndex: Promise<ProviderIndex>;
 
-  constructor(provider: Provider, terminated: () => void) {
+  constructor(provider: Provider<any>, terminated: () => void) {
     super(terminated);
     this._provider = provider;
     this._providerIndex = (async () => {
@@ -293,7 +293,7 @@ export class WritableDatabase extends ProviderScopedDatabase {
     timelineDedup: Set<string>,
   |};
 
-  constructor(provider: Provider, terminated: () => void) {
+  constructor(provider: Provider<any>, terminated: () => void) {
     const release = new Promise((resolve) => {
       super(provider, () => (resolve(), terminated()));
       this._additions = {

@@ -11,7 +11,9 @@ import {
 import type { DataFile, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
 
-class Amazon implements Provider {
+type CategoryKey = "activity" | "billing" | "notification" | "order";
+
+class Amazon implements Provider<CategoryKey> {
   slug: string = "amazon";
   displayName: string = "Amazon";
 
@@ -31,36 +33,44 @@ class Amazon implements Provider {
 
   metadataFiles: $ReadOnlyArray<string | RegExp> = [];
 
-  timelineCategories: $ReadOnlyArray<TimelineCategory> = [
-    {
-      char: "a",
-      slug: "activity",
-      icon: "🖱",
-      displayName: "Activity",
-      defaultEnabled: true,
-    },
-    {
-      char: "b",
-      slug: "billing",
-      icon: "💵",
-      displayName: "Billing",
-      defaultEnabled: true,
-    },
-    {
-      char: "n",
-      icon: "🔔",
-      slug: "notification",
-      displayName: "Notifications",
-      defaultEnabled: false,
-    },
-    {
-      char: "o",
-      slug: "order",
-      icon: "🚚",
-      displayName: "Orders",
-      defaultEnabled: true,
-    },
-  ];
+  timelineCategories: $ReadOnlyMap<CategoryKey, TimelineCategory> = new Map([
+    [
+      "activity",
+      {
+        char: "a",
+        icon: "🖱",
+        displayName: "Activity",
+        defaultEnabled: true,
+      },
+    ],
+    [
+      "billing",
+      {
+        char: "b",
+        icon: "💵",
+        displayName: "Billing",
+        defaultEnabled: true,
+      },
+    ],
+    [
+      "notification",
+      {
+        char: "n",
+        icon: "🔔",
+        displayName: "Notifications",
+        defaultEnabled: false,
+      },
+    ],
+    [
+      "order",
+      {
+        char: "o",
+        icon: "🚚",
+        displayName: "Orders",
+        defaultEnabled: true,
+      },
+    ],
+  ]);
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<TimelineEntry>> {
     if (

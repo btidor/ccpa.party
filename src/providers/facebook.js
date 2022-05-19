@@ -93,7 +93,14 @@ const mappers = {
   ],
 };
 
-class Facebook implements Provider {
+type CategoryKey =
+  | "activity"
+  | "content"
+  | "message"
+  | "notification"
+  | "security";
+
+class Facebook implements Provider<CategoryKey> {
   slug: string = "facebook";
   displayName: string = "Facebook";
 
@@ -112,43 +119,53 @@ class Facebook implements Provider {
 
   metadataFiles: $ReadOnlyArray<string | RegExp> = [];
 
-  timelineCategories: $ReadOnlyArray<TimelineCategory> = [
-    {
-      char: "a",
-      icon: "🖱",
-      slug: "activity",
-      displayName: "Activity",
-      defaultEnabled: true,
-    },
-    {
-      char: "c",
-      icon: "📱",
-      slug: "content",
-      displayName: "Content",
-      defaultEnabled: true,
-    },
-    {
-      char: "m",
-      icon: "💬",
-      slug: "message",
-      displayName: "Messages",
-      defaultEnabled: true,
-    },
-    {
-      char: "n",
-      icon: "🔔",
-      slug: "notification",
-      displayName: "Notifications",
-      defaultEnabled: false,
-    },
-    {
-      char: "s",
-      icon: "🪪",
-      slug: "security",
-      displayName: "Security Logs",
-      defaultEnabled: false,
-    },
-  ];
+  timelineCategories: $ReadOnlyMap<CategoryKey, TimelineCategory> = new Map([
+    [
+      "activity",
+      {
+        char: "a",
+        icon: "🖱",
+        displayName: "Activity",
+        defaultEnabled: true,
+      },
+    ],
+    [
+      "content",
+      {
+        char: "c",
+        icon: "📱",
+        displayName: "Content",
+        defaultEnabled: true,
+      },
+    ],
+    [
+      "message",
+      {
+        char: "m",
+        icon: "💬",
+        displayName: "Messages",
+        defaultEnabled: true,
+      },
+    ],
+    [
+      "notification",
+      {
+        char: "n",
+        icon: "🔔",
+        displayName: "Notifications",
+        defaultEnabled: false,
+      },
+    ],
+    [
+      "security",
+      {
+        char: "s",
+        icon: "🪪",
+        displayName: "Security Logs",
+        defaultEnabled: false,
+      },
+    ],
+  ]);
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<TimelineEntry>> {
     const entry = (

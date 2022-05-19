@@ -18,7 +18,7 @@ const links = [
 const importTag = "__import__";
 
 type Props = {|
-  +provider: Provider,
+  +provider: Provider<any>,
   +pageSlug: string,
 |};
 
@@ -27,7 +27,7 @@ function Navigation(props: Props): React.Node {
   const location = useLocation();
   const { provider, pageSlug } = props;
   const [providers, setProviders] = React.useState(
-    (undefined: ?$ReadOnlyArray<Provider>)
+    (undefined: ?$ReadOnlyArray<Provider<any>>)
   );
   const [epoch, setEpoch] = React.useState(0);
 

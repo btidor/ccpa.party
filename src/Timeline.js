@@ -19,7 +19,7 @@ import type { Provider } from "common/provider";
 import type { Entry, Group } from "components/TimelineRow";
 
 type Props = {|
-  +provider: Provider,
+  +provider: Provider<any>,
   +filter?: string,
   +selected?: string,
 |};
@@ -40,7 +40,9 @@ function Timeline(props: Props): React.Node {
       new Set(
         (filter ? [...filter] : []).map(
           (ch) =>
-            provider.timelineCategories.find((cat) => cat.char === ch)?.slug
+            [...provider.timelineCategories.entries()].find(
+              ([slug, category]) => category.char === ch
+            )?.[0]
         )
       ),
     [filter, provider]

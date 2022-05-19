@@ -26,7 +26,7 @@ type Props = {|
   +db: ProviderScopedDatabase,
   +isLast: boolean,
   +metadata: $ReadOnlyMap<string, any>,
-  +provider: Provider,
+  +provider: Provider<any>,
   +row: Entry | Group,
   +selected: ?string,
   +setSelected: (string) => any,
@@ -74,11 +74,7 @@ function TimelineRow(props: Props): React.Node {
                 <Record
                   time={row.time}
                   username={username}
-                  icon={
-                    provider.timelineCategories.find(
-                      (c) => c.slug === row.category
-                    )?.icon
-                  }
+                  icon={provider.timelineCategories.get(row.category)?.icon}
                   body={body}
                   trailer={trailer}
                 />

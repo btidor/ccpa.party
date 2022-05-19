@@ -9,7 +9,7 @@ import type { Provider } from "common/provider";
 type Props = {|
   +filter: string | void,
   +filterPath: (string) => string,
-  +provider: Provider,
+  +provider: Provider<any>,
 |};
 
 function FilterBar(props: Props): React.Node {
@@ -17,13 +17,14 @@ function FilterBar(props: Props): React.Node {
   const navigate = useNavigate();
 
   const validChars = React.useMemo(
-    () => new Set(provider.timelineCategories.map((cat) => cat.char)),
+    () =>
+      new Set([...provider.timelineCategories.values()].map((cat) => cat.char)),
     [provider]
   );
 
   if (filter === undefined) {
     // Redirect `/timeline` to `/timeline:defaultCategories`
-    const defaultFilter = provider.timelineCategories
+    const defaultFilter = [...provider.timelineCategories.values()]
       .filter((cat) => cat.defaultEnabled)
       .map((cat) => cat.char)
       .join("");
@@ -35,29 +36,29 @@ function FilterBar(props: Props): React.Node {
       .join("");
     return <Navigate to={filterPath(filteredFilter)} replace />;
   } else {
-    return provider.timelineCategories.map((category) => {
-      const checked = filter.includes(category.char);
-      return (
-        <label className={styles.filter} key={category.slug}>
-          <input
-            type="checkbox"
-            checked={checked}
-            onChange={() => {
-              const newFilter = provider.timelineCategories
-                .filter((cat) =>
-                  cat.slug === category.slug
-                    ? !checked
-                    : filter.includes(cat.char)
-                )
-                .map((c) => c.char)
-                .join("");
-              navigate(filterPath(newFilter));
-            }}
-          />
-          {category.displayName}
-        </label>
-      );
-    });
+    return [...provider.timelineCategories.entries()].map(
+      ([slug, category]) => {
+        const checked = filter.includes(category.char);
+        return (
+          <label className={styles.filter} key={slug}>
+            <input
+              type="checkbox"
+              checked={checked}
+              onChange={() => {
+                const newFilter = [...provider.timelineCategories.entries()]
+                  .filter(([islug, icat]) =>
+                    islug === slug ? !checked : filter.includes(icat.char)
+                  )
+                  .map(([_, icat]) => icat.char)
+                  .join("");
+                navigate(filterPath(newFilter));
+              }}
+            />
+            {category.displayName}
+          </label>
+        );
+      }
+    );
   }
 }
 

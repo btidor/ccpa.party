@@ -11,7 +11,9 @@ import {
 import type { DataFile, TimelineContext, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
 
-class Apple implements Provider {
+type CategoryKey = "account" | "activity" | "icloud" | "media";
+
+class Apple implements Provider<CategoryKey> {
   slug: string = "apple";
   displayName: string = "Apple";
 
@@ -30,36 +32,44 @@ class Apple implements Provider {
 
   metadataFiles: $ReadOnlyArray<string | RegExp> = [];
 
-  timelineCategories: $ReadOnlyArray<TimelineCategory> = [
-    {
-      char: "c",
-      icon: "🪪",
-      slug: "account",
-      displayName: "Account",
-      defaultEnabled: true,
-    },
-    {
-      char: "a",
-      icon: "🖱",
-      slug: "activity",
-      displayName: "Activity",
-      defaultEnabled: false,
-    },
-    {
-      char: "i",
-      icon: "🌥",
-      slug: "icloud",
-      displayName: "iCloud",
-      defaultEnabled: true,
-    },
-    {
-      char: "m",
-      icon: "🎶",
-      slug: "media",
-      displayName: "Media",
-      defaultEnabled: true,
-    },
-  ];
+  timelineCategories: $ReadOnlyMap<CategoryKey, TimelineCategory> = new Map([
+    [
+      "account",
+      {
+        char: "c",
+        icon: "🪪",
+        displayName: "Account",
+        defaultEnabled: true,
+      },
+    ],
+    [
+      "activity",
+      {
+        char: "a",
+        icon: "🖱",
+        displayName: "Activity",
+        defaultEnabled: false,
+      },
+    ],
+    [
+      "icloud",
+      {
+        char: "i",
+        icon: "🌥",
+        displayName: "iCloud",
+        defaultEnabled: true,
+      },
+    ],
+    [
+      "media",
+      {
+        char: "m",
+        icon: "🎶",
+        displayName: "Media",
+        defaultEnabled: true,
+      },
+    ],
+  ]);
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<TimelineEntry>> {
     const entry = (

@@ -6,7 +6,9 @@ import { getSlugAndDayTime, parseCSV, parseJSON } from "common/parse";
 import type { DataFile, TimelineContext, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
 
-class Google implements Provider {
+type CategoryKey = "activity" | "security";
+
+class Google implements Provider<CategoryKey> {
   slug: string = "google";
   displayName: string = "Google";
 
@@ -32,22 +34,26 @@ class Google implements Provider {
 
   metadataFiles: $ReadOnlyArray<string | RegExp> = [];
 
-  timelineCategories: $ReadOnlyArray<TimelineCategory> = [
-    {
-      char: "a",
-      slug: "activity",
-      icon: "🖱",
-      displayName: "Activity",
-      defaultEnabled: true,
-    },
-    {
-      char: "s",
-      slug: "security",
-      icon: "🪪",
-      displayName: "Security Logs",
-      defaultEnabled: false,
-    },
-  ];
+  timelineCategories: $ReadOnlyMap<CategoryKey, TimelineCategory> = new Map([
+    [
+      "activity",
+      {
+        char: "a",
+        icon: "🖱",
+        displayName: "Activity",
+        defaultEnabled: true,
+      },
+    ],
+    [
+      "security",
+      {
+        char: "s",
+        icon: "🪪",
+        displayName: "Security Logs",
+        defaultEnabled: false,
+      },
+    ],
+  ]);
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<TimelineEntry>> {
     const entry = (

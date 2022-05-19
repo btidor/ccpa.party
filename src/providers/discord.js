@@ -15,7 +15,9 @@ import { Pill } from "components/Record";
 import type { DataFile, TimelineContext, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
 
-class Discord implements Provider {
+type CategoryKey = "activity" | "message";
+
+class Discord implements Provider<CategoryKey> {
   slug: string = "discord";
   displayName: string = "Discord";
 
@@ -42,22 +44,26 @@ class Discord implements Provider {
     /^channels\/c[0-9]+\/channel.json/,
   ];
 
-  timelineCategories: $ReadOnlyArray<TimelineCategory> = [
-    {
-      char: "a",
-      slug: "activity",
-      icon: "🖱",
-      displayName: "Activity",
-      defaultEnabled: false,
-    },
-    {
-      char: "m",
-      slug: "message",
-      icon: "💬",
-      displayName: "Sent Messages",
-      defaultEnabled: true,
-    },
-  ];
+  timelineCategories: $ReadOnlyMap<CategoryKey, TimelineCategory> = new Map([
+    [
+      "activity",
+      {
+        char: "a",
+        icon: "🖱",
+        displayName: "Activity",
+        defaultEnabled: false,
+      },
+    ],
+    [
+      "message",
+      {
+        char: "m",
+        icon: "💬",
+        displayName: "Sent Messages",
+        defaultEnabled: true,
+      },
+    ],
+  ]);
 
   async parse(
     file: DataFile,

@@ -13,7 +13,7 @@ import styles from "Request.module.css";
 import type { Provider } from "common/provider";
 
 type Props = {|
-  +provider: Provider,
+  +provider: Provider<any>,
 |};
 
 function Request(props: Props): React.Node {

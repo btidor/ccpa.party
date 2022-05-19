@@ -6,7 +6,9 @@ import { getSlugAndDayTime, parseCSV } from "common/parse";
 import type { DataFile, TimelineContext, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
 
-class Netflix implements Provider {
+type CategoryKey = "account" | "activity" | "notification";
+
+class Netflix implements Provider<CategoryKey> {
   slug: string = "netflix";
   displayName: string = "Netflix";
 
@@ -25,29 +27,35 @@ class Netflix implements Provider {
 
   metadataFiles: $ReadOnlyArray<string | RegExp> = [];
 
-  timelineCategories: $ReadOnlyArray<TimelineCategory> = [
-    {
-      char: "c",
-      icon: "🪪",
-      slug: "account",
-      displayName: "Account",
-      defaultEnabled: true,
-    },
-    {
-      char: "a",
-      icon: "🎞",
-      slug: "activity",
-      displayName: "Activity",
-      defaultEnabled: true,
-    },
-    {
-      char: "n",
-      icon: "🔔",
-      slug: "notification",
-      displayName: "Notifications",
-      defaultEnabled: false,
-    },
-  ];
+  timelineCategories: $ReadOnlyMap<CategoryKey, TimelineCategory> = new Map([
+    [
+      "account",
+      {
+        char: "c",
+        icon: "🪪",
+        displayName: "Account",
+        defaultEnabled: true,
+      },
+    ],
+    [
+      "activity",
+      {
+        char: "a",
+        icon: "🎞",
+        displayName: "Activity",
+        defaultEnabled: true,
+      },
+    ],
+    [
+      "notification",
+      {
+        char: "n",
+        icon: "🔔",
+        displayName: "Notifications",
+        defaultEnabled: false,
+      },
+    ],
+  ]);
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<TimelineEntry>> {
     const entry = (

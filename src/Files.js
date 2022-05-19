@@ -17,13 +17,13 @@ import type { DataFileKey, DataFile } from "common/database";
 import type { Provider } from "common/provider";
 
 type Props = {|
-  +provider: Provider,
+  +provider: Provider<any>,
   +selected?: number,
 |};
 
 const FileParseAction = (props: {|
   +file: DataFile,
-  +provider: Provider,
+  +provider: Provider<any>,
 |}): React.Node =>
   process.env.NODE_ENV === "development" && (
     <div

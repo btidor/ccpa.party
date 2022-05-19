@@ -12,14 +12,13 @@ import type { Node } from "react";
 import type { DataFile, TimelineEntry } from "common/database";
 
 export type TimelineCategory = {|
-  +slug: string,
   +char: string, // single-character identifier for URLs
   +icon: string,
   +displayName: string,
   +defaultEnabled: boolean,
 |};
 
-export interface Provider {
+export interface Provider<T> {
   +slug: string;
   +displayName: string;
 
@@ -35,7 +34,7 @@ export interface Provider {
   +privacyPolicy: string;
 
   +metadataFiles: $ReadOnlyArray<string | RegExp>;
-  +timelineCategories: $ReadOnlyArray<TimelineCategory>;
+  +timelineCategories: $ReadOnlyMap<T, TimelineCategory>;
 
   parse(
     file: DataFile,
@@ -50,7 +49,7 @@ export interface Provider {
     | [?Node, ?string, ?{| display: string, color: ?string |}];
 }
 
-export const ProviderRegistry: $ReadOnlyArray<Provider> = [
+export const ProviderRegistry: $ReadOnlyArray<Provider<any>> = [
   new Amazon(),
   new Apple(),
   new Discord(),
@@ -61,9 +60,9 @@ export const ProviderRegistry: $ReadOnlyArray<Provider> = [
   new Slack(),
 ];
 
-export const ProviderLookup: $ReadOnlyMap<string, Provider> = new Map<
+export const ProviderLookup: $ReadOnlyMap<string, Provider<any>> = new Map<
   string,
-  Provider
+  Provider<any>
 >();
 ProviderRegistry.forEach((provider) =>
   (ProviderLookup: any).set(provider.slug, provider)

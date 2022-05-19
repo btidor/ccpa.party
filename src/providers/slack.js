@@ -8,7 +8,9 @@ import { Highlight, Pill } from "components/Record";
 import type { DataFile, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
 
-class Slack implements Provider {
+type CategoryKey = "message" | "integration";
+
+class Slack implements Provider<CategoryKey> {
   slug: string = "slack";
   displayName: string = "Slack";
 
@@ -32,22 +34,26 @@ class Slack implements Provider {
     "users.json",
   ];
 
-  timelineCategories: $ReadOnlyArray<TimelineCategory> = [
-    {
-      char: "m",
-      slug: "message",
-      icon: "",
-      displayName: "Messages",
-      defaultEnabled: true,
-    },
-    {
-      char: "i",
-      slug: "integration",
-      icon: "",
-      displayName: "Integration Logs",
-      defaultEnabled: false,
-    },
-  ];
+  timelineCategories: $ReadOnlyMap<CategoryKey, TimelineCategory> = new Map([
+    [
+      "message",
+      {
+        char: "m",
+        icon: "",
+        displayName: "Messages",
+        defaultEnabled: true,
+      },
+    ],
+    [
+      "integration",
+      {
+        char: "i",
+        icon: "",
+        displayName: "Integration Logs",
+        defaultEnabled: false,
+      },
+    ],
+  ]);
 
   async parse(
     file: DataFile,

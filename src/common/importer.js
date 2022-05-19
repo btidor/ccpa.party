@@ -16,7 +16,7 @@ type ImportFile = {|
 |};
 
 export async function importFiles(
-  provider: Provider,
+  provider: Provider<any>,
   files: $ReadOnlyArray<File>,
   terminated: () => void
 ) {
@@ -107,7 +107,7 @@ export async function importFiles(
 }
 
 export async function resetProvider(
-  provider: Provider,
+  provider: Provider<any>,
   terminated: () => void
 ) {
   const db = new WritableDatabase(provider, terminated);

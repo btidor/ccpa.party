@@ -6,7 +6,9 @@ import { getSlugAndDayTime, parseJSON } from "common/parse";
 import type { DataFile, TimelineEntry } from "common/database";
 import type { Provider, TimelineCategory } from "common/provider";
 
-class GitHub implements Provider {
+type CategoryKey = "activity" | "message";
+
+class GitHub implements Provider<CategoryKey> {
   slug: string = "github";
   displayName: string = "GitHub";
 
@@ -26,22 +28,26 @@ class GitHub implements Provider {
 
   metadataFiles: $ReadOnlyArray<string | RegExp> = [];
 
-  timelineCategories: $ReadOnlyArray<TimelineCategory> = [
-    {
-      char: "a",
-      slug: "activity",
-      icon: "🖱",
-      displayName: "Activity",
-      defaultEnabled: true,
-    },
-    {
-      char: "m",
-      slug: "message",
-      icon: "💬",
-      displayName: "Messages",
-      defaultEnabled: true,
-    },
-  ];
+  timelineCategories: $ReadOnlyMap<CategoryKey, TimelineCategory> = new Map([
+    [
+      "activity",
+      {
+        char: "a",
+        icon: "🖱",
+        displayName: "Activity",
+        defaultEnabled: true,
+      },
+    ],
+    [
+      "message",
+      {
+        char: "m",
+        icon: "💬",
+        displayName: "Messages",
+        defaultEnabled: true,
+      },
+    ],
+  ]);
 
   async parse(file: DataFile): Promise<$ReadOnlyArray<TimelineEntry>> {
     const object = (url) => {
