@@ -55,7 +55,11 @@ const keyCookie = "key";
 const keyMaxAge = 24 * 3600; // 24 hours
 const keyUsages = ["encrypt", "decrypt"];
 
-const batchSize = 100;
+// Increasing the batch size adds latency and makes the timeline view sluggish
+// (because we have to sift through more extraneous data in order to load the
+// items we want), but it also speeds up imports by a lot, especially on older
+// browsers (because the per-put overhead is so high). :(
+const batchSize = 250;
 
 type RootIndex = {| [string]: string |}; // provider slug -> iv
 

@@ -32,7 +32,6 @@ export async function importFiles(
   }
 
   const metadata = new Map();
-
   const processEntry = async (
     path: $ReadOnlyArray<string>,
     data: BufferSource
@@ -100,9 +99,14 @@ export async function importFiles(
     }
   }
   db.putMetadata(metadata);
+  const middle = new Date().getTime();
+  if (process.env.NODE_ENV === "development") {
+    console.warn(`Parse Time: ${(new Date().getTime() - start) / 1000}s`);
+  }
   await db.commit();
   if (process.env.NODE_ENV === "development") {
-    console.warn(`Time: ${(new Date().getTime() - start) / 1000}s`);
+    console.warn(`Database Time: ${(new Date().getTime() - middle) / 1000}s`);
+    console.warn(`Total Time: ${(new Date().getTime() - start) / 1000}s`);
   }
 }
 
