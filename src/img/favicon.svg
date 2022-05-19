@@ -20,10 +20,10 @@
       path {
         fill: #fff;
       }
+    }
 
-      .inner {
-        fill: #000;
-      }
+    .inner {
+      fill: #000;
     }
   </style>
   <defs>

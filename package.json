@@ -31,8 +31,8 @@
     "react-scripts": "5.0.1"
   },
   "scripts": {
-    "start": "craco start",
-    "build": "craco build",
+    "start": "IMAGE_INLINE_SIZE_LIMIT=0 craco start",
+    "build": "IMAGE_INLINE_SIZE_LIMIT=0 craco build",
     "test": "craco test --env=./src/jestEnv.js",
     "flow": "flow",
     "lint": "eslint src/",
