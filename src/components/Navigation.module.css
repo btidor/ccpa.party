@@ -25,6 +25,7 @@
 
   appearance: none;
   border: 1px solid var(--neon);
+  border-radius: 0;
   font-weight: 600;
   cursor: pointer;
 }
