@@ -17,19 +17,26 @@ const isPrintableUnicode = (str: string): boolean => {
   return true;
 };
 
-export function parseJSON(data: BufferSource | string): any {
+export function parseJSON(
+  data: BufferSource | string,
+  // If the data is known to be valid UTF-8, set `smart: false` for a ~5x
+  // speedup.
+  opts?: {| smart?: boolean |}
+): any {
   let text;
   if (typeof data === "string") text = data;
   else text = utf8Decoder.decode(data);
 
+  const reviver = opts?.smart !== false ? jsonReviver : undefined;
+
   try {
-    return JSON.parse(text, jsonReviver);
+    return JSON.parse(text, reviver);
   } catch (err) {
     if (typeof data === "string") throw err;
 
     // Seen in some Apple *.pkpass files
     text = utf16beDecoder.decode(data);
-    return JSON.parse(text, jsonReviver);
+    return JSON.parse(text, reviver);
   }
 }
 
