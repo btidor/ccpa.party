@@ -47,31 +47,34 @@ export async function parseCSV(
 // instance by applying UTF-8 encoding twice.
 export function smartDecode(data: BufferSource): string {
   // Try simple UTF-8
-  let text = utf8Decoder.decode(data);
+  const basic = utf8Decoder.decode(data);
 
-  if (!isPrintableUnicode(text)) {
-    // Try double-encoded UTF-8
-    text = utf8Decoder.decode(
-      // $FlowFixMe[incompatible-call]
-      // $FlowFixMe[prop-missing]
-      Uint8Array.from(text, (x) => x.charCodeAt(0))
-    );
+  // Try double-encoded UTF-8
+  const double = utf8Decoder.decode(
+    // $FlowFixMe[incompatible-call]
+    // $FlowFixMe[prop-missing]
+    Uint8Array.from(basic, (x) => x.charCodeAt(0))
+  );
+
+  // Double-encoded UTF-8 often appears valid, e.g. a double-encoded "é" is
+  // "Ã©". So we need to check it first.
+  let text;
+  if (isPrintableUnicode(double)) text = double;
+  else if (isPrintableUnicode(basic)) text = basic;
+  else {
+    // Try UTF-16 big-endian (used in some Apple JSON files)
+    text = utf16beDecoder.decode(data);
 
     if (!isPrintableUnicode(text)) {
-      // Try UTF-16 big-endian (used in some Apple JSON files)
-      text = utf16beDecoder.decode(data);
-
-      if (!isPrintableUnicode(text)) {
-        // Fail :(
-        console.warn(
-          "Smart Decode Failed:",
-          data,
-          Array.from(utf8Decoder.decode(data)).filter(
-            (c) => !printableRegExp.test(c)
-          )
-        );
-        throw new Error("Could not decode data to a printable Unicode string");
-      }
+      // Fail :(
+      console.warn(
+        "Smart Decode Failed:",
+        data,
+        Array.from(utf8Decoder.decode(data)).filter(
+          (c) => !printableRegExp.test(c)
+        )
+      );
+      throw new Error("Could not decode data to a printable Unicode string");
     }
   }
 
@@ -80,14 +83,13 @@ export function smartDecode(data: BufferSource): string {
 }
 
 export function smartDecodeText(text: string): string {
-  if (isPrintableUnicode(text)) return text;
-
-  // Try double-encoded UTF-8
-  text = utf8Decoder.decode(
+  // First try double-encoded UTF-8 (see note above)
+  const double = utf8Decoder.decode(
     // $FlowFixMe[incompatible-call]
     // $FlowFixMe[prop-missing]
     Uint8Array.from(text, (x) => x.charCodeAt(0))
   );
+  if (isPrintableUnicode(double)) return double;
   if (isPrintableUnicode(text)) return text;
 
   console.warn(
