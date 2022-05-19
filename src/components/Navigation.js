@@ -15,8 +15,6 @@ const links = [
   { label: "Files", to: "files" },
 ];
 
-const importTag = "__import__";
-
 type Props = {|
   +provider: Provider<any>,
   +pageSlug: string,
@@ -50,9 +48,7 @@ function Navigation(props: Props): React.Node {
         value={provider.slug}
         onChange={(event) => {
           const { value } = event.target;
-          if (!value || value === provider.slug) return;
-          if (value === importTag) navigate("/");
-          else navigate(`/${value}/${pageSlug}`);
+          value && value !== provider.slug && navigate(`/${value}/${pageSlug}`);
         }}
       >
         {providers ? (
@@ -62,7 +58,6 @@ function Navigation(props: Props): React.Node {
                 {provider.displayName.toLowerCase()}
               </option>
             ))}
-            <option value={importTag}>+ import</option>
           </React.Fragment>
         ) : (
           <option key={provider.slug} value={provider.slug}>
