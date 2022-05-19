@@ -29,8 +29,8 @@
 
 .logo sup {
   margin-left: 2px;
-  font-family: monospace;
   font-size: 0.75em;
+  font-variant: normal;
   font-weight: 600;
 }
 

@@ -84,10 +84,8 @@ class Discord implements Provider<CategoryKey> {
 
     if (file.path.slice(1).join("/") === "servers/index.json") {
       metadata.set("servers", parseJSON(file.data));
-      console.warn("SERVERS", metadata);
     } else if (file.path.slice(-1)[0] === "channel.json") {
       const value = parseJSON(file.data);
-      console.warn("CHANNEL", metadata);
       metadata.set(`channel/${value.id}`, value);
     } else if (file.path.slice(-1)[0] === "messages.csv") {
       return (await parseCSV(file.data)).map((row) =>

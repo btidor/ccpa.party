@@ -31,7 +31,7 @@ function Logo(params: Params): React.Node {
       )}
       <span className={styles.title}>
         ccpa.party
-        <sup>𝛼</sup>
+        <sup>β</sup>
       </span>
     </Link>
   );
