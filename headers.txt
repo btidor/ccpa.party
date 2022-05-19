@@ -10,5 +10,8 @@ Path        Name / Value
             Cross-Origin-Opener-Policy
             same-origin
 
+/icon.svg   Content-Type
+            image/svg+xml
+
 /static/*   Cache-Control
             public, max-age=31536000, immutable
