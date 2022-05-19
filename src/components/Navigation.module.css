@@ -12,21 +12,35 @@
   margin: 0 3.5vw 0 1.5vw;
 }
 
-.header select {
+.select {
+  position: relative;
+  margin-right: 2vw;
+  cursor: pointer;
+}
+
+.select select {
   width: 150px;
   height: 2.5em;
   padding: 0 0.5rem;
-  margin-right: 2vw;
 
-  background-color: transparent;
+  appearance: none;
   border: 1px solid var(--neon);
   font-weight: 600;
-  text-transform: lowercase;
+  cursor: pointer;
+}
+
+.arrow {
+  position: absolute;
+  top: 0;
+  right: 1ch;
+  font-size: 16px;
+  line-height: 2.1em;
+  pointer-events: none;
 }
 
 .header select:focus-visible {
   border: 1px dashed var(--neon);
-  margin: 0 2vw 0 0;
+  margin: 0;
 }
 
 .header nav {

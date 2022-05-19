@@ -44,27 +44,32 @@ function Navigation(props: Props): React.Node {
       <div className={styles.logo}>
         <Logo block="nav" party="plain" />
       </div>
-      <select
-        value={provider.slug}
-        onChange={(event) => {
-          const { value } = event.target;
-          value && value !== provider.slug && navigate(`/${value}/${pageSlug}`);
-        }}
-      >
-        {providers ? (
-          <React.Fragment>
-            {providers.map((provider) => (
-              <option key={provider.slug} value={provider.slug}>
-                {provider.displayName.toLowerCase()}
-              </option>
-            ))}
-          </React.Fragment>
-        ) : (
-          <option key={provider.slug} value={provider.slug}>
-            {provider.displayName}
-          </option>
-        )}
-      </select>
+      <div className={styles.select}>
+        <select
+          value={provider.slug}
+          onChange={(event) => {
+            const { value } = event.target;
+            value &&
+              value !== provider.slug &&
+              navigate(`/${value}/${pageSlug}`);
+          }}
+        >
+          {providers ? (
+            <React.Fragment>
+              {providers.map((provider) => (
+                <option key={provider.slug} value={provider.slug}>
+                  {provider.displayName.toLowerCase()}
+                </option>
+              ))}
+            </React.Fragment>
+          ) : (
+            <option key={provider.slug} value={provider.slug}>
+              {provider.displayName.toLowerCase()}
+            </option>
+          )}
+        </select>
+        <div className={styles.arrow}>↲</div>
+      </div>
 
       <nav>
         {links.map((link) => (
