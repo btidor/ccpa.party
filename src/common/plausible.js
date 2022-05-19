@@ -32,7 +32,7 @@ export default function plausible(): void {
   }
 
   var endpoint = process.env.REACT_APP_PLAUSIBLE_ORIGIN;
-  if (!endpoint) return warn("not configured");
+  if (!endpoint) return;
 
   function trigger() {
     if (
