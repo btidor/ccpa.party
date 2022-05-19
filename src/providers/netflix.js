@@ -225,23 +225,41 @@ class Netflix implements Provider<CategoryKey> {
       }
     } else if (file.path[1] === "MESSAGES") {
       if (file.path[2] === "MessagesSentByNetflix.csv") {
-        return (await parseCSV(file.data)).map((row) =>
-          entry(
-            row,
-            "notification",
-            DateTime.fromSQL(row["Sent Utc Ts"], { zone: "UTC" }),
-            [
-              row["Channel"] === "EMAIL"
-                ? "Email"
-                : row["Channel"] === "NOTIFICATIONS"
-                ? "In-App Notification"
-                : row["Channel"] === "PUSH"
-                ? "Push Notification"
-                : "Notification",
-              row["Title Name"],
-            ]
-          )
-        );
+        return ((await parseCSV(file.data))
+          .flatMap((row) => [
+            entry(
+              row,
+              "notification",
+              DateTime.fromSQL(row["Sent Utc Ts"], { zone: "UTC" }),
+              [
+                row["Channel"] === "EMAIL"
+                  ? "Email"
+                  : row["Channel"] === "NOTIFICATIONS"
+                  ? "In-App Notification"
+                  : row["Channel"] === "PUSH"
+                  ? "Push Notification"
+                  : "Notification",
+                row["Title Name"],
+              ]
+            ),
+            row["Click Utc Ts"] &&
+              entry(
+                row,
+                "notification",
+                DateTime.fromSQL(row["Click Utc Ts"], { zone: "UTC" }),
+                [
+                  (row["Channel"] === "EMAIL"
+                    ? "Email"
+                    : row["Channel"] === "NOTIFICATIONS"
+                    ? "In-App Notification"
+                    : row["Channel"] === "PUSH"
+                    ? "Push Notification"
+                    : "Notification") + " Click",
+                  row["Title Name"],
+                ]
+              ),
+          ])
+          .filter((x) => x): any);
       }
     } else if (file.path[1] === "PAYMENT_AND_BILLING") {
       if (file.path[2] === "BillingHistory.csv") {
