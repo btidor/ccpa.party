@@ -73,11 +73,13 @@ type AsyncState = {| +db: IDBDatabase, +key: any |};
 
 export class Database {
   _terminated: () => void;
+  _errored: ?() => void;
   _state: Promise<?AsyncState>;
   _rootIndex: Promise<RootIndex>;
 
-  constructor(terminated: () => void) {
+  constructor(terminated: () => void, errored?: () => void) {
     this._terminated = terminated;
+    this._errored = errored;
     this._state = new Promise((resolve) => {
       // $FlowFixMe[prop-missing]
       if (!navigator.locks || !window.indexedDB || !window.crypto?.subtle) {
@@ -87,11 +89,16 @@ export class Database {
           !!window.indexedDB,
           !!window.crypto?.subtle,
         ]);
+        errored?.();
       } else {
         // $FlowFixMe[incompatible-use]
-        navigator.locks.request(dbInitLock, async () =>
-          resolve(await this._initializeState())
-        );
+        navigator.locks.request(dbInitLock, async () => {
+          const db = await this._initializeState();
+          // If there's an error (db is undefined), the _state promise should
+          // never resolve so that database operations hang, but we should still
+          // release the init lock (by exiting this block).
+          db !== "error" && resolve(db);
+        });
       }
     });
 
@@ -99,7 +106,7 @@ export class Database {
       (await this._get(rootIndexKey, { named: true })) || {})();
   }
 
-  async _initializeState(): Promise<?AsyncState> {
+  async _initializeState(): Promise<AsyncState | "error" | void> {
     // Open and initialize our IndexedDB database.
     const db = await new Promise((resolve, reject) => {
       const op = window.indexedDB.open(dbName, dbVersion);
@@ -109,10 +116,13 @@ export class Database {
         db.onclose = () => this._terminated();
         resolve(db);
       };
-      // Opening IndexedDB fails in Firefox InPrivate windows. Just hang the
-      // database in that case.
+      // This usually means we're in a Firefox private window, so no IndexedDB:
       // https://bugzilla.mozilla.org/show_bug.cgi?id=1639542
-      op.onerror = (e) => console.error("Failed to open IndexedDB", e);
+      op.onerror = (e) => (
+        console.error("Failed to open IndexedDB", e, this._errored),
+        this._errored?.(),
+        resolve(undefined)
+      );
       op.onupgradeneeded = () => {
         // For now, schema upgrades wipe the database
         const db = op.result;
@@ -123,6 +133,7 @@ export class Database {
       };
       op.onblocked = () => op.result.close();
     });
+    if (!db) return "error";
 
     // We encrypt the data and store the key in a cookie because (a) the browser
     // cookie jar is encrypted using OS-level data protection APIs while

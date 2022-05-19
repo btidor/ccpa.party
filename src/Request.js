@@ -18,27 +18,36 @@ type Props = {|
 
 function Request(props: Props): React.Node {
   const { provider } = props;
+
+  const [db, setDb] = React.useState();
+  const [display, setDisplay] = React.useState();
   const [epoch, setEpoch] = React.useState(0);
-  const db = React.useMemo(
-    () => new Database(() => setEpoch(epoch + 1)),
+  React.useEffect(
+    () =>
+      setDb(
+        new Database(
+          () => setEpoch(epoch + 1),
+          () => setDisplay("error")
+        )
+      ),
     [epoch]
   );
 
-  const [imported, setImported] = React.useState();
   React.useEffect(() => {
-    (async () => (
-      setImported((await db.getProviders()).has(provider.slug)),
-      setInProgress(false)
-    ))();
+    (async () => {
+      if (db) {
+        const imported = (await db.getProviders()).has(provider.slug);
+        setDisplay(imported ? "explore" : "import");
+      }
+    })();
   }, [db, provider]);
 
-  const [inProgress, setInProgress] = React.useState(false);
   const fileHandler = (event) => (
-    setInProgress(true),
+    setDisplay("pending"),
     importFiles(provider, event.target.files, () => setEpoch(epoch + 1))
   );
   const resetHandler = (event) => (
-    setInProgress(true), resetProvider(provider, () => setEpoch(epoch + 1))
+    setDisplay("pending"), resetProvider(provider, () => setEpoch(epoch + 1))
   );
 
   const inputRef = React.useRef<?HTMLInputElement>();
@@ -94,7 +103,7 @@ function Request(props: Props): React.Node {
               ref={inputRef}
               onChange={fileHandler}
             />
-            {imported === undefined ? undefined : imported ? (
+            {display === "explore" ? (
               <React.Fragment>
                 <Link to={`/${provider.slug}/timeline`}>Explore →</Link>
                 <div className={styles.grow}></div>
@@ -104,9 +113,7 @@ function Request(props: Props): React.Node {
                   </button>
                 </div>
               </React.Fragment>
-            ) : inProgress ? (
-              <code>...</code>
-            ) : (
+            ) : display === "import" ? (
               <label
                 htmlFor="import"
                 tabIndex={0}
@@ -117,7 +124,11 @@ function Request(props: Props): React.Node {
               >
                 Import {provider.singleFile ? "File" : "Files"} ↑
               </label>
-            )}
+            ) : display === "pending" ? (
+              <code>...</code>
+            ) : display === "error" ? (
+              <code>[Browser Not Supported]</code>
+            ) : undefined}
           </div>
         </div>
       </section>
