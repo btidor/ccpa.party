@@ -57,7 +57,13 @@ function TimelineRow(props: Props): React.Node {
     return (
       <div
         aria-selected={row && selected === row.slug}
-        className={[styles.item, isLast && styles.last]
+        className={[
+          styles.item,
+          isLast && styles.last,
+          // Don't apply hover states while loading, since the pane is all-black
+          // anyways.
+          hydrated && styles.loaded,
+        ]
           .filter((x) => x)
           .join(" ")}
         role="row"

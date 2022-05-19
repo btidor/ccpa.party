@@ -33,21 +33,21 @@
   gap: 1ch;
 }
 
-.item:hover {
+.loaded:hover {
   border: 1px solid var(--neon);
 }
 
-.item[aria-selected="true"] {
+.loaded[aria-selected="true"] {
   background-color: var(--neon);
 }
 
-.item[aria-selected="true"] .content {
+.loaded[aria-selected="true"] .content {
   filter: invert(1);
   --neon: #fff; /* never invert custom colors */
   --whiteout: #fff;
 }
 
-.item[aria-selected="true"]:hover {
+.loaded[aria-selected="true"]:hover {
   border: 1px solid #fff;
 }
 
