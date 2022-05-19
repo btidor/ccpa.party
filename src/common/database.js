@@ -105,7 +105,10 @@ export class Database {
         db.onclose = () => this._terminated();
         resolve(db);
       };
-      op.onerror = (e) => reject(e);
+      // Opening IndexedDB fails in Firefox InPrivate windows. Just hang the
+      // database in that case.
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1639542
+      op.onerror = (e) => console.error("Failed to open IndexedDB", e);
       op.onupgradeneeded = () => {
         // For now, schema upgrades wipe the database
         const db = op.result;
