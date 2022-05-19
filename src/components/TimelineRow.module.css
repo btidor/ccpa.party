@@ -42,9 +42,8 @@
 }
 
 .loaded[aria-selected="true"] .content {
-  filter: invert(1);
-  --neon: #fff; /* never invert custom colors */
-  --whiteout: #fff;
+  --neon: #000;
+  --selected: #000;
 }
 
 .loaded[aria-selected="true"]:hover {

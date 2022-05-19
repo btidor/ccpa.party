@@ -1,7 +1,7 @@
 .time {
   flex: none;
   width: 32.5px;
-  color: var(--whiteout, #999);
+  color: var(--selected, #999);
   font-size: 0.8em;
   font-weight: 500;
   margin-top: 1px;
@@ -9,11 +9,11 @@
 }
 
 .icon {
-  color: var(--whiteout, var(--neon));
+  color: var(--selected, var(--neon));
 }
 
 .username {
-  color: var(--whiteout, var(--custom));
+  color: var(--selected, var(--custom));
   font-weight: 900;
   margin-right: 7px;
 }
@@ -21,10 +21,11 @@
 .content {
   /* use system (color) emoji for user content */
   font-family: "Plex Sans", monospace;
+  color: var(--selected);
 }
 
 .trailer {
-  color: var(--whiteout, #999);
+  color: var(--selected, #999);
   margin-left: 7px;
 }
 
@@ -56,7 +57,7 @@ blockquote + .trailer,
 }
 
 .content blockquote {
-  border-left: 2px solid var(--whiteout, #999);
+  border-left: 2px solid var(--selected, #999);
   margin: 2px 4px;
   padding-left: 8px;
 }
