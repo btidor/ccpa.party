@@ -12,7 +12,7 @@ import type { Provider } from "common/provider";
 
 export type Entry = $ReadOnly<{|
   isGroup: false,
-  ...TimelineEntryKey,
+  ...TimelineEntryKey<any>,
   time: ?string,
 |}>;
 
@@ -23,7 +23,7 @@ export type Group = {|
 |};
 
 type Props = {|
-  +db: ProviderScopedDatabase,
+  +db: ProviderScopedDatabase<any>,
   +isLast: boolean,
   +metadata: $ReadOnlyMap<string, any>,
   +provider: Provider<any>,

@@ -39,10 +39,10 @@ export interface Provider<T> {
   parse(
     file: DataFile,
     metadata: Map<string, any>
-  ): Promise<$ReadOnlyArray<TimelineEntry>>;
+  ): Promise<$ReadOnlyArray<TimelineEntry<T>>>;
 
   +render?: (
-    entry: TimelineEntry,
+    entry: TimelineEntry<T>,
     metadata: $ReadOnlyMap<string, any>
   ) =>
     | [?Node, ?string]

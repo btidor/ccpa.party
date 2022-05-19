@@ -19,11 +19,11 @@ export type DataFileKey = {|
 
 export type DataFile = {| ...DataFileKey, +data: BufferSource |};
 
-export type TimelineEntryKey = {|
+export type TimelineEntryKey<T> = {|
   +day: string,
   +timestamp: number,
   +slug: string,
-  +category: string,
+  +category: T,
   +iv?: string,
   +offset?: number,
 |};
@@ -34,8 +34,8 @@ export type TimelineContext =
   | [string, ?string]
   | [string, ?string, ?{| display: string, color: ?string |}];
 
-export type TimelineEntry = {|
-  ...TimelineEntryKey,
+export type TimelineEntry<T> = {|
+  ...TimelineEntryKey<T>,
   +file: $ReadOnlyArray<string>,
   +context: TimelineContext,
   +value: { [string]: any },
@@ -205,11 +205,11 @@ export class Database {
   }
 }
 
-export class ProviderScopedDatabase extends Database {
-  _provider: Provider<any>;
+export class ProviderScopedDatabase<T> extends Database {
+  _provider: Provider<T>;
   _providerIndex: Promise<ProviderIndex>;
 
-  constructor(provider: Provider<any>, terminated: () => void) {
+  constructor(provider: Provider<T>, terminated: () => void) {
     super(terminated);
     this._provider = provider;
     this._providerIndex = (async () => {
@@ -240,20 +240,22 @@ export class ProviderScopedDatabase extends Database {
     return new Map((await this._providerIndex).metadata);
   }
 
-  async getTimelineEntries(): Promise<Array<TimelineEntryKey>> {
+  async getTimelineEntries(): Promise<Array<TimelineEntryKey<T>>> {
     return (await this._providerIndex).timeline.map(
       ([iv, offset, day, timestamp, slug, category]) => ({
         day,
         timestamp,
         slug,
-        category,
+        category: (category: any),
         iv,
         offset,
       })
     );
   }
 
-  async hydrateTimelineEntry(entry: TimelineEntryKey): Promise<?TimelineEntry> {
+  async hydrateTimelineEntry(
+    entry: TimelineEntryKey<T>
+  ): Promise<?TimelineEntry<T>> {
     if (!entry.iv || entry.offset === undefined) {
       throw new Error("TimelineEntryKey is missing IV or offset");
     }
@@ -268,7 +270,7 @@ export class ProviderScopedDatabase extends Database {
     };
   }
 
-  async getTimelineEntryBySlug(slug: string): Promise<?TimelineEntry> {
+  async getTimelineEntryBySlug(slug: string): Promise<?TimelineEntry<T>> {
     const entry = (await this._providerIndex).timeline.find(
       ([, , , , s]) => s === slug
     );
@@ -278,18 +280,18 @@ export class ProviderScopedDatabase extends Database {
       day,
       timestamp,
       slug: s,
-      category,
+      category: (category: any),
       iv,
       offset,
     });
   }
 }
 
-export class WritableDatabase extends ProviderScopedDatabase {
+export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
   _additions: {|
     files: Array<DataFile>,
     metadata: Map<string, any>,
-    timeline: Array<TimelineEntry>,
+    timeline: Array<TimelineEntry<T>>,
     timelineDedup: Set<string>,
   |};
 
@@ -497,7 +499,7 @@ export class WritableDatabase extends ProviderScopedDatabase {
     metadata.forEach((v, k) => this._additions.metadata.set(k, v));
   }
 
-  putTimelineEntry(entry: TimelineEntry): void {
+  putTimelineEntry(entry: TimelineEntry<T>): void {
     if (!this._additions.timelineDedup.has(entry.slug)) {
       this._additions.timeline.push(entry);
       this._additions.timelineDedup.add(entry.slug);

@@ -72,7 +72,9 @@ class Amazon implements Provider<CategoryKey> {
     ],
   ]);
 
-  async parse(file: DataFile): Promise<$ReadOnlyArray<TimelineEntry>> {
+  async parse(
+    file: DataFile
+  ): Promise<$ReadOnlyArray<TimelineEntry<CategoryKey>>> {
     if (
       file.path[1] === "Location" &&
       file.path[2]?.startsWith("Country of Residence")
@@ -88,7 +90,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Set Alexa country of residence", row["Country"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "account.csv") {
       return (await parseCSV(file.data)).map(
@@ -102,7 +104,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Created Music Account", row["Music_Territory"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "library.csv") {
       return (await parseCSV(file.data)).map(
@@ -119,7 +121,7 @@ class Amazon implements Provider<CategoryKey> {
               `${row["title"]} (${row["albumName"]})`,
             ],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (
       file.path[1] === "AmazonSmile.AggregateCustomerDonation.Data.csv"
@@ -139,7 +141,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["AmazonSmile Summary"],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (
       file.path[1] === "AmazonSmile.CharitySelectionHistory.Data.csv"
@@ -159,7 +161,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Selected AmazonSmile Charity", row["CharityName"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (
       file.path[1] === "Appstore" &&
@@ -178,7 +180,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["App Store Subscription", row["transaction_item_id"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "Audible.CartHistory.csv") {
       return (await parseCSV(file.data)).map(
@@ -192,7 +194,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Added to Audible Cart", row["Title"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "Audible.Credits.csv") {
       return (await parseCSV(file.data)).map(
@@ -206,7 +208,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Received Audible Credit"],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "Audible.DevicesActivations.csv") {
       return (await parseCSV(file.data)).map(
@@ -220,7 +222,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Activated Audible", row["DeviceCategory"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "Audible.Library.csv") {
       return (await parseCSV(file.data)).map(
@@ -234,7 +236,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Added to Audible Library", row["Title"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "Audible.MembershipBillings.csv") {
       return (await parseCSV(file.data)).map(
@@ -248,7 +250,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Audible Billing Event", row["OfferName"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "Audible.MembershipEvent.csv") {
       return (await parseCSV(file.data)).map(
@@ -262,7 +264,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Audible Membership Event", row["BusinessEventTypeName"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "Audible.PurchaseHistory.csv") {
       return (await parseCSV(file.data)).map(
@@ -276,7 +278,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Audible Purchase", row["Title"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (
       file.path[4] === "CustomerCommunicationExperience.Preferences.csv" ||
@@ -297,7 +299,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Notification Event", row["NotificationTopic"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "registration.csv") {
       return (await parseCSV(file.data)).map(
@@ -311,7 +313,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Registered Device", row["AccountName"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "Digital Items.csv") {
       return (await parseCSV(file.data)).map(
@@ -325,7 +327,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Digital Order", row["Title"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "Digital Orders.csv") {
       return (await parseCSV(file.data)).map(
@@ -339,7 +341,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Digital Order", row["OrderId"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1].startsWith("Digital.ActionBenefit.")) {
       return (await parseCSV(file.data)).map(
@@ -353,7 +355,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Qualified for Promotion"],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "whispersync.csv") {
       return (await parseCSV(file.data)).map(
@@ -375,7 +377,7 @@ class Amazon implements Provider<CategoryKey> {
                 .join(" ")}`,
             ],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "Digital.PrimeVideo.LocationData.csv") {
       return (await parseCSV(file.data)).map(
@@ -392,7 +394,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Prime Video Location", row["last_seen_territory"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1].startsWith("Digital.Redemption.")) {
       return (await parseCSV(file.data)).map(
@@ -406,7 +408,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Recipient Redeemed Gift", row["Title"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "Beneficiaries.csv") {
       return (await parseCSV(file.data)).map(
@@ -420,7 +422,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Received Benefits", row["ServiceProvider"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "Subscriptions.csv") {
       return (await parseCSV(file.data)).map(
@@ -434,7 +436,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Started Subscription", row["Marketplace"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (
       file.path[4] === "Kindle.BooksPromotions.RewardOfferRepository.csv"
@@ -450,7 +452,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Offered Kindle Promotion"],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "Kindle.Devices.ReadingSession.csv") {
       return (await parseCSV(file.data)).map(
@@ -464,7 +466,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Read Kindle Book", row["ASIN"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (
       file.path[4] ===
@@ -483,7 +485,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Kindle Notification"],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (
       file.path[1] ===
@@ -509,7 +511,7 @@ class Amazon implements Provider<CategoryKey> {
               `${row["Application"]} on ${row["Device"]}`,
             ],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (
       file.path[1] === "OutboundNotifications.EmailDeliveryStatusFeedback.csv"
@@ -531,7 +533,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: [`Email ${row["Email Delivery Status"]}`],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (
       file.path[1] === "OutboundNotifications.NotificationEngagementEvents.csv"
@@ -553,7 +555,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: [`Email ${row["Event Type"]}`],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "OutboundNotifications.PushSentData.csv") {
       return (await parseCSV(file.data)).map(
@@ -569,7 +571,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Push Notification"],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "OutboundNotifications.SentNotifications.csv") {
       return (await parseCSV(file.data)).map(
@@ -589,7 +591,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Sent Notification"],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "PaymentOptions.PaymentInstruments.csv") {
       return (await parseCSV(file.data))
@@ -608,7 +610,7 @@ class Amazon implements Provider<CategoryKey> {
               ),
               context: ["Added Card", `****${row["LastDigits"]}`],
               value: row,
-            }: TimelineEntry)
+            }: TimelineEntry<CategoryKey>)
         );
     } else if (file.path[4] === "WholeFoodsMarket.Orders.csv") {
       return (await parseCSV(file.data)).map(
@@ -625,7 +627,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Whole Foods Order", row["product_name_purchased"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (
       file.path[4] === "PhysicalStores.WholeFoods.KeyRegistration.csv"
@@ -644,7 +646,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Whole Foods Key Registered"],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "Retail.AuthenticationTokens.json") {
       const parsed = parseJSON(file.data);
@@ -659,7 +661,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Logged In"],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[4] === "BuyerSellerMessaging.csv") {
       return (await parseCSV(file.data)).map(
@@ -673,7 +675,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Seller Message", row["MessageSubject"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[4] === "Retail.CustomerProfile.Misc.csv") {
       return (await parseCSV(file.data)).map(
@@ -691,7 +693,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Updated Customer Profile"],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[4] === "Retail.CustomerProfile.PrivacySettings.csv") {
       return (await parseCSV(file.data)).map(
@@ -707,7 +709,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Updated Privacy Settings"],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1].startsWith("Retail.CustomerReturns.")) {
       return (await parseCSV(file.data)).map(
@@ -734,7 +736,7 @@ class Amazon implements Provider<CategoryKey> {
                 .join(" "),
             ],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1].startsWith("Retail.OrderHistory.")) {
       return (await parseCSV(file.data)).map(
@@ -750,7 +752,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Order", row["Product Name"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1].startsWith("Retail.OrdersReturned.Payments.")) {
       return (await parseCSV(file.data))
@@ -772,7 +774,7 @@ class Amazon implements Provider<CategoryKey> {
               ),
               context: [`Payment ${row["DisbursementType"]}`],
               value: row,
-            }: TimelineEntry)
+            }: TimelineEntry<CategoryKey>)
         );
     } else if (file.path[1].startsWith("Retail.OrdersReturned.")) {
       return (await parseCSV(file.data)).map(
@@ -798,7 +800,7 @@ class Amazon implements Provider<CategoryKey> {
               }`,
             ],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (
       file.path[4] === "Retail.OutboundNotifications.MobileApplications.csv"
@@ -820,7 +822,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Registered App", row["Device"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (
       file.path[4]?.startsWith(
@@ -843,7 +845,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Notification"],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "Retail.Promotions.csv") {
       return (await parseCSV(file.data)).map(
@@ -859,7 +861,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Used Promotion", row["promotionDescription"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1].startsWith("Retail.RegionAuthority.")) {
       return (await parseCSV(file.data)).map(
@@ -873,7 +875,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Detected Region", row["City"]],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[2] === "Retail.Reorder.DigitalDashButton.csv") {
       return (await parseCSV(file.data))
@@ -899,7 +901,7 @@ class Amazon implements Provider<CategoryKey> {
                 row["productTitle"].slice(1, -1),
               ],
               value: row,
-            }: TimelineEntry)
+            }: TimelineEntry<CategoryKey>)
         );
     } else if (
       file.path[1] === "Retail.Search-Data.Retail.Customer-Engagement.csv"
@@ -924,7 +926,7 @@ class Amazon implements Provider<CategoryKey> {
           ),
           context: ["Search", query],
           value: row,
-        }: TimelineEntry);
+        }: TimelineEntry<CategoryKey>);
       });
     } else if (file.path[1].startsWith("Retail.ShoppingProfile.")) {
       return (await parseCSV(file.data)).map(
@@ -940,7 +942,7 @@ class Amazon implements Provider<CategoryKey> {
             ),
             context: ["Profile Attribute"],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else if (file.path[1] === "Billing and Refunds Data.csv") {
       return (await parseCSV(file.data)).map(
@@ -957,7 +959,7 @@ class Amazon implements Provider<CategoryKey> {
               row["TransactionReason"].replace(/(.)([A-Z])/g, "$1 $2"),
             ],
             value: row,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     }
     return [];

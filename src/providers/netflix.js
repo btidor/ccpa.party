@@ -57,10 +57,12 @@ class Netflix implements Provider<CategoryKey> {
     ],
   ]);
 
-  async parse(file: DataFile): Promise<$ReadOnlyArray<TimelineEntry>> {
+  async parse(
+    file: DataFile
+  ): Promise<$ReadOnlyArray<TimelineEntry<CategoryKey>>> {
     const entry = (
       row: any,
-      category: string,
+      category: CategoryKey,
       datetime: any,
       context: TimelineContext
     ) => ({

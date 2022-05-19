@@ -49,7 +49,9 @@ class GitHub implements Provider<CategoryKey> {
     ],
   ]);
 
-  async parse(file: DataFile): Promise<$ReadOnlyArray<TimelineEntry>> {
+  async parse(
+    file: DataFile
+  ): Promise<$ReadOnlyArray<TimelineEntry<CategoryKey>>> {
     const object = (url) => {
       const parts = url.split("/");
       const repo = parts[4];
@@ -126,7 +128,7 @@ class GitHub implements Provider<CategoryKey> {
             ),
             context: [title, trailer],
             value: item,
-          }: TimelineEntry);
+          }: TimelineEntry<CategoryKey>);
         })
         .filter((x) => x);
     }

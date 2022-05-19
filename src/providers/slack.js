@@ -58,7 +58,7 @@ class Slack implements Provider<CategoryKey> {
   async parse(
     file: DataFile,
     metadata: Map<string, any>
-  ): Promise<$ReadOnlyArray<TimelineEntry>> {
+  ): Promise<$ReadOnlyArray<TimelineEntry<CategoryKey>>> {
     if (file.path[1] === "users.json") {
       metadata.set("users", parseJSON(file.data));
       return [];
@@ -74,7 +74,7 @@ class Slack implements Provider<CategoryKey> {
             ...getSlugAndDayTime(parseInt(log.date), log),
             context: null,
             value: log,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     } else {
       return parseJSON(file.data).map(
@@ -85,13 +85,13 @@ class Slack implements Provider<CategoryKey> {
             ...getSlugAndDayTime(parseInt(message.ts), message),
             context: null,
             value: message,
-          }: TimelineEntry)
+          }: TimelineEntry<CategoryKey>)
       );
     }
   }
 
   render: (
-    TimelineEntry,
+    TimelineEntry<CategoryKey>,
     $ReadOnlyMap<string, any>
   ) => [?React.Node, ?string, ?{| display: string, color: ?string |}] = (
     entry,
