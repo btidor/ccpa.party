@@ -1,7 +1,6 @@
 .outer {
   --neon: var(--neon-hex);
   height: 100vh;
-  height: -webkit-fill-available;
   display: flex;
   flex-direction: column;
   padding: 2vw;
