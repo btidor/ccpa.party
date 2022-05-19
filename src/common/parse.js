@@ -64,6 +64,7 @@ export function smartDecode(data: BufferSource): string {
       if (!isPrintableUnicode(text)) {
         // Fail :(
         console.warn(
+          "Smart Decode Failed:",
           data,
           Array.from(utf8Decoder.decode(data)).filter(
             (c) => !printableRegExp.test(c)
@@ -90,6 +91,7 @@ export function smartDecodeText(text: string): string {
   if (isPrintableUnicode(text)) return text;
 
   console.warn(
+    "Smart Decode Text Failed:",
     text,
     Array.from(text).filter((c) => !printableRegExp.test(c))
   );
