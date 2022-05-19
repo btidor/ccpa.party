@@ -55,6 +55,10 @@
   display: flex;
   margin: 2em 0;
   line-height: 25px;
+
+  /* allow facebook link to extend into margin
+     a bit to avoid wrapping on mobile */
+  width: calc(100% + 1ch);
 }
 
 .instruction:last-of-type {
