@@ -90,7 +90,7 @@ function Request(props: Props): React.Node {
               id="import"
               type="file"
               multiple
-              accept=".zip,.tar.gz"
+              accept=".zip,.tar.gz,.tgz,.gz"
               ref={inputRef}
               onChange={fileHandler}
             />
