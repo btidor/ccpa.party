@@ -196,7 +196,7 @@ class Facebook implements Provider<CategoryKey> {
           entry(item, "message", DateTime.fromMillis(item.timestamp_ms), [
             item.content,
             parsed.title === item.sender_name ? undefined : parsed.title,
-            item.sender_name,
+            { color: "var(--neon)", display: item.sender_name },
           ])
         );
       }
