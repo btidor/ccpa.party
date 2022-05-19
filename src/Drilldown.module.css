@@ -95,3 +95,24 @@
   border: 1px solid var(--neon);
   padding: 0.25rem;
 }
+
+/* chrome's scroll bars don't show up well on dark backgrounds;
+   use primary color for the left scrollbar and hide the right
+  scroll bars to work around */
+.left ::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 5px;
+}
+
+.left ::-webkit-scrollbar-corner {
+  background: rgba(0, 0, 0, 0);
+}
+
+.left ::-webkit-scrollbar-thumb {
+  border-radius: 5px;
+  background-color: var(--neon);
+}
+
+.right ::-webkit-scrollbar {
+  display: none;
+}
