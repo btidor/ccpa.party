@@ -176,13 +176,13 @@ class Slack implements Provider<CategoryKey> {
       } else if (element.type === "user") {
         const user = users.find((x) => x.id === element.user_id) || {};
         return [
-          <Highlight>
+          <Highlight key={key}>
             @{user.display_name || user.real_name || "unknown"}
           </Highlight>,
         ];
       } else if (element.type === "channel") {
         const channel = channels.find((x) => x.id === element.channel_id) || {};
-        return [<Highlight>#{channel.name || "unknown"}</Highlight>];
+        return [<Highlight key={key}>#{channel.name || "unknown"}</Highlight>];
       } else if (element.type === "link") {
         return [
           <a href={element.url} key={key} target="_blank" rel="noreferrer">
@@ -190,14 +190,14 @@ class Slack implements Provider<CategoryKey> {
           </a>,
         ];
       } else {
-        return [<Pill>{element.type}</Pill>];
+        return [<Pill key={key}>{element.type}</Pill>];
       }
     };
     if (message.blocks) {
       text = message.blocks.flatMap((block) => {
         key++;
         if (block.type !== "rich_text") {
-          return <Pill>{block.type}</Pill>;
+          return <Pill key={key}>{block.type}</Pill>;
         } else {
           return block.elements.flatMap(handleElement);
         }
