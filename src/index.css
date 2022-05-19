@@ -8,19 +8,19 @@
 }
 
 @font-face {
-  /* subset containing just the emoji we use */
+  /* subset containing just the emoji we use on the home page */
   font-family: "Noto Emoji Home";
   font-display: block;
   text-rendering: geometricPrecision;
-  src: url("fonts/noto-emoji-subset.woff2") format("woff2");
+  src: url("fonts/noto-emoji-home-subset.woff2") format("woff2");
 }
 
 @font-face {
-  /* TODO: subset */
+  /* subset containing just the emoji we use in the main app */
   font-family: "Noto Emoji Provider";
   font-display: block;
   text-rendering: geometricPrecision;
-  src: url("fonts/noto-emoji.woff2") format("woff2");
+  src: url("fonts/noto-emoji-provider-subset.woff2") format("woff2");
 }
 
 @font-face {

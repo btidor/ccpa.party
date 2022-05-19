@@ -27,7 +27,18 @@ pyftsubset "noto-emoji.woff2" \
   --canonical-order \
   --harfbuzz-repacker \
   --flavor="woff2" \
-  --output-file="noto-emoji-subset.woff2"
+  --output-file="noto-emoji-home-subset.woff2"
+
+pyftsubset "noto-emoji.woff2" \
+  --text="🪪🖱💬💵🔔🚚🌥🎶📱🎞" \
+  --no-ignore-missing-unicodes \
+  --layout-features="" \
+  --layout-scripts="" \
+  --name-IDs="0,13,14" \
+  --canonical-order \
+  --harfbuzz-repacker \
+  --flavor="woff2" \
+  --output-file="noto-emoji-provider-subset.woff2"
 
 pyftsubset "plex-mono.woff2" \
   --unicodes="U+0020-007E" \
