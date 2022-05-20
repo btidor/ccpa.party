@@ -46,13 +46,14 @@
 }
 
 .home nav div {
-  color: var(--neon-hex);
+  --neon: var(--neon-hex);
+  color: var(--neon);
   text-transform: lowercase;
 }
 
 @supports (color: color(rec2020 0 0 0)) {
   .home nav div {
-    color: var(--neon-hdr);
+    --neon: var(--neon-hdr);
   }
 }
 

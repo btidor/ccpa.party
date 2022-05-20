@@ -55,7 +55,9 @@
   display: flex;
   margin: 2em 0;
   line-height: 25px;
+}
 
+.instruction:first-of-type {
   /* allow facebook link to extend into margin
      a bit to avoid wrapping on mobile */
   width: calc(100% + 1ch);
@@ -79,6 +81,7 @@
 
 .instruction a,
 .compass label {
+  display: inline-block;
   color: var(--neon);
   font-weight: 550;
 }
@@ -129,6 +132,7 @@
   font-size: 1.1em;
   font-weight: 900;
 }
+
 .reset button svg {
   margin-bottom: 0.2em;
 }
