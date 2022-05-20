@@ -209,7 +209,7 @@ class Facebook implements Provider<CategoryKey> {
         let parsed = parseJSON(file.data, { smart: true });
         if (!Array.isArray(parsed)) parsed = [parsed];
         return parsed.map((item) =>
-          entry(parsed, "content", DateTime.fromSeconds(item.timestamp), [
+          entry(item, "content", DateTime.fromSeconds(item.timestamp), [
             "Post",
             item.data?.[0]?.post,
           ])
