@@ -1,3 +1,54 @@
+const { sources } = require("webpack");
+
+class AssetPathReplacementPlugin {
+  name = "AssetPathReplacementPlugin";
+
+  apply(compiler) {
+    // Thank you https://stackoverflow.com/a/65535329!
+    compiler.hooks.compilation.tap(this.name, (compilation) => {
+      compilation.hooks.processAssets.tap(
+        {
+          name: this.name,
+          stage: Infinity,
+        },
+        (assets) => {
+          for (const name in assets) {
+            if (name === "index.html") {
+              const stats = new Map(
+                compilation
+                  .getStats()
+                  .toJson({
+                    assets: true,
+                    cachedAssets: true,
+                  })
+                  .assets.map((entry) => {
+                    const parts = entry.name.split(".");
+                    const base = parts.slice(0, -2).concat(parts.slice(-1));
+                    return ["/" + base.join("."), "/" + entry.name];
+                  })
+              );
+
+              const asset = compilation.getAsset(name);
+              const contents = asset.source.source();
+              const replaced = contents.replace(
+                /%ASSET_URL%[^"'\n]+/g,
+                (match) => {
+                  const asset = match.slice("%ASSET_URL%".length);
+                  const url = stats.get(asset);
+                  if (!url)
+                    throw new Error("Could not resolve asset: " + asset);
+                  return url;
+                }
+              );
+              compilation.updateAsset(name, new sources.RawSource(replaced));
+            }
+          }
+        }
+      );
+    });
+  }
+}
+
 module.exports = {
   devServer: {
     client: {
@@ -44,5 +95,8 @@ module.exports = {
       "Cross-Origin-Embedder-Policy": "require-corp",
       "Cross-Origin-Opener-Policy": "same-origin",
     },
+  },
+  webpack: {
+    plugins: [new AssetPathReplacementPlugin()],
   },
 };

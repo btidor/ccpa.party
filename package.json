@@ -29,11 +29,13 @@
     "colorjs.io": "^0.0.5",
     "flow-bin": "^0.177.0",
     "flow-types": "^1.0.0",
+    "prettier": "^2.6.2",
     "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "IMAGE_INLINE_SIZE_LIMIT=0 craco start",
     "build": "IMAGE_INLINE_SIZE_LIMIT=0 craco build",
+    "postbuild": "prettier -w build/*.html",
     "test": "craco test --env=./src/jestEnv.js",
     "flow": "flow",
     "lint": "eslint src/",
