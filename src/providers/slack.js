@@ -61,13 +61,13 @@ class Slack implements Provider<CategoryKey> {
     metadata: Map<string, any>
   ): Promise<$ReadOnlyArray<TimelineEntry<CategoryKey>>> {
     if (file.path[1] === "users.json") {
-      metadata.set("users", parseJSON(file.data, { smart: false }));
+      metadata.set("users", parseJSON(file.data));
       return [];
     } else if (file.path[1] === "channels.json") {
-      metadata.set("channels", parseJSON(file.data, { smart: false }));
+      metadata.set("channels", parseJSON(file.data));
       return [];
     } else if (file.path[1] === "integration_logs.json") {
-      return parseJSON(file.data, { smart: false }).map(
+      return parseJSON(file.data).map(
         (log) =>
           ({
             file: file.path,
@@ -78,7 +78,7 @@ class Slack implements Provider<CategoryKey> {
           }: TimelineEntry<CategoryKey>)
       );
     } else {
-      return parseJSON(file.data, { smart: false }).map(
+      return parseJSON(file.data).map(
         (message) =>
           ({
             file: file.path,

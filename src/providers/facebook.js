@@ -189,7 +189,7 @@ class Facebook implements Provider<CategoryKey> {
       if (filename.startsWith("message_") && filename.endsWith(".json")) {
         let parsed;
         try {
-          parsed = parseJSON(file.data);
+          parsed = parseJSON(file.data, { smart: true });
         } catch {
           return [];
         }
@@ -206,7 +206,7 @@ class Facebook implements Provider<CategoryKey> {
         file.path[2].startsWith("your_posts") &&
         file.path[2].endsWith(".json")
       ) {
-        let parsed = parseJSON(file.data);
+        let parsed = parseJSON(file.data, { smart: true });
         if (!Array.isArray(parsed)) parsed = [parsed];
         console.warn(parsed);
         return parsed.map((item) =>
@@ -217,7 +217,7 @@ class Facebook implements Provider<CategoryKey> {
         );
       }
     } else if (file.path.slice(-1)[0] === "your_event_responses.json") {
-      const parsed = parseJSON(file.data);
+      const parsed = parseJSON(file.data, { smart: true });
       const root = parsed.event_responses_v2;
       return root.events_joined
         .map((item) =>
@@ -235,7 +235,9 @@ class Facebook implements Provider<CategoryKey> {
           )
         );
     } else if (file.path.slice(-1)[0] === "your_off-facebook_activity.json") {
-      return parseJSON(file.data).off_facebook_activity_v2.flatMap((company) =>
+      return parseJSON(file.data, {
+        smart: true,
+      }).off_facebook_activity_v2.flatMap((company) =>
         company.events.map((item) =>
           entry(item, "activity", DateTime.fromSeconds(item.timestamp), [
             "Off-Facebook Purchase",
@@ -244,7 +246,9 @@ class Facebook implements Provider<CategoryKey> {
         )
       );
     } else if (file.path.slice(-1)[0] === "feed.json") {
-      return parseJSON(file.data).people_and_friends_v2.flatMap((feed) =>
+      return parseJSON(file.data, {
+        smart: true,
+      }).people_and_friends_v2.flatMap((feed) =>
         feed.entries.map((item) =>
           entry(item, "activity", DateTime.fromSeconds(item.timestamp), [
             feed.name,
@@ -253,7 +257,7 @@ class Facebook implements Provider<CategoryKey> {
         )
       );
     } else if (file.path.slice(-1)[0] === "profile_information.json") {
-      const parsed = parseJSON(file.data).profile_v2;
+      const parsed = parseJSON(file.data, { smart: true }).profile_v2;
       return [
         entry(
           parsed,
@@ -263,7 +267,7 @@ class Facebook implements Provider<CategoryKey> {
         ),
       ];
     } else if (file.path.slice(-1)[0] === "recently_viewed.json") {
-      return parseJSON(file.data)
+      return parseJSON(file.data, { smart: true })
         .recently_viewed.flatMap((category) =>
           category.entries?.map(
             (item) =>
@@ -276,7 +280,7 @@ class Facebook implements Provider<CategoryKey> {
         )
         .filter((x) => x);
     } else if (file.path.slice(-1)[0] === "recently_visited.json") {
-      return parseJSON(file.data)
+      return parseJSON(file.data, { smart: true })
         .visited_things_v2.flatMap(
           (category) =>
             category.name === "Profile visits" &&
@@ -291,27 +295,29 @@ class Facebook implements Provider<CategoryKey> {
         )
         .filter((x) => x);
     } else if (file.path.slice(-1)[0].endsWith(".json")) {
-      return Object.entries(parseJSON(file.data)).flatMap(([key, value]) => {
-        if (Array.isArray(value) && categories[key] && mappers[key]) {
-          return value.map((item: any) =>
-            entry(
-              item,
-              categories[key],
-              DateTime.fromSeconds(
-                item.timestamp ||
-                  item.start_timestamp ||
-                  item.removed_timestamp ||
-                  item.removed_timestamp ||
-                  item.verification_time ||
-                  item.session?.created_timestamp
-              ),
-              mappers[key](item)
-            )
-          );
-        } else {
-          return [];
+      return Object.entries(parseJSON(file.data, { smart: true })).flatMap(
+        ([key, value]) => {
+          if (Array.isArray(value) && categories[key] && mappers[key]) {
+            return value.map((item: any) =>
+              entry(
+                item,
+                categories[key],
+                DateTime.fromSeconds(
+                  item.timestamp ||
+                    item.start_timestamp ||
+                    item.removed_timestamp ||
+                    item.removed_timestamp ||
+                    item.verification_time ||
+                    item.session?.created_timestamp
+                ),
+                mappers[key](item)
+              )
+            );
+          } else {
+            return [];
+          }
         }
-      });
+      );
     }
     return [];
   }
