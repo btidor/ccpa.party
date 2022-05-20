@@ -2,6 +2,14 @@
 import csv from "csvtojson";
 import MurmurHash3 from "imurmurhash";
 
+import type { DataFile, TimelineContext, TimelineEntry } from "common/database";
+
+export type Parser<T> = {|
+  +glob: string,
+  +tokenizer: (BufferSource | string) => any,
+  +renderer: ({| [string]: any |}) => ?[T, any, TimelineContext],
+|};
+
 const printableRegExp =
   // U+F8FF is the Apple logo on macOS
   /^(\p{L}|\p{M}|\p{N}|\p{S}|\p{P}|\p{Z}|\p{Cf}|\n|\r|\t|\u{f8ff})*$/u;
@@ -129,4 +137,49 @@ export function getSlugAndDayTime(
     "-" +
     date.getDate().toString().padStart(2, "0");
   return { slug, day, timestamp };
+}
+
+export async function parseByStages<T>(
+  file: DataFile,
+  parsers: $ReadOnlyArray<any>
+): Promise<$ReadOnlyArray<TimelineEntry<T>>> {
+  const path = file.path.slice(1).join("/");
+  const parser = parsers.find((c) => c.glob.match(path));
+  if (!parser) return [];
+
+  let tokens;
+  try {
+    tokens = await parser.tokenizer(file.data);
+  } catch (e) {
+    console.error("Tokenization Error", path, e);
+    return [];
+  }
+
+  if (!Array.isArray(tokens)) {
+    console.error("Non-Array Tokenization", path, tokens);
+    return [];
+  }
+
+  return tokens
+    .map((tok) => {
+      let parsed;
+      try {
+        parsed = parser.renderer(tok);
+      } catch (e) {
+        console.error("Parse Error", path, tok, e);
+        return undefined;
+      }
+      if (!parsed) return undefined;
+      console.warn(path, tok, parsed);
+
+      const [category, datetime, context] = parsed;
+      return ({
+        file: file.path,
+        category,
+        ...getSlugAndDayTime(datetime.toSeconds(), parsed),
+        context,
+        value: tok,
+      }: TimelineEntry<T>);
+    })
+    .filter((x) => x);
 }

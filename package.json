@@ -9,6 +9,7 @@
     "imurmurhash": "^0.1.4",
     "js-untar": "^2.0.0",
     "luxon": "^2.3.2",
+    "minimatch": "^5.1.0",
     "pako": "^2.0.4",
     "react": "^18.1.0",
     "react-arborist": "^1.0.3",

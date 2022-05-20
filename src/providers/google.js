@@ -1,9 +1,11 @@
 // @flow
+import { Minimatch } from "minimatch";
 import { DateTime } from "luxon";
 
-import { getSlugAndDayTime, parseCSV, parseJSON } from "common/parse";
+import { parseByStages, parseCSV, parseJSON } from "common/parse";
 
-import type { DataFile, TimelineContext, TimelineEntry } from "common/database";
+import type { DataFile, TimelineEntry } from "common/database";
+import type { Parser } from "common/parse";
 import type { Provider, TimelineCategory } from "common/provider";
 
 type CategoryKey = "activity" | "security";
@@ -56,64 +58,54 @@ class Google implements Provider<CategoryKey> {
     ],
   ]);
 
-  async parse(
-    file: DataFile
-  ): Promise<$ReadOnlyArray<TimelineEntry<CategoryKey>>> {
-    const entry = (
-      row: any,
-      category: CategoryKey,
-      datetime: any,
-      context: TimelineContext
-    ) => ({
-      file: file.path,
-      category,
-      ...getSlugAndDayTime(datetime.toSeconds(), row),
-      context,
-      value: row,
-    });
-
-    if (file.path[2] === "Access Log Activity") {
-      if (file.path[3].startsWith("Activities - ")) {
-        return (await parseCSV(file.data)).map((row) =>
-          entry(row, "security", DateTime.fromSQL(row["Activity Timestamp"]), [
-            row["Product Name"] === "Other"
-              ? "Activity"
-              : `Accessed ${row["Product Name"]}`,
-            `from ${row["IP Address"]}`,
-          ])
-        );
-      }
-    } else if (file.path[2] === "My Activity") {
-      return (await parseJSON(file.data)).map((row) => {
-        let { title, header } = row;
-        if (row.details?.some((x) => x.name === "From Google Ads"))
+  parsers: $ReadOnlyArray<Parser<CategoryKey>> = [
+    {
+      glob: new Minimatch("Takeout/My Activity/*/MyActivity.json"),
+      tokenizer: parseJSON,
+      renderer: (item) => {
+        let { title, header } = item;
+        if (item.details?.some((x) => x.name === "From Google Ads"))
           header = "Google Ads";
         if (
           header === "Maps" &&
-          row.titleUrl?.startsWith("https://www.google.com/maps/place/")
+          item.titleUrl?.startsWith("https://www.google.com/maps/place/")
         )
           title = `Viewed ${title}`;
-        return entry(row, "activity", DateTime.fromISO(row.time), [
-          title,
-          header,
-        ]);
-      });
-    } else if (file.path[2] === "Drive") {
-      if (file.path.slice(-1)[0].endsWith("-info.json")) {
-        const parsed = await parseJSON(file.data);
-        if (parsed.last_modified_by_me) {
-          return [
-            entry(
-              parsed,
+        return ["activity", DateTime.fromISO(item.time), [title, header]];
+      },
+    },
+    {
+      glob: new Minimatch("Takeout/Access Log Activity/Activities - *.csv"),
+      tokenizer: parseCSV,
+      renderer: (item) => [
+        "security",
+        DateTime.fromSQL(item["Activity Timestamp"]),
+        [
+          item["Product Name"] === "Other"
+            ? "Activity"
+            : `Accessed ${item["Product Name"]}`,
+          `from ${item["IP Address"]}`,
+        ],
+      ],
+    },
+    {
+      glob: new Minimatch("Drive/**/*-info.json"),
+      tokenizer: (data) => [parseJSON(data)],
+      renderer: (item) =>
+        item.last_modified_by_me
+          ? [
               "activity",
-              DateTime.fromISO(parsed.last_modified_by_me),
-              [`Edited "${parsed.title}"`, "Google Drive"]
-            ),
-          ];
-        }
-      }
-    }
-    return [];
+              DateTime.fromISO(item.last_modified_by_me),
+              [`Edited "${item.title}"`, "Google Drive"],
+            ]
+          : undefined,
+    },
+  ];
+
+  async parse(
+    file: DataFile
+  ): Promise<$ReadOnlyArray<TimelineEntry<CategoryKey>>> {
+    return await parseByStages(file, this.parsers);
   }
 }
 
