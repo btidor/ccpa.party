@@ -115,7 +115,7 @@ class Facebook implements Provider<CategoryKey> {
   waitTime: string = "1-2 hours";
   instructions: $ReadOnlyArray<string> = ["select format JSON"];
   singleFile: boolean = true;
-  fileName: string = "facebook-*.zip";
+  fileName: string = "facebook.zip";
   privacyPolicy: string = "https://www.facebook.com/legal/policy/ccpa";
 
   metadataFiles: $ReadOnlyArray<string | RegExp> = [];
@@ -301,8 +301,8 @@ class Facebook implements Provider<CategoryKey> {
               const timestamp =
                 item.timestamp ||
                 item.start_timestamp ||
-                item.added_timestamp ||
                 item.removed_timestamp ||
+                item.added_timestamp ||
                 item.verification_time ||
                 item.session?.created_timestamp;
               if (!timestamp) {

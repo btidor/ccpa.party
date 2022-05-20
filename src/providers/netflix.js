@@ -23,7 +23,7 @@ class Netflix implements Provider<CategoryKey> {
   waitTime: string = "a day";
   instructions: $ReadOnlyArray<string> = [];
   singleFile: boolean = true;
-  fileName: string = "zip file";
+  fileName: string = "netflix.zip";
   privacyPolicy: string = "https://help.netflix.com/legal/privacy#ccpa";
 
   metadataFiles: $ReadOnlyArray<string | RegExp> = [];

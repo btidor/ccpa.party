@@ -29,7 +29,7 @@ class Google implements Provider<CategoryKey> {
     `  change HTML to JSON`,
   ];
   singleFile: boolean = true;
-  fileName: string = "takeout-*.zip";
+  fileName: string = "takeout.zip";
   privacyPolicy: string =
     "https://policies.google.com/privacy?hl=en#california";
 
