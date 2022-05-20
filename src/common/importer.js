@@ -32,6 +32,7 @@ export async function importFiles(
   }
 
   const metadata = new Map();
+  let errors = 0;
   const processEntry = async (
     path: $ReadOnlyArray<string>,
     data: BufferSource
@@ -63,8 +64,8 @@ export async function importFiles(
           db.putTimelineEntry(entry)
         );
       } catch (e) {
-        console.warn("Error importing " + dataFile.path.join("/"));
-        throw e;
+        console.error("Error parsing " + dataFile.path.join("/"), e);
+        errors++;
       }
       return;
     }
@@ -100,14 +101,11 @@ export async function importFiles(
   }
   db.putMetadata(metadata);
   const middle = new Date().getTime();
-  if (process.env.NODE_ENV === "development") {
-    console.warn(`Parse Time: ${(new Date().getTime() - start) / 1000}s`);
-  }
-  await db.commit();
-  if (process.env.NODE_ENV === "development") {
-    console.warn(`Database Time: ${(new Date().getTime() - middle) / 1000}s`);
-    console.warn(`Total Time: ${(new Date().getTime() - start) / 1000}s`);
-  }
+  console.warn(`Parse Time: ${(new Date().getTime() - start) / 1000}s`);
+
+  await db.commit(errors);
+  console.warn(`Database Time: ${(new Date().getTime() - middle) / 1000}s`);
+  console.warn(`Total Time: ${(new Date().getTime() - start) / 1000}s`);
 }
 
 export async function resetProvider(

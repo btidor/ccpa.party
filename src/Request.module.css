@@ -95,6 +95,10 @@
 }
 
 .compass {
+  width: 100%;
+}
+
+.import {
   display: flex;
   width: 100%;
 }
@@ -106,6 +110,10 @@
 .compass a {
   /* fixes cut-off focus border */
   margin-right: 1px;
+}
+
+.errors {
+  margin-top: 1em;
 }
 
 .grow {

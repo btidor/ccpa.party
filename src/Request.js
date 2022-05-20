@@ -3,7 +3,7 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 import { TrashIcon } from "@primer/octicons-react";
 
-import { Database } from "common/database";
+import { ProviderScopedDatabase } from "common/database";
 import { importFiles, resetProvider } from "common/importer";
 
 import Logo from "components/Logo";
@@ -22,15 +22,17 @@ function Request(props: Props): React.Node {
   const [db, setDb] = React.useState();
   const [display, setDisplay] = React.useState();
   const [epoch, setEpoch] = React.useState(0);
+  const [errors, setErrors] = React.useState(0);
   React.useEffect(
     () =>
       setDb(
-        new Database(
+        new ProviderScopedDatabase(
+          provider,
           () => setEpoch(epoch + 1),
           () => setDisplay("error")
         )
       ),
-    [epoch]
+    [epoch, provider]
   );
 
   React.useEffect(() => {
@@ -38,9 +40,12 @@ function Request(props: Props): React.Node {
       if (db) {
         const imported = (await db.getProviders()).has(provider.slug);
         setDisplay(imported ? "explore" : "import");
+        setErrors(await db.getErrors());
       }
     })();
   }, [db, provider]);
+
+  React.useEffect(() => {});
 
   const fileHandler = (event) => (
     setDisplay("pending"),
@@ -105,13 +110,20 @@ function Request(props: Props): React.Node {
             />
             {display === "explore" ? (
               <React.Fragment>
-                <Link to={`/${provider.slug}/timeline`}>Explore →</Link>
-                <div className={styles.grow}></div>
-                <div className={styles.reset}>
-                  <button aria-label="reset" onClick={resetHandler}>
-                    <TrashIcon />
-                  </button>
+                <div className={styles.import}>
+                  <Link to={`/${provider.slug}/timeline`}>Explore →</Link>
+                  <div className={styles.grow}></div>
+                  <div className={styles.reset}>
+                    <button aria-label="reset" onClick={resetHandler}>
+                      <TrashIcon />
+                    </button>
+                  </div>
                 </div>
+                {errors && (
+                  <div className={styles.errors}>
+                    (imported with {errors} {errors > 1 ? "errors" : "error"})
+                  </div>
+                )}
               </React.Fragment>
             ) : display === "import" ? (
               <label
