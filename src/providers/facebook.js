@@ -205,13 +205,15 @@ class Facebook implements Provider<CategoryKey> {
         file.path[2].startsWith("your_posts") &&
         file.path[2].endsWith(".json")
       ) {
-        const parsed = parseJSON(file.data);
-        return [
-          entry(parsed, "content", DateTime.fromSeconds(parsed.timestamp), [
+        let parsed = parseJSON(file.data);
+        if (!Array.isArray(parsed)) parsed = [parsed];
+        console.warn(parsed);
+        return parsed.map((item) =>
+          entry(parsed, "content", DateTime.fromSeconds(item.timestamp), [
             "Post",
-            parsed.data?.[0]?.post,
-          ]),
-        ];
+            item.data?.[0]?.post,
+          ])
+        );
       }
     } else if (file.path.slice(-1)[0] === "your_event_responses.json") {
       const parsed = parseJSON(file.data);
