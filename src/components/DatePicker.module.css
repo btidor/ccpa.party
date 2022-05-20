@@ -24,4 +24,5 @@
   left: -13px;
   width: 1px;
   filter: opacity(0);
+  pointer-events: none;
 }
