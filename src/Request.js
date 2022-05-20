@@ -119,11 +119,11 @@ function Request(props: Props): React.Node {
                     </button>
                   </div>
                 </div>
-                {errors && (
+                {errors ? (
                   <div className={styles.errors}>
                     (imported with {errors} {errors > 1 ? "errors" : "error"})
                   </div>
-                )}
+                ) : undefined}
               </React.Fragment>
             ) : display === "import" ? (
               <label

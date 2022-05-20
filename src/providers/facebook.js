@@ -294,29 +294,39 @@ class Facebook implements Provider<CategoryKey> {
         )
         .filter((x) => x);
     } else if (file.path.slice(-1)[0].endsWith(".json")) {
-      return Object.entries(parseJSON(file.data, { smart: true })).flatMap(
-        ([key, value]) => {
+      return Object.entries(parseJSON(file.data, { smart: true }))
+        .flatMap(([key, value]) => {
           if (Array.isArray(value) && categories[key] && mappers[key]) {
-            return value.map((item: any) =>
-              entry(
-                item,
-                categories[key],
-                DateTime.fromSeconds(
-                  item.timestamp ||
-                    item.start_timestamp ||
-                    item.removed_timestamp ||
-                    item.removed_timestamp ||
-                    item.verification_time ||
-                    item.session?.created_timestamp
-                ),
-                mappers[key](item)
-              )
-            );
+            return value.map((item: any) => {
+              const timestamp =
+                item.timestamp ||
+                item.start_timestamp ||
+                item.added_timestamp ||
+                item.removed_timestamp ||
+                item.verification_time ||
+                item.session?.created_timestamp;
+              if (!timestamp) {
+                console.warn(
+                  "Skipping entry due to no timestamp:",
+                  file.path.slice(1).join("/"),
+                  item
+                );
+              }
+              return (
+                timestamp &&
+                entry(
+                  item,
+                  categories[key],
+                  DateTime.fromSeconds(timestamp),
+                  mappers[key](item)
+                )
+              );
+            });
           } else {
             return [];
           }
-        }
-      );
+        })
+        .filter((x) => x);
     }
     return [];
   }
