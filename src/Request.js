@@ -122,7 +122,7 @@ function Request(props: Props): React.Node {
                 }
                 role="button"
               >
-                Import {provider.singleFile ? "File" : "Files"} ↑
+                Import {provider.fileName} ↑
               </label>
             ) : display === "pending" ? (
               <code>...</code>

@@ -115,6 +115,7 @@ class Facebook implements Provider<CategoryKey> {
   waitTime: string = "1-2 hours";
   instructions: $ReadOnlyArray<string> = ["select format JSON"];
   singleFile: boolean = true;
+  fileName: string = "facebook-*.zip";
   privacyPolicy: string = "https://www.facebook.com/legal/policy/ccpa";
 
   metadataFiles: $ReadOnlyArray<string | RegExp> = [];

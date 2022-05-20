@@ -25,6 +25,7 @@ class Slack implements Provider<CategoryKey> {
   waitTime: string = "a few days";
   instructions: $ReadOnlyArray<string> = [];
   singleFile: boolean = true;
+  fileName: string = "zip file";
   privacyPolicy: string =
     "https://slack.com/trust/privacy/privacy-policy#california-rights";
   // Also: https://slack.com/trust/compliance/ccpa-faq

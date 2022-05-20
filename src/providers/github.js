@@ -23,6 +23,7 @@ class GitHub implements Provider<CategoryKey> {
   waitTime: string = "15 minutes";
   instructions: $ReadOnlyArray<string> = [];
   singleFile: boolean = true;
+  fileName: string = "tar.gz file";
   privacyPolicy: string =
     "https://docs.github.com/en/site-policy/privacy-policies/githubs-notice-about-the-california-consumer-privacy-act";
 

@@ -28,6 +28,7 @@ class Amazon implements Provider<CategoryKey> {
   waitTime: string = "1-2 days";
   instructions: $ReadOnlyArray<string> = [];
   singleFile: boolean = false;
+  fileName: string = "zip files";
   privacyPolicy: string =
     "https://www.amazon.com/gp/help/customer/display.html?nodeId=GC5HB5DVMU5Y8CJ2";
 

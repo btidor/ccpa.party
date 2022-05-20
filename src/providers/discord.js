@@ -36,6 +36,7 @@ class Discord implements Provider<CategoryKey> {
     "scroll down",
   ];
   singleFile: boolean = true;
+  fileName: string = "package.zip";
   privacyPolicy: string =
     "https://discord.com/privacy#information-for-california-users";
 

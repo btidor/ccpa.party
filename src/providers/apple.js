@@ -28,6 +28,7 @@ class Apple implements Provider<CategoryKey> {
   waitTime: string = "about a week";
   instructions: $ReadOnlyArray<string> = [];
   singleFile: boolean = false;
+  fileName: string = "zip files";
   privacyPolicy: string = "https://www.apple.com/legal/privacy/california/";
 
   metadataFiles: $ReadOnlyArray<string | RegExp> = [];

@@ -31,6 +31,7 @@ export interface Provider<T> {
   +instructions: $ReadOnlyArray<string>;
   +waitTime: string;
   +singleFile: boolean;
+  +fileName: string;
   +privacyPolicy: string;
 
   +metadataFiles: $ReadOnlyArray<string | RegExp>;
