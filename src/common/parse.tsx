@@ -1,22 +1,21 @@
-// @flow
 import csv from "csvtojson";
 import MurmurHash3 from "imurmurhash";
 
 import type { DataFile, TimelineContext, TimelineEntry } from "common/database";
 
 export type Parser<T, U> =
-  | {|
-      +type?: void, // timeline, the default
-      +glob: string,
-      +tokenize: (BufferSource | string) => U,
-      +transform: (U) => ?[T, any, TimelineContext],
-    |}
-  | {|
-      +type: "metadata",
-      glob: string,
-      +tokenize: (BufferSource | string) => U,
-      +transform: (U) => [string, any],
-    |};
+  | {
+    type?: void; // timeline, the default
+    glob: string;
+    tokenize: (data: ArrayBufferLike | string) => U;
+    transform: (item: U) => [T, any, TimelineContext] | void;
+  }
+  | {
+    type: "metadata";
+    glob: string;
+    tokenize: (data: ArrayBufferLike | string) => U;
+    transform: (item: U) => [string, any];
+  };
 
 const printableRegExp =
   // U+F8FF is the Apple logo on macOS
@@ -34,10 +33,10 @@ const isPrintableUnicode = (str: string): boolean => {
 };
 
 export function parseJSON(
-  data: BufferSource | string,
+  data: ArrayBufferLike | string,
   // Use `smart: true` to try UTF-8 double-decoding everything. (Incurs a ~5x
   // slowdown).
-  opts?: {| smart?: boolean |}
+  opts?: { smart?: boolean; }
 ): any {
   let text;
   if (typeof data === "string") text = data;
@@ -57,8 +56,8 @@ export function parseJSON(
 }
 
 export function parseJSONND(
-  data: BufferSource | string,
-  opts?: {| smart?: boolean |}
+  data: ArrayBufferLike | string,
+  opts?: { smart?: boolean; }
 ): Array<any> {
   let text;
   if (typeof data === "string") text = data;
@@ -71,8 +70,8 @@ export function parseJSONND(
 }
 
 export async function parseCSV(
-  data: BufferSource | string
-): Promise<$ReadOnlyArray<{ [string]: string }>> {
+  data: ArrayBufferLike | string
+): Promise<ReadonlyArray<{ [key: string]: string; }>> {
   let text;
   if (typeof data === "string") text = data;
   else text = smartDecode(data);
@@ -82,14 +81,12 @@ export async function parseCSV(
 
 // Some companies (e.g. Amazon, Facebook) mis-encode some of their files, for
 // instance by applying UTF-8 encoding twice.
-export function smartDecode(data: BufferSource): string {
+export function smartDecode(data: ArrayBufferLike): string {
   // Try simple UTF-8
   const basic = utf8Decoder.decode(data);
 
   // Try double-encoded UTF-8
   const double = utf8Decoder.decode(
-    // $FlowFixMe[incompatible-call]
-    // $FlowFixMe[prop-missing]
     Uint8Array.from(basic, (x) => x.charCodeAt(0))
   );
 
@@ -122,8 +119,6 @@ export function smartDecode(data: BufferSource): string {
 export function smartDecodeText(text: string): string {
   // First try double-encoded UTF-8 (see note above)
   const double = utf8Decoder.decode(
-    // $FlowFixMe[incompatible-call]
-    // $FlowFixMe[prop-missing]
     Uint8Array.from(text, (x) => x.charCodeAt(0))
   );
   if (isPrintableUnicode(double)) return double;
@@ -140,15 +135,15 @@ export function smartDecodeText(text: string): string {
 export function getSlugAndDayTime(
   timestamp: number,
   value: any
-): {|
-  slug: string,
-  day: string,
-  timestamp: number,
-|} {
+): {
+  slug: string;
+  day: string;
+  timestamp: number;
+} {
   if (isNaN(timestamp)) throw new Error("Received NaN for timestamp");
   const hash = MurmurHash3(JSON.stringify(value));
   const slug =
-    parseInt(timestamp).toString(16).padStart(8, "0") +
+    timestamp.toString(16).padStart(8, "0") +
     hash.result().toString(16).padStart(8, "0");
 
   const date = new Date(timestamp * 1000);
@@ -164,8 +159,8 @@ export function getSlugAndDayTime(
 export async function parseByStages<T>(
   file: DataFile,
   metadata: Map<string, any>,
-  parsers: $ReadOnlyArray<Parser<T, any>>
-): Promise<$ReadOnlyArray<TimelineEntry<T>>> {
+  parsers: ReadonlyArray<Parser<T, any>>
+): Promise<ReadonlyArray<TimelineEntry<T>>> {
   const path = file.path.slice(1).join("/");
   const parser = parsers.find((c) => c.glob.match(path));
   if (!parser) return [];
@@ -206,14 +201,14 @@ export async function parseByStages<T>(
         }
         if (!parsed) return undefined;
         const [category, datetime, context] = parsed;
-        return ({
+        return {
           file: file.path,
           category,
           ...getSlugAndDayTime(datetime.toSeconds(), parsed),
           context,
           value: tok,
-        }: TimelineEntry<T>);
+        } as TimelineEntry<T>;
       }
     })
-    .filter((x) => x);
+    .filter((x): x is TimelineEntry<T> => !!x);
 }

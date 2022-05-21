@@ -1,5 +1,3 @@
-// @flow
-
 // Slimmed-down version of the Plausible Analytics script,
 // from github.com:plausible/analytics@948de2b4
 
@@ -27,59 +25,34 @@ export default function plausible(): void {
   var location = window.location;
   var document = window.document;
 
-  function warn(reason) {
+  function warn(reason: string) {
     console.warn("Ignoring Event: " + reason);
   }
 
   var endpoint = process.env.REACT_APP_PLAUSIBLE_ORIGIN;
   if (!endpoint) return;
 
-  function trigger() {
-    if (
-      /^localhost$|^127(\.[0-9]+){0,2}\.[0-9]+$|^\[::1?\]$/.test(
-        location.hostname
-      ) ||
-      location.protocol === "file:"
-    )
-      return warn("localhost");
-    if (
-      window._phantom ||
-      window.__nightmare ||
-      window.navigator.webdriver ||
-      window.Cypress
-    )
-      return;
+  if (
+    /^localhost$|^127(\.[0-9]+){0,2}\.[0-9]+$|^\[::1?\]$/.test(
+      location.hostname
+    ) ||
+    location.protocol === "file:"
+  )
+    return warn("localhost");
 
-    var payload = {};
-    payload.n = "pageview";
-    payload.u = location.origin + "/"; // report all URLs as `/`
-    payload.d = location.host;
-    payload.r = document.referrer || null;
-    payload.w = window.innerWidth;
+  const w = window as any;
+  if (w._phantom || w.__nightmare || w.navigator.webdriver || w.Cypress) return;
 
-    var request = new XMLHttpRequest();
-    request.open("POST", endpoint, true);
-    request.setRequestHeader("Content-Type", "text/plain");
-
-    request.send(JSON.stringify(payload));
-  }
-
-  var lastPage;
-  function page() {
-    if (lastPage === location.pathname) return;
-    lastPage = location.pathname;
-    trigger();
-  }
-
-  function handleVisibilityChange() {
-    if (!lastPage && document.visibilityState === "visible") {
-      page();
-    }
-  }
-
-  if (document.visibilityState === "prerender") {
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-  } else {
-    page();
-  }
+  var request = new XMLHttpRequest();
+  request.open("POST", endpoint, true);
+  request.setRequestHeader("Content-Type", "text/plain");
+  request.send(
+    JSON.stringify({
+      n: "pageview",
+      u: location.origin + "/", // report all URLs as `/`
+      d: location.host,
+      r: document.referrer || null,
+      w: window.innerWidth,
+    })
+  );
 }

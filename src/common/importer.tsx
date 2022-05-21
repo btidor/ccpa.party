@@ -1,4 +1,3 @@
-// @flow
 import pako from "pako";
 import untar from "js-untar";
 import { unzip } from "unzipit";
@@ -10,14 +9,14 @@ import type { Provider } from "common/provider";
 
 export const fileSizeLimitMB = 16;
 
-type ImportFile = {|
-  path: $ReadOnlyArray<string>,
-  data: () => Promise<BufferSource>,
-|};
+type ImportFile = {
+  path: ReadonlyArray<string>,
+  data: () => Promise<ArrayBufferLike>,
+};
 
 export async function importFiles(
   provider: Provider<any>,
-  files: $ReadOnlyArray<File>,
+  files: ReadonlyArray<File>,
   terminated: () => void
 ) {
   const start = new Date().getTime();
@@ -34,21 +33,21 @@ export async function importFiles(
   const metadata = new Map();
   let errors = 0;
   const processEntry = async (
-    path: $ReadOnlyArray<string>,
-    data: BufferSource
-  ): Promise<?ImportFile> => {
+    path: ReadonlyArray<string>,
+    data: ArrayBufferLike
+  ): Promise<ImportFile | void> => {
     if (
       path.slice(-1)[0].endsWith(".zip") ||
       path.slice(-1)[0].endsWith(".tar.gz")
     ) {
-      return ({ path, data: () => Promise.resolve(data) }: ImportFile);
+      return ({ path, data: () => Promise.resolve(data) });
     } else if (data.byteLength > (2 << 20) * fileSizeLimitMB) {
       const dataFile = ({
         provider: provider.slug,
         path,
         data: new ArrayBuffer(0),
         skipped: "tooLarge",
-      }: DataFile);
+      } as DataFile);
       db.putFile(dataFile);
       return;
     } else {
@@ -57,7 +56,7 @@ export async function importFiles(
         path,
         data,
         skipped: undefined,
-      }: DataFile);
+      });
       db.putFile(dataFile);
       try {
         (await provider.parse(dataFile, metadata)).forEach((entry) =>
@@ -74,7 +73,7 @@ export async function importFiles(
   for (const { path, data } of work) {
     if (path.slice(-1)[0].endsWith(".zip")) {
       const zip = await unzip(await data());
-      for (const entry of (Object.values(zip.entries || []): any)) {
+      for (const entry of (Object.values(zip.entries || []))) {
         if (entry.isDirectory) continue;
         const subpath = [
           ...path,

@@ -1,4 +1,3 @@
-// @flow
 import {
   b64enc,
   b64dec,
@@ -10,36 +9,35 @@ import {
 
 import type { Provider } from "common/provider";
 
-export type DataFileKey = {|
-  +provider: string,
-  +path: $ReadOnlyArray<string>,
-  +skipped: "tooLarge" | void,
-  +iv?: string,
-|};
+export type DataFileKey = {
+  provider: string,
+  path: ReadonlyArray<string>,
+  skipped: "tooLarge" | void,
+  iv?: string,
+};
 
-export type DataFile = {| ...DataFileKey, +data: BufferSource |};
+export type DataFile = DataFileKey & { data: ArrayBufferLike; };
 
-export type TimelineEntryKey<T> = {|
-  +day: string,
-  +timestamp: number,
-  +slug: string,
-  +category: T,
-  +iv?: string,
-  +offset?: number,
-|};
+export type TimelineEntryKey<T> = {
+  day: string,
+  timestamp: number,
+  slug: string,
+  category: T,
+  iv?: string,
+  offset?: number,
+};
 
 export type TimelineContext =
   | null
   | [string]
-  | [string, ?string]
-  | [string, ?string, ?{| display: string, color: ?string |}];
+  | [string, string | void]
+  | [string, string | void, { display: string, color?: string; } | void];
 
-export type TimelineEntry<T> = {|
-  ...TimelineEntryKey<T>,
-  +file: $ReadOnlyArray<string>,
-  +context: TimelineContext,
-  +value: { [string]: any },
-|};
+export type TimelineEntry<T> = TimelineEntryKey<T> & {
+  file: ReadonlyArray<string>,
+  context: TimelineContext,
+  value: { [key: string]: any; },
+};
 
 const dbName = "ccpa.party";
 const dbVersion = 1;
@@ -53,7 +51,7 @@ const rootIndexKey = "ROOT-INDEX";
 
 const keyCookie = "key";
 const keyMaxAge = 24 * 3600; // 24 hours
-const keyUsages = ["encrypt", "decrypt"];
+const keyUsages: KeyUsage[] = ["encrypt", "decrypt"];
 
 // Increasing the batch size adds latency and makes the timeline view sluggish
 // (because we have to sift through more extraneous data in order to load the
@@ -61,39 +59,38 @@ const keyUsages = ["encrypt", "decrypt"];
 // browsers (because the per-put overhead is so high). :(
 const batchSize = 250;
 
-type RootIndex = {| [string]: string |}; // provider slug -> iv
+type RootIndex = { [key: string]: string; }; // provider slug -> iv
 
-type ProviderIndex = {|
+type ProviderIndex = {
   files: Array<DataFileKey>,
   metadata: Array<[string, any]>,
   timeline: Array<[string, number, string, number, string, string]>,
   errors?: number,
-|};
+};
 
-type AsyncState = {| +db: IDBDatabase, +key: any |};
+type AsyncState = { db: IDBDatabase, key: any; };
 
 export class Database {
   _terminated: () => void;
-  _errored: ?() => void;
-  _state: Promise<?AsyncState>;
+  _releaseLock?: () => void;
+  _errored?: () => void;
+  _state: Promise<AsyncState | void>;
   _rootIndex: Promise<RootIndex>;
 
   constructor(terminated: () => void, errored?: () => void) {
     this._terminated = terminated;
     this._errored = errored;
     this._state = new Promise((resolve) => {
-      // $FlowFixMe[prop-missing]
-      if (!navigator.locks || !window.indexedDB || !window.crypto?.subtle) {
-        console.error("Browser not supported:", [
-          // $FlowFixMe[prop-missing]
-          !!navigator.locks,
-          !!window.indexedDB,
-          !!window.crypto?.subtle,
-        ]);
+      const support = [
+        !!(navigator as any).locks,
+        !!window.indexedDB,
+        !!window.crypto?.subtle,
+      ];
+      if (!support.every(x => x)) {
+        console.error("Browser not supported:", support);
         errored?.();
       } else {
-        // $FlowFixMe[incompatible-use]
-        navigator.locks.request(dbInitLock, async () => {
+        (navigator as any).locks.request(dbInitLock, async () => {
           const db = await this._initializeState();
           // If there's an error (db is undefined), the _state promise should
           // never resolve so that database operations hang, but we should still
@@ -109,12 +106,12 @@ export class Database {
 
   async _initializeState(): Promise<AsyncState | "error" | void> {
     // Open and initialize our IndexedDB database.
-    const db = await new Promise((resolve, reject) => {
+    const db: IDBDatabase | void = await new Promise((resolve) => {
       const op = window.indexedDB.open(dbName, dbVersion);
       op.onsuccess = () => {
         const db = op.result;
-        db.onversionchange = () => (db.close(), this._terminated());
-        db.onclose = () => this._terminated();
+        db.onversionchange = () => (db.close(), this._terminate());
+        db.onclose = () => this._terminate();
         resolve(db);
       };
       // This usually means we're in a Firefox private window, so no IndexedDB:
@@ -127,7 +124,7 @@ export class Database {
       op.onupgradeneeded = () => {
         // For now, schema upgrades wipe the database
         const db = op.result;
-        [...db.objectStoreNames].forEach((store) =>
+        Array.from(db.objectStoreNames).forEach((store) =>
           db.deleteObjectStore(store)
         );
         db.createObjectStore(dbStore);
@@ -156,7 +153,7 @@ export class Database {
 
     const storedHash: string = await new Promise((resolve, reject) => {
       const op = db.transaction(dbStore).objectStore(dbStore).get(keyHashKey);
-      op.onsuccess = () => resolve((op.result: any));
+      op.onsuccess = () => resolve(op.result);
       op.onerror = (e) => reject(e);
     });
     if (storedHash && storedHash === cookieHash) {
@@ -194,9 +191,14 @@ export class Database {
     return false;
   }
 
+  async _terminate(): Promise<void> {
+    if (this._releaseLock) await this._releaseLock();
+    this._terminated();
+  }
+
   async _get(
     k: string,
-    opts?: {| +binary?: boolean, +named?: boolean |}
+    opts?: { binary?: boolean, named?: boolean; }
   ): Promise<any> {
     const state = await this._state;
     if (!state) return; // failed to initialize, treat as empty database
@@ -251,11 +253,11 @@ export class ProviderScopedDatabase<T> extends Database {
     return (await this._providerIndex).errors || 0;
   }
 
-  async getFiles(): Promise<$ReadOnlyArray<DataFileKey>> {
+  async getFiles(): Promise<ReadonlyArray<DataFileKey>> {
     return (await this._providerIndex).files;
   }
 
-  async hydrateFile(file: DataFileKey): Promise<?DataFile> {
+  async hydrateFile(file: DataFileKey): Promise<DataFile | void> {
     if (!file.iv) throw new Error("DataFileKey is missing IV");
     if (file.skipped) return { ...file, data: new ArrayBuffer(0) };
     const data = await this._get(file.iv, { binary: true });
@@ -263,7 +265,7 @@ export class ProviderScopedDatabase<T> extends Database {
     return { ...file, data };
   }
 
-  async getMetadata(): Promise<$ReadOnlyMap<string, any>> {
+  async getMetadata(): Promise<ReadonlyMap<string, any>> {
     return new Map((await this._providerIndex).metadata);
   }
 
@@ -273,7 +275,7 @@ export class ProviderScopedDatabase<T> extends Database {
         day,
         timestamp,
         slug,
-        category: (category: any),
+        category: (category as any),
         iv,
         offset,
       })
@@ -282,7 +284,7 @@ export class ProviderScopedDatabase<T> extends Database {
 
   async hydrateTimelineEntry(
     entry: TimelineEntryKey<T>
-  ): Promise<?TimelineEntry<T>> {
+  ): Promise<TimelineEntry<T> | void> {
     if (!entry.iv || entry.offset === undefined) {
       throw new Error("TimelineEntryKey is missing IV or offset");
     }
@@ -297,7 +299,7 @@ export class ProviderScopedDatabase<T> extends Database {
     };
   }
 
-  async getTimelineEntryBySlug(slug: string): Promise<?TimelineEntry<T>> {
+  async getTimelineEntryBySlug(slug: string): Promise<TimelineEntry<T> | void> {
     const entry = (await this._providerIndex).timeline.find(
       ([, , , , s]) => s === slug
     );
@@ -307,7 +309,7 @@ export class ProviderScopedDatabase<T> extends Database {
       day,
       timestamp,
       slug: s,
-      category: (category: any),
+      category: (category as any),
       iv,
       offset,
     });
@@ -315,25 +317,25 @@ export class ProviderScopedDatabase<T> extends Database {
 }
 
 export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
-  _additions: {|
+  _additions: {
     files: Array<DataFile>,
     metadata: Map<string, any>,
     timeline: Array<TimelineEntry<T>>,
     timelineDedup: Set<string>,
-  |};
+  };
 
   constructor(provider: Provider<any>, terminated: () => void) {
-    const release = new Promise((resolve) => {
-      super(provider, () => (resolve(), terminated()));
-      this._additions = {
-        files: [],
-        metadata: new Map(),
-        timeline: [],
-        timelineDedup: new Set(),
-      };
-    });
-    // $FlowFixMe[prop-missing]
-    navigator.locks.request(dbWriteLock, () => release);
+    super(provider, terminated);
+    this._additions = {
+      files: [],
+      metadata: new Map(),
+      timeline: [],
+      timelineDedup: new Set(),
+    };
+    const release = new Promise<void>((resolve) =>
+      this._releaseLock = resolve
+    );
+    (navigator as any).locks.request(dbWriteLock, () => release);
   }
 
   async _generateAndSaveKey(db: IDBDatabase): Promise<boolean> {
@@ -367,11 +369,11 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
     fileIndex.sort((a, b) => a.path.join().localeCompare(b.path.join()));
 
     // Compute metadata index
-    const metadataIndex = [...this._additions.metadata];
+    const metadataIndex = Array.from(this._additions.metadata);
     metadataIndex.sort();
 
     // Write timeline entries and compute index
-    const workingIndex = [];
+    const workingIndex: [string | void, number, string, number, string, T][][] = [];
     const writeQueue = [];
     for (let i = 0; i < this._additions.timeline.length; i += batchSize) {
       const batch = this._additions.timeline.slice(i, i + batchSize);
@@ -412,18 +414,18 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
     // Close database and block future writes
     (await this._state)?.db.close();
     this._state = Promise.resolve();
-    this._terminated();
+    this._terminate();
   }
 
   async resetProvider(): Promise<void> {
-    const deletes = new Set();
+    const deletes = new Set<string | void>();
 
     // Delete data pages & provider index
     (await this.getFiles()).forEach((f) => deletes.add(f.iv));
     (await this.getTimelineEntries()).forEach((e) => deletes.add(e.iv));
     deletes.add((await this._rootIndex)[this._provider.slug]);
     deletes.delete(undefined);
-    await this._deletes((deletes: any));
+    await this._deletes(deletes as any);
 
     // Update root index
     const root = await this._rootIndex;
@@ -448,7 +450,7 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
     }
     state?.db.close();
     this._state = Promise.resolve();
-    this._terminated();
+    this._terminate();
   }
 
   async _put(v: any, k?: string): Promise<string> {
@@ -465,7 +467,7 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
 
     const [dbkey, dbval] = k ? [k, [iv, ciphertext]] : [b64enc(iv), ciphertext];
 
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const op = db
         .transaction(dbStore, "readwrite")
         .objectStore(dbStore)
@@ -477,8 +479,8 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
   }
 
   async _puts(
-    data: $ReadOnlyArray<any>,
-    opts?: {| +binary?: boolean |}
+    data: ReadonlyArray<any>,
+    opts?: { binary?: boolean; }
   ): Promise<Array<string>> {
     const state = await this._state;
     if (!state) throw new Error("Writing to closed database");
@@ -486,7 +488,7 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
 
     if (!opts?.binary) data = data.map((v) => serialize(v));
 
-    const [ciphertexts, ivs] = [[], []];
+    const [ciphertexts, ivs]: [ArrayBufferLike[], string[]] = [[], []];
     for (let i = 0; i < data.length; i++) {
       const iv = await window.crypto.getRandomValues(new Uint8Array(12));
       ciphertexts.push(
@@ -499,7 +501,7 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
       ivs.push(b64enc(iv));
     }
 
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const txn: IDBTransaction = db.transaction(dbStore, "readwrite");
       const store = txn.objectStore(dbStore);
       ivs.map((iv, i) => store.put(ciphertexts[i], iv));
@@ -510,12 +512,12 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
     return ivs;
   }
 
-  async _deletes(keys: $ReadOnlySet<string>): Promise<void> {
+  async _deletes(keys: ReadonlySet<string>): Promise<void> {
     const state = await this._state;
     if (!state) throw new Error("Writing to closed database");
     const { db } = state;
 
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const txn: IDBTransaction = db.transaction(dbStore, "readwrite");
       const store = txn.objectStore(dbStore);
       keys.forEach((k) => store.delete(k));
@@ -539,4 +541,4 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
       this._additions.timelineDedup.add(entry.slug);
     }
   }
-}
+};

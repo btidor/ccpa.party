@@ -1,27 +1,28 @@
-// @flow
-
-export function b64enc(buf: BufferSource): string {
+export function b64enc(buf: ArrayBufferLike): string {
   return btoa(
-    [...new Uint8Array(buf)].map((c) => String.fromCharCode(c)).join("")
+    Array.from(new Uint8Array(buf))
+      .map((c) => String.fromCharCode(c))
+      .join("")
   );
 }
 
-export function b64dec(str: string): BufferSource {
-  return new Uint8Array([...atob(str)].map((c) => c.charCodeAt(0))).buffer;
+export function b64dec(str: string): ArrayBufferLike {
+  return new Uint8Array(Array.from(atob(str)).map((c) => c.charCodeAt(0)))
+    .buffer;
 }
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-export function serialize(obj: any): BufferSource {
+export function serialize(obj: any): ArrayBufferLike {
   return encoder.encode(JSON.stringify(obj));
 }
 
-export function deserialize(buf: BufferSource): any {
+export function deserialize(buf: ArrayBufferLike): any {
   return JSON.parse(decoder.decode(buf));
 }
 
-export function getCookie(name: string): ?string {
+export function getCookie(name: string): string | undefined {
   const str = document.cookie.split(";").find((x) => x.startsWith(`${name}=`));
   return str && str.slice(name.length + 1);
 }
