@@ -58,11 +58,11 @@ class Google implements Provider<CategoryKey> {
     ],
   ]);
 
-  parsers: $ReadOnlyArray<Parser<CategoryKey>> = [
+  parsers: $ReadOnlyArray<Parser<CategoryKey, any>> = [
     {
       glob: new Minimatch("Takeout/My Activity/*/MyActivity.json"),
-      tokenizer: parseJSON,
-      renderer: (item) => {
+      tokenize: parseJSON,
+      transform: (item) => {
         let { title, header } = item;
         if (item.details?.some((x) => x.name === "From Google Ads"))
           header = "Google Ads";
@@ -76,8 +76,8 @@ class Google implements Provider<CategoryKey> {
     },
     {
       glob: new Minimatch("Takeout/Access Log Activity/Activities - *.csv"),
-      tokenizer: parseCSV,
-      renderer: (item) => [
+      tokenize: parseCSV,
+      transform: (item) => [
         "security",
         DateTime.fromSQL(item["Activity Timestamp"]),
         [
@@ -90,8 +90,8 @@ class Google implements Provider<CategoryKey> {
     },
     {
       glob: new Minimatch("Drive/**/*-info.json"),
-      tokenizer: (data) => [parseJSON(data)],
-      renderer: (item) =>
+      tokenize: (data) => [parseJSON(data)],
+      transform: (item) =>
         item.last_modified_by_me
           ? [
               "activity",
@@ -103,9 +103,10 @@ class Google implements Provider<CategoryKey> {
   ];
 
   async parse(
-    file: DataFile
+    file: DataFile,
+    metadata: Map<string, any>
   ): Promise<$ReadOnlyArray<TimelineEntry<CategoryKey>>> {
-    return await parseByStages(file, this.parsers);
+    return await parseByStages(file, metadata, this.parsers);
   }
 }
 

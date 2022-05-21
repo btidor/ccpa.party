@@ -4,11 +4,19 @@ import MurmurHash3 from "imurmurhash";
 
 import type { DataFile, TimelineContext, TimelineEntry } from "common/database";
 
-export type Parser<T> = {|
-  +glob: string,
-  +tokenizer: (BufferSource | string) => any,
-  +renderer: ({| [string]: any |}) => ?[T, any, TimelineContext],
-|};
+export type Parser<T, U> =
+  | {|
+      +type?: void, // timeline, the default
+      +glob: string,
+      +tokenize: (BufferSource | string) => U,
+      +transform: (U) => ?[T, any, TimelineContext],
+    |}
+  | {|
+      +type: "metadata",
+      glob: string,
+      +tokenize: (BufferSource | string) => U,
+      +transform: (U) => [string, any],
+    |};
 
 const printableRegExp =
   // U+F8FF is the Apple logo on macOS
@@ -46,6 +54,20 @@ export function parseJSON(
     text = utf16beDecoder.decode(data);
     return JSON.parse(text, reviver);
   }
+}
+
+export function parseJSONND(
+  data: BufferSource | string,
+  opts?: {| smart?: boolean |}
+): Array<any> {
+  let text;
+  if (typeof data === "string") text = data;
+  else text = utf8Decoder.decode(data);
+
+  return text
+    .split("\n")
+    .filter((x) => x)
+    .map((line) => parseJSON(line, opts));
 }
 
 export async function parseCSV(
@@ -141,7 +163,8 @@ export function getSlugAndDayTime(
 
 export async function parseByStages<T>(
   file: DataFile,
-  parsers: $ReadOnlyArray<any>
+  metadata: Map<string, any>,
+  parsers: $ReadOnlyArray<Parser<T, any>>
 ): Promise<$ReadOnlyArray<TimelineEntry<T>>> {
   const path = file.path.slice(1).join("/");
   const parser = parsers.find((c) => c.glob.match(path));
@@ -149,7 +172,7 @@ export async function parseByStages<T>(
 
   let tokens;
   try {
-    tokens = await parser.tokenizer(file.data);
+    tokens = await parser.tokenize(file.data);
   } catch (e) {
     console.error("Tokenization Error", path, e);
     return [];
@@ -162,24 +185,35 @@ export async function parseByStages<T>(
 
   return tokens
     .map((tok) => {
-      let parsed;
-      try {
-        parsed = parser.renderer(tok);
-      } catch (e) {
-        console.error("Parse Error", path, tok, e);
+      if (parser.type === "metadata") {
+        let parsed;
+        try {
+          parsed = parser.transform(tok);
+        } catch (e) {
+          console.error("Parse Error", path, tok, e);
+          return undefined;
+        }
+        const [key, value] = parsed;
+        metadata.set(key, value);
         return undefined;
+      } else {
+        let parsed;
+        try {
+          parsed = parser.transform(tok);
+        } catch (e) {
+          console.error("Parse Error", path, tok, e);
+          return undefined;
+        }
+        if (!parsed) return undefined;
+        const [category, datetime, context] = parsed;
+        return ({
+          file: file.path,
+          category,
+          ...getSlugAndDayTime(datetime.toSeconds(), parsed),
+          context,
+          value: tok,
+        }: TimelineEntry<T>);
       }
-      if (!parsed) return undefined;
-      console.warn(path, tok, parsed);
-
-      const [category, datetime, context] = parsed;
-      return ({
-        file: file.path,
-        category,
-        ...getSlugAndDayTime(datetime.toSeconds(), parsed),
-        context,
-        value: tok,
-      }: TimelineEntry<T>);
     })
     .filter((x) => x);
 }

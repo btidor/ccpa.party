@@ -1,18 +1,15 @@
 // @flow
 import { DateTime } from "luxon";
+import { Minimatch } from "minimatch";
 import * as React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import {
-  getSlugAndDayTime,
-  parseCSV,
-  parseJSON,
-  smartDecode,
-} from "common/parse";
+import { parseByStages, parseCSV, parseJSON, parseJSONND } from "common/parse";
 import { Pill } from "components/Record";
 
-import type { DataFile, TimelineContext, TimelineEntry } from "common/database";
+import type { DataFile, TimelineEntry } from "common/database";
+import type { Parser } from "common/parse";
 import type { Provider, TimelineCategory } from "common/provider";
 
 type CategoryKey = "activity" | "message";
@@ -66,52 +63,50 @@ class Discord implements Provider<CategoryKey> {
     ],
   ]);
 
+  parsers: $ReadOnlyArray<Parser<CategoryKey, any>> = [
+    {
+      type: "metadata",
+      glob: new Minimatch("servers/index.json"),
+      tokenize: (data) => Object.entries(parseJSON(data)),
+      transform: ([k, v]) => [`server.${k}`, v],
+    },
+    {
+      type: "metadata",
+      glob: new Minimatch("messages/index.json"),
+      tokenize: (data) => Object.entries(parseJSON(data)),
+      transform: ([k, v]) => [`channel.${k}`, v],
+    },
+    {
+      type: "metadata",
+      glob: new Minimatch("messages/*/channel.json"),
+      tokenize: (data) => [parseJSON(data)],
+      transform: (item) => [`channel_meta.${item.id}`, item],
+    },
+    {
+      glob: new Minimatch("messages/*/messages.csv"),
+      tokenize: parseCSV,
+      transform: (item) => [
+        "message",
+        DateTime.fromJSDate(new Date(item.Timestamp)),
+        null,
+      ],
+    },
+    {
+      glob: new Minimatch("activity/*/events-*.json"),
+      tokenize: parseJSONND,
+      transform: (item) => [
+        "activity",
+        DateTime.fromISO(item.timestamp.slice(1, -1)),
+        null,
+      ],
+    },
+  ];
+
   async parse(
     file: DataFile,
     metadata: Map<string, any>
   ): Promise<$ReadOnlyArray<TimelineEntry<CategoryKey>>> {
-    const entry = (
-      row: any,
-      category: CategoryKey,
-      datetime: any,
-      context: TimelineContext
-    ) => ({
-      file: file.path,
-      category,
-      ...getSlugAndDayTime(datetime.toSeconds(), row),
-      context,
-      value: row,
-    });
-
-    if (file.path.slice(1).join("/") === "servers/index.json") {
-      metadata.set("servers", parseJSON(file.data));
-    } else if (file.path.slice(-1)[0] === "channel.json") {
-      const value = parseJSON(file.data);
-      metadata.set(`channel/${value.id}`, value);
-    } else if (file.path.slice(-1)[0] === "messages.csv") {
-      return (await parseCSV(file.data)).map((row) =>
-        entry(
-          row,
-          "message",
-          DateTime.fromJSDate(new Date(row.Timestamp)),
-          null
-        )
-      );
-    } else if (file.path[1] === "activity") {
-      return smartDecode(file.data)
-        .trim()
-        .split("\n")
-        .map((line) => {
-          const parsed = parseJSON(line);
-          return entry(
-            parsed,
-            "activity",
-            DateTime.fromISO(parsed.timestamp.slice(1, -1)),
-            null
-          );
-        });
-    }
-    return [];
+    return await parseByStages(file, metadata, this.parsers);
   }
 
   render: (
@@ -120,11 +115,12 @@ class Discord implements Provider<CategoryKey> {
   ) => [?React.Node, ?string] = (entry, metadata) => {
     let body, trailer;
     if (entry.category === "activity") {
-      const channel =
-        metadata.get(`channel/${entry.value.channel_id}`) ||
-        metadata.get(`channel/${entry.value.channel}`);
-      const server =
-        metadata.get(`servers`)?.[entry.value.guild_id || entry.value.server];
+      const channel = metadata.get(
+        `channel_meta.${entry.value.channel_id || entry.value.channel}`
+      );
+      const server = metadata.get(
+        `server.${entry.value.guild_id || entry.value.server}`
+      );
 
       body = entry.value.event_type
         .replace(/_/g, " ")
@@ -136,8 +132,6 @@ class Discord implements Provider<CategoryKey> {
         (server && `in ${server}`) ||
         (entry.value.ip && `from ${entry.value.ip}`);
     } else if (entry.category === "message") {
-      const channel = metadata.get(`channel/${entry.file[2].slice(1)}`);
-
       body = entry.value.Contents.replaceAll(
         /<(@!?|@&|#)([0-9]+)>/g,
         (original, type, snowflake) => {
@@ -148,8 +142,14 @@ class Discord implements Provider<CategoryKey> {
             // The roles list isn't part of the export
             return "`&unknown`";
           } else if (type === "#") {
-            const channel = metadata.get(`channel/${snowflake}`);
-            return `\`#${channel?.name || "unknown"}\``;
+            const channel = metadata.get(`channel.${snowflake}`);
+            return `\`${
+              channel === undefined
+                ? "#unknown"
+                : channel.includes(" ")
+                ? channel
+                : `#${channel}`
+            }\``;
           }
           return original;
         }
@@ -167,12 +167,13 @@ class Discord implements Provider<CategoryKey> {
           </React.Fragment>
         );
 
-      if (channel && [1, 3].includes(channel.type))
-        trailer = "in direct message";
-      else if (channel && [0, 2].includes(channel.type))
+      const channel = metadata.get(`channel_meta.${entry.file[2].slice(1)}`);
+      const fallback = metadata.get(`channel.${entry.file[2].slice(1)}`);
+      if (channel && [0, 2].includes(channel.type))
         trailer = `in #${channel.name} (${channel.guild.name})`;
       else if (channel && [10, 11, 12].includes(channel.type))
         trailer = `in thread "${channel.name}" (${channel.guild.name})`;
+      else if (fallback) trailer = `in ${fallback.toLowerCase()}`;
       else trailer = "in unknown channel";
     } else {
       throw new Error("Unknown category: " + entry.category);
