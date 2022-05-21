@@ -1,5 +1,4 @@
-// @flow
-import * as React from "react";
+import React from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 
 import { ProviderLookup } from "common/provider";
@@ -10,7 +9,7 @@ import Home from "Home";
 import Request from "Request";
 
 type Props = {
-  +children: React.Node,
+  children: JSX.Element,
 };
 
 type State = {
@@ -18,12 +17,12 @@ type State = {
 };
 
 class ErrorBoundary extends React.Component<Props, State> {
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError() {
     return { hasError: true };
   }
 
@@ -45,7 +44,7 @@ class ErrorBoundary extends React.Component<Props, State> {
   }
 }
 
-function do404(): React.Node {
+function do404(): JSX.Element {
   return (
     <React.Fragment>
       <main className="error">
@@ -55,7 +54,7 @@ function do404(): React.Node {
   );
 }
 
-function App(): React.Node {
+function App(): JSX.Element {
   const location = useLocation();
   return (
     <ErrorBoundary>
@@ -88,7 +87,8 @@ function App(): React.Node {
 
             // Extract page from URL: `/:provider(/:page(/...)?)?`
             const page = parts.shift();
-            if (!page && !parts.length) {
+
+            if (!page) {
               // Malformed URL
               if (parts.length) return do404();
 
