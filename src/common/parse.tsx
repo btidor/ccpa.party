@@ -1,18 +1,19 @@
 import csv from "csvtojson";
 import MurmurHash3 from "imurmurhash";
 
+import type { IMinimatch } from "minimatch";
 import type { DataFile, TimelineContext, TimelineEntry } from "common/database";
 
 export type Parser<T, U> =
   | {
     type?: void; // timeline, the default
-    glob: string;
+    glob: IMinimatch;
     tokenize: (data: ArrayBufferLike | string) => U;
     transform: (item: U) => [T, any, TimelineContext] | void;
   }
   | {
     type: "metadata";
-    glob: string;
+    glob: IMinimatch;
     tokenize: (data: ArrayBufferLike | string) => U;
     transform: (item: U) => [string, any];
   };

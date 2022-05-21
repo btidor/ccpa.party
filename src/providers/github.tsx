@@ -1,4 +1,3 @@
-// @flow
 import { DateTime } from "luxon";
 
 import { getSlugAndDayTime, parseJSON } from "common/parse";
@@ -16,20 +15,20 @@ class GitHub implements Provider<CategoryKey> {
   neonColor: string = "#bd65ff";
   neonColorHDR: string = "color(rec2020 0.69493 0.4398 1.36255)";
 
-  requestLink: {| href: string, text: string |} = {
+  requestLink: { href: string, text: string; } = {
     text: "Account Settings",
     href: "https://github.com/settings/admin",
   };
   waitTime: string = "15 minutes";
-  instructions: $ReadOnlyArray<string> = [];
+  instructions: ReadonlyArray<string> = [];
   singleFile: boolean = true;
   fileName: string = "tar.gz file";
   privacyPolicy: string =
     "https://docs.github.com/en/site-policy/privacy-policies/githubs-notice-about-the-california-consumer-privacy-act";
 
-  metadataFiles: $ReadOnlyArray<string | RegExp> = [];
+  metadataFiles: ReadonlyArray<string | RegExp> = [];
 
-  timelineCategories: $ReadOnlyMap<CategoryKey, TimelineCategory> = new Map([
+  timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
       "activity",
       {
@@ -52,8 +51,8 @@ class GitHub implements Provider<CategoryKey> {
 
   async parse(
     file: DataFile
-  ): Promise<$ReadOnlyArray<TimelineEntry<CategoryKey>>> {
-    const object = (url) => {
+  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
+    const object = (url: string) => {
       const parts = url.split("/");
       const repo = parts[4];
       if (repo === undefined) return parts[3]; // user
@@ -69,7 +68,7 @@ class GitHub implements Provider<CategoryKey> {
           throw new Error("Can't parse object: " + url);
       }
     };
-    const body = (body) => {
+    const body = (body: string) => {
       const parts = body.split("\n");
       return parts.length > 1 ? parts[0] + " [...]" : parts[0];
     };
@@ -84,7 +83,7 @@ class GitHub implements Provider<CategoryKey> {
     ];
     if (supportedPrefixes.some((p) => file.path[1].startsWith(p))) {
       return parseJSON(file.data)
-        .map((item) => {
+        .map((item: any) => {
           let category, title, trailer;
 
           if (item.type === "commit_comment" || item.type === "issue_comment") {
@@ -95,7 +94,7 @@ class GitHub implements Provider<CategoryKey> {
             category = "activity";
             title =
               "Issue " +
-              item.event
+              (item.event as string)
                 .replace(/_/g, " ")
                 .replace(
                   /\w\S*/g,
@@ -129,9 +128,9 @@ class GitHub implements Provider<CategoryKey> {
             ),
             context: [title, trailer],
             value: item,
-          }: TimelineEntry<CategoryKey>);
+          });
         })
-        .filter((x) => x);
+        .filter((x?: TimelineEntry<CategoryKey>) => x);
     }
     return [];
   }

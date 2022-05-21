@@ -1,4 +1,3 @@
-// @flow
 import { DateTime } from "luxon";
 
 import { getSlugAndDayTime, parseJSON } from "common/parse";
@@ -31,61 +30,64 @@ const categories = {
 };
 
 const mappers = {
-  installed_apps_v2: (item) => [
+  installed_apps_v2: (item: any) => [
     `App ${item.category[0].toUpperCase() + item.category.slice(1)}`,
     item.name,
   ],
-  comments_v2: (item) => [
+  comments_v2: (item: any) => [
     "Comment",
     item.data?.[0]?.comment?.comment || item.title,
   ],
-  reactions_v2: (item) => ["Reaction", item.title],
-  events_invited_v2: (item) => ["Event Invitation", item.name],
-  received_requests_v2: (item) => ["Friend Request", item.name],
-  friends_v2: (item) => ["Became Friends", item.name],
-  rejected_requests_v2: (item) => ["Rejected Friend Request", item.name],
-  deleted_friends_v2: (item) => ["Unfriended", item.name],
-  group_comments_v2: (item) => [
+  reactions_v2: (item: any) => ["Reaction", item.title],
+  events_invited_v2: (item: any) => ["Event Invitation", item.name],
+  received_requests_v2: (item: any) => ["Friend Request", item.name],
+  friends_v2: (item: any) => ["Became Friends", item.name],
+  rejected_requests_v2: (item: any) => ["Rejected Friend Request", item.name],
+  deleted_friends_v2: (item: any) => ["Unfriended", item.name],
+  group_comments_v2: (item: any) => [
     "Comment",
     item.data?.[0]?.comment?.comment || item.title,
   ],
-  groups_joined_v2: (item) => [
+  groups_joined_v2: (item: any) => [
     "Joined Group",
     item.data?.[0]?.name || item.title,
   ],
-  groups_admined_v2: (item) => ["Became Group Admin", item.name],
-  group_posts_v2: (item) => ["Post", item.data?.[0]?.post || item.title],
-  notifications_v2: (item) => ["Notification", item.text],
-  pages_unfollowed_v2: (item) => [
+  groups_admined_v2: (item: any) => ["Became Group Admin", item.name],
+  group_posts_v2: (item: any) => ["Post", item.data?.[0]?.post || item.title],
+  notifications_v2: (item: any) => ["Notification", item.text],
+  pages_unfollowed_v2: (item: any) => [
     "Un-Followed",
     item.data?.[0]?.name || item.title,
   ],
-  poll_votes_v2: (item) => ["Voted on Poll"],
-  account_activity_v2: (item) => [
-    item.action
+  poll_votes_v2: (item: any) => ["Voted on Poll"],
+  account_activity_v2: (item: any) => [
+    (item.action as string)
       .split(" ")
       .map((w) => w[0].toUpperCase() + w.slice(1))
       .join(" "),
     item.ip_address,
   ],
-  contact_verifications_v2: (item) => ["Verified Email Address", item.contact],
-  used_ip_address_v2: (item) => [
-    item.action
+  contact_verifications_v2: (item: any) => [
+    "Verified Email Address",
+    item.contact,
+  ],
+  used_ip_address_v2: (item: any) => [
+    (item.action as string)
       .split(" ")
       .map((w) => w[0].toUpperCase() + w.slice(1))
       .join(" "),
     item.ip,
   ],
-  login_protection_data_v2: (item) => ["Session", item.name],
-  account_accesses_v2: (item) => [
-    item.action
+  login_protection_data_v2: (item: any) => ["Session", item.name],
+  account_accesses_v2: (item: any) => [
+    (item.action as string)
       .split(" ")
       .map((w) => w[0].toUpperCase() + w.slice(1))
       .join(" "),
     item.ip_address,
   ],
-  admin_records_v2: (item) => [
-    item.event
+  admin_records_v2: (item: any) => [
+    (item.event as string)
       .split(" ")
       .map((w) => w[0].toUpperCase() + w.slice(1))
       .join(" "),
@@ -108,19 +110,19 @@ class Facebook implements Provider<CategoryKey> {
   neonColor: string = "#009eff";
   neonColorHDR: string = "color(rec2020 0.12623 0.5874 1.52179)";
 
-  requestLink: {| href: string, text: string |} = {
+  requestLink: { href: string; text: string; } = {
     text: "Download Your Information",
     href: "https://www.facebook.com/ccpa/download_your_information/",
   };
   waitTime: string = "1-2 hours";
-  instructions: $ReadOnlyArray<string> = ["select format JSON"];
+  instructions: ReadonlyArray<string> = ["select format JSON"];
   singleFile: boolean = true;
   fileName: string = "facebook.zip";
   privacyPolicy: string = "https://www.facebook.com/legal/policy/ccpa";
 
-  metadataFiles: $ReadOnlyArray<string | RegExp> = [];
+  metadataFiles: ReadonlyArray<string | RegExp> = [];
 
-  timelineCategories: $ReadOnlyMap<CategoryKey, TimelineCategory> = new Map([
+  timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
       "activity",
       {
@@ -170,7 +172,7 @@ class Facebook implements Provider<CategoryKey> {
 
   async parse(
     file: DataFile
-  ): Promise<$ReadOnlyArray<TimelineEntry<CategoryKey>>> {
+  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
     const entry = (
       row: any,
       category: CategoryKey,
@@ -187,13 +189,13 @@ class Facebook implements Provider<CategoryKey> {
     if (file.path[1] === "messages") {
       const filename = file.path.slice(-1)[0];
       if (filename.startsWith("message_") && filename.endsWith(".json")) {
-        let parsed;
+        let parsed: any;
         try {
           parsed = parseJSON(file.data, { smart: true });
         } catch {
           return [];
         }
-        return parsed.messages.map((item) =>
+        return parsed.messages.map((item: any) =>
           entry(item, "message", DateTime.fromMillis(item.timestamp_ms), [
             item.content,
             parsed.title === item.sender_name ? undefined : parsed.title,
@@ -208,7 +210,7 @@ class Facebook implements Provider<CategoryKey> {
       ) {
         let parsed = parseJSON(file.data, { smart: true });
         if (!Array.isArray(parsed)) parsed = [parsed];
-        return parsed.map((item) =>
+        return parsed.map((item: any) =>
           entry(item, "content", DateTime.fromSeconds(item.timestamp), [
             "Post",
             item.data?.[0]?.post,
@@ -219,14 +221,14 @@ class Facebook implements Provider<CategoryKey> {
       const parsed = parseJSON(file.data, { smart: true });
       const root = parsed.event_responses_v2;
       return root.events_joined
-        .map((item) =>
+        .map((item: any) =>
           entry(item, "content", DateTime.fromSeconds(item.start_timestamp), [
             "Going to Event",
             item.name,
           ])
         )
         .concat(
-          root.events_declined.map((item) =>
+          root.events_declined.map((item: any) =>
             entry(item, "content", DateTime.fromSeconds(item.start_timestamp), [
               "Declined Event",
               item.name,
@@ -236,8 +238,8 @@ class Facebook implements Provider<CategoryKey> {
     } else if (file.path.slice(-1)[0] === "your_off-facebook_activity.json") {
       return parseJSON(file.data, {
         smart: true,
-      }).off_facebook_activity_v2.flatMap((company) =>
-        company.events.map((item) =>
+      }).off_facebook_activity_v2.flatMap((company: any) =>
+        company.events.map((item: any) =>
           entry(item, "activity", DateTime.fromSeconds(item.timestamp), [
             "Off-Facebook Purchase",
             company.name,
@@ -247,8 +249,8 @@ class Facebook implements Provider<CategoryKey> {
     } else if (file.path.slice(-1)[0] === "feed.json") {
       return parseJSON(file.data, {
         smart: true,
-      }).people_and_friends_v2.flatMap((feed) =>
-        feed.entries.map((item) =>
+      }).people_and_friends_v2.flatMap((feed: any) =>
+        feed.entries.map((item: any) =>
           entry(item, "activity", DateTime.fromSeconds(item.timestamp), [
             feed.name,
             item.data.name,
@@ -267,9 +269,9 @@ class Facebook implements Provider<CategoryKey> {
       ];
     } else if (file.path.slice(-1)[0] === "recently_viewed.json") {
       return parseJSON(file.data, { smart: true })
-        .recently_viewed.flatMap((category) =>
+        .recently_viewed.flatMap((category: any) =>
           category.entries?.map(
-            (item) =>
+            (item: any) =>
               item.timestamp &&
               entry(item, "activity", DateTime.fromSeconds(item.timestamp), [
                 `Viewed ${category.name}`,
@@ -277,14 +279,14 @@ class Facebook implements Provider<CategoryKey> {
               ])
           )
         )
-        .filter((x) => x);
+        .filter((x: any) => x);
     } else if (file.path.slice(-1)[0] === "recently_visited.json") {
       return parseJSON(file.data, { smart: true })
         .visited_things_v2.flatMap(
-          (category) =>
+          (category: any) =>
             category.name === "Profile visits" &&
             category.entries.map(
-              (item) =>
+              (item: any) =>
                 item.timestamp &&
                 entry(item, "activity", DateTime.fromSeconds(item.timestamp), [
                   "Viewed Profile",
@@ -292,11 +294,15 @@ class Facebook implements Provider<CategoryKey> {
                 ])
             )
         )
-        .filter((x) => x);
+        .filter((x: any) => x);
     } else if (file.path.slice(-1)[0].endsWith(".json")) {
       return Object.entries(parseJSON(file.data, { smart: true }))
         .flatMap(([key, value]) => {
-          if (Array.isArray(value) && categories[key] && mappers[key]) {
+          if (
+            Array.isArray(value) &&
+            (categories as any)[key] &&
+            (mappers as any)[key]
+          ) {
             return value.map((item: any) => {
               const timestamp =
                 item.timestamp ||
@@ -316,9 +322,9 @@ class Facebook implements Provider<CategoryKey> {
                 timestamp &&
                 entry(
                   item,
-                  categories[key],
+                  (categories as any)[key],
                   DateTime.fromSeconds(timestamp),
-                  mappers[key](item)
+                  (mappers as any)[key](item)
                 )
               );
             });

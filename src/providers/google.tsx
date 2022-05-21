@@ -1,4 +1,3 @@
-// @flow
 import { Minimatch } from "minimatch";
 import { DateTime } from "luxon";
 
@@ -18,12 +17,12 @@ class Google implements Provider<CategoryKey> {
   neonColor: string = "#00c300";
   neonColorHDR: string = "color(rec2020 0.1856 0.71527 0.06415)";
 
-  requestLink: {| href: string, text: string |} = {
+  requestLink: { href: string, text: string; } = {
     text: "Google Takeout",
     href: "https://takeout.google.com/",
   };
   waitTime: string = "1-2 days";
-  instructions: $ReadOnlyArray<string> = [
+  instructions: ReadonlyArray<string> = [
     `check Access Log Activity`,
     ``,
     `under My Activity`,
@@ -35,9 +34,9 @@ class Google implements Provider<CategoryKey> {
   privacyPolicy: string =
     "https://policies.google.com/privacy?hl=en#california";
 
-  metadataFiles: $ReadOnlyArray<string | RegExp> = [];
+  metadataFiles: ReadonlyArray<string | RegExp> = [];
 
-  timelineCategories: $ReadOnlyMap<CategoryKey, TimelineCategory> = new Map([
+  timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
       "activity",
       {
@@ -58,13 +57,13 @@ class Google implements Provider<CategoryKey> {
     ],
   ]);
 
-  parsers: $ReadOnlyArray<Parser<CategoryKey, any>> = [
+  parsers: ReadonlyArray<Parser<CategoryKey, any>> = [
     {
       glob: new Minimatch("Takeout/My Activity/*/MyActivity.json"),
       tokenize: parseJSON,
       transform: (item) => {
         let { title, header } = item;
-        if (item.details?.some((x) => x.name === "From Google Ads"))
+        if (item.details?.some((x: any) => x.name === "From Google Ads"))
           header = "Google Ads";
         if (
           header === "Maps" &&
@@ -94,10 +93,10 @@ class Google implements Provider<CategoryKey> {
       transform: (item) =>
         item.last_modified_by_me
           ? [
-              "activity",
-              DateTime.fromISO(item.last_modified_by_me),
-              [`Edited "${item.title}"`, "Google Drive"],
-            ]
+            "activity",
+            DateTime.fromISO(item.last_modified_by_me),
+            [`Edited "${item.title}"`, "Google Drive"],
+          ]
           : undefined,
     },
   ];
@@ -105,7 +104,7 @@ class Google implements Provider<CategoryKey> {
   async parse(
     file: DataFile,
     metadata: Map<string, any>
-  ): Promise<$ReadOnlyArray<TimelineEntry<CategoryKey>>> {
+  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
     return await parseByStages(file, metadata, this.parsers);
   }
 }

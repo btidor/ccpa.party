@@ -1,4 +1,3 @@
-// @flow
 import { DateTime } from "luxon";
 
 import {
@@ -21,19 +20,19 @@ class Apple implements Provider<CategoryKey> {
   neonColor: string = "#e08800";
   neonColorHDR: string = "color(rec2020 0.75646 0.54656 -0.09204)";
 
-  requestLink: {| href: string, text: string |} = {
+  requestLink: { href: string, text: string; } = {
     text: "Data and Privacy",
     href: "https://privacy.apple.com/",
   };
   waitTime: string = "about a week";
-  instructions: $ReadOnlyArray<string> = [];
+  instructions: ReadonlyArray<string> = [];
   singleFile: boolean = false;
   fileName: string = "zip files";
   privacyPolicy: string = "https://www.apple.com/legal/privacy/california/";
 
-  metadataFiles: $ReadOnlyArray<string | RegExp> = [];
+  metadataFiles: ReadonlyArray<string | RegExp> = [];
 
-  timelineCategories: $ReadOnlyMap<CategoryKey, TimelineCategory> = new Map([
+  timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
       "account",
       {
@@ -74,7 +73,7 @@ class Apple implements Provider<CategoryKey> {
 
   async parse(
     file: DataFile
-  ): Promise<$ReadOnlyArray<TimelineEntry<CategoryKey>>> {
+  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
     const entry = (
       row: any,
       category: CategoryKey,
@@ -133,9 +132,9 @@ class Apple implements Provider<CategoryKey> {
             [
               "Latest Sign-on",
               row["Application"] +
-                (row["IP Address"] !== "N/A"
-                  ? ` from ${row["IP Address"]}`
-                  : ""),
+              (row["IP Address"] !== "N/A"
+                ? ` from ${row["IP Address"]}`
+                : ""),
             ]
           )
         );
@@ -158,8 +157,8 @@ class Apple implements Provider<CategoryKey> {
             (row["Preference"] === "LOVE"
               ? "Loved"
               : row["Preference"] === "DISLIKE"
-              ? "Disliked"
-              : "Marked") + " Track",
+                ? "Disliked"
+                : "Marked") + " Track",
             row["Item Description"],
           ])
         );
@@ -178,13 +177,13 @@ class Apple implements Provider<CategoryKey> {
                   row["Event Type"] === "PLAY_END"
                     ? "Played Track"
                     : row["Event Type"] === "LYRIC_DISPLAY"
-                    ? "Viewed Lyrics"
-                    : "Media Event",
+                      ? "Viewed Lyrics"
+                      : "Media Event",
                   row["Song Name"],
                 ]
               )
           )
-          .filter((x) => x): any);
+          .filter((x): x is TimelineEntry<CategoryKey> => !!x));
       } else if (
         file.path.slice(-1)[0] ===
         "Customer Device History - Computer Authorizations.csv"
@@ -219,10 +218,9 @@ class Apple implements Provider<CategoryKey> {
       } else if (file.path.slice(-1)[0] === "Store Transaction History.csv") {
         return (await parseCSV(file.data)).map((row) =>
           entry(row, "account", DateTime.fromISO(row["Item Purchased Date"]), [
-            `Purchased ${
-              row["Content Type"].includes("Apps")
-                ? "App"
-                : row["Content Type"].endsWith("s")
+            `Purchased ${row["Content Type"].includes("Apps")
+              ? "App"
+              : row["Content Type"].endsWith("s")
                 ? row["Content Type"].slice(0, -1)
                 : row["Content Type"]
             }`,
@@ -232,7 +230,7 @@ class Apple implements Provider<CategoryKey> {
       } else if (
         file.path.slice(-1)[0] === "TV App Favorites and Activity.json"
       ) {
-        return (await parseJSON(file.data)).events.map((item) =>
+        return (await parseJSON(file.data)).events.map((item: any) =>
           entry(
             item,
             "media",
@@ -248,7 +246,7 @@ class Apple implements Provider<CategoryKey> {
         file.path.slice(-1)[0] === "Apple Music Click Activity.csv" ||
         file.path.slice(-1)[0] === "Apps And Service Analytics.csv" ||
         file.path.slice(-1)[0] ===
-          "TV App with Channel Support Click Activity.csv"
+        "TV App with Channel Support Click Activity.csv"
       ) {
         return (await parseCSV(file.data)).map((row) => {
           let type = row["Event Type"];
@@ -281,9 +279,9 @@ class Apple implements Provider<CategoryKey> {
       } else if (file.path[4] === "Game Center Data.json") {
         const games = (await parseJSON(file.data)).games_state;
         return games
-          .map((game) => [
-            game.leaderboard.map((board) =>
-              board.leaderboard_score.map((item) =>
+          .map((game: any) => [
+            game.leaderboard.map((board: any) =>
+              board.leaderboard_score.map((item: any) =>
                 entry(
                   item,
                   "icloud",
@@ -298,7 +296,7 @@ class Apple implements Provider<CategoryKey> {
                 )
               )
             ),
-            game.achievements.map((item) =>
+            game.achievements.map((item: any) =>
               entry(
                 item,
                 "icloud",
@@ -469,20 +467,20 @@ class Apple implements Provider<CategoryKey> {
             "text/xml"
           );
           const entries = dom.getElementsByTagName("dict");
-          const messages = [...entries].filter((d) =>
-            [...d.children].some(
+          const messages = Array.from(entries).filter((d) =>
+            Array.from(d.children).some(
               (c) => c.nodeName === "key" && c.innerHTML === "t"
             )
           );
           return messages.flatMap((msg) => {
             const dates =
-              [...msg.children]
+              Array.from(msg.children)
                 .find((c) => c.nodeName === "key" && c.innerHTML === "t")
                 ?.nextElementSibling?.getElementsByTagName("date") || [];
-            const address = [...msg.children].find(
+            const address = Array.from(msg.children).find(
               (c) => c.nodeName === "key" && c.innerHTML === "address"
             )?.nextElementSibling?.innerHTML;
-            return [...dates].map((date) =>
+            return Array.from(dates).map((date) =>
               entry(msg.innerHTML, "icloud", DateTime.fromISO(date.innerHTML), [
                 "Mail Message",
                 address,
@@ -498,11 +496,11 @@ class Apple implements Provider<CategoryKey> {
             "text/xml"
           );
           const root = dom.getElementsByTagName("array")[0];
-          return [...root.children].map((item) => {
+          return Array.from(root.children).map((item) => {
             const keys = item.getElementsByTagName("key");
             const name = keys[0]?.innerHTML;
-            const added = [...keys].find((k) => k.innerHTML === "added_at")
-              ?.nextElementSibling?.innerHTML;
+            const added = Array.from(keys).find((k) => k.innerHTML === "added_at")
+              ?.nextElementSibling?.innerHTML!;
             return entry(
               item.innerHTML,
               "icloud",
@@ -534,7 +532,7 @@ class Apple implements Provider<CategoryKey> {
         );
         if (registration) {
           return (await parseCSV(registration.join("\n"))).map((row) =>
-            entry(row, "icloud", new DateTime.fromSQL(row["Date"]), [
+            entry(row, "icloud", DateTime.fromSQL(row["Date"]), [
               `Device ${row["Event Code"] === "reboot" ? "Reboot" : "Sync"}`,
               row["Device Type"],
             ])

@@ -1,4 +1,3 @@
-// @flow
 import { DateTime } from "luxon";
 
 import { getSlugAndDayTime, parseCSV } from "common/parse";
@@ -16,19 +15,19 @@ class Netflix implements Provider<CategoryKey> {
   neonColor: string = "#ff0006";
   neonColorHDR: string = "color(rec2020 1.0185 0.26889 0.13682)";
 
-  requestLink: {| href: string, text: string |} = {
+  requestLink: { href: string; text: string; } = {
     text: "Get My Info",
     href: "https://www.netflix.com/account/getmyinfo",
   };
   waitTime: string = "a day";
-  instructions: $ReadOnlyArray<string> = [];
+  instructions: ReadonlyArray<string> = [];
   singleFile: boolean = true;
   fileName: string = "netflix.zip";
   privacyPolicy: string = "https://help.netflix.com/legal/privacy#ccpa";
 
-  metadataFiles: $ReadOnlyArray<string | RegExp> = [];
+  metadataFiles: ReadonlyArray<string | RegExp> = [];
 
-  timelineCategories: $ReadOnlyMap<CategoryKey, TimelineCategory> = new Map([
+  timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
       "account",
       {
@@ -60,7 +59,7 @@ class Netflix implements Provider<CategoryKey> {
 
   async parse(
     file: DataFile
-  ): Promise<$ReadOnlyArray<TimelineEntry<CategoryKey>>> {
+  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
     const entry = (
       row: any,
       category: CategoryKey,
@@ -119,7 +118,7 @@ class Netflix implements Provider<CategoryKey> {
     } else if (file.path[1] === "CONTENT_INTERACTION") {
       if (file.path[2] === "PlaybackRelatedEvents.csv") {
         return (await parseCSV(file.data)).flatMap((row) =>
-          JSON.parse(row.Playtraces).map((trace) => {
+          JSON.parse(row.Playtraces).map((trace: any) => {
             let type =
               "Playback " +
               trace.eventType[0].toUpperCase() +
@@ -161,8 +160,8 @@ class Netflix implements Provider<CategoryKey> {
                 ? row["Thumbs Value"] === "1"
                   ? "Thumbs Down"
                   : row["Thumbs Value"] === "2"
-                  ? "Thumbs Up"
-                  : "Rated"
+                    ? "Thumbs Up"
+                    : "Rated"
                 : "Rated",
               row["Title Name"],
             ]
@@ -189,24 +188,24 @@ class Netflix implements Provider<CategoryKey> {
       }
     } else if (file.path[1] === "DEVICES") {
       if (file.path[2] === "Devices.csv") {
-        return ((await parseCSV(file.data)).flatMap((row) =>
+        return (await parseCSV(file.data)).flatMap((row: any) =>
           [
             row["Acct First Playback Date"] &&
-              entry(
-                row,
-                "account",
-                DateTime.fromISO(row["Acct First Playback Date"]),
-                ["Device Activated", row["Device Type"]]
-              ),
+            entry(
+              row,
+              "account",
+              DateTime.fromISO(row["Acct First Playback Date"]),
+              ["Device Activated", row["Device Type"]]
+            ),
             row["Deactivation Time"] &&
-              entry(
-                row,
-                "account",
-                DateTime.fromISO(row["Deactivation Time"]),
-                ["Device Deactivated", row["Device Type"]]
-              ),
+            entry(
+              row,
+              "account",
+              DateTime.fromISO(row["Deactivation Time"]),
+              ["Device Deactivated", row["Device Type"]]
+            ),
           ].filter((x) => x)
-        ): any);
+        );
       }
     } else if (file.path[1] === "IP_ADDRESSES") {
       if (file.path[2] === "IpAddressesLogin.csv") {
@@ -226,8 +225,8 @@ class Netflix implements Provider<CategoryKey> {
       }
     } else if (file.path[1] === "MESSAGES") {
       if (file.path[2] === "MessagesSentByNetflix.csv") {
-        return ((await parseCSV(file.data))
-          .flatMap((row) => [
+        return (await parseCSV(file.data))
+          .flatMap((row: any) => [
             entry(
               row,
               "notification",
@@ -236,31 +235,31 @@ class Netflix implements Provider<CategoryKey> {
                 row["Channel"] === "EMAIL"
                   ? "Email"
                   : row["Channel"] === "NOTIFICATIONS"
-                  ? "In-App Notification"
-                  : row["Channel"] === "PUSH"
-                  ? "Push Notification"
-                  : "Notification",
+                    ? "In-App Notification"
+                    : row["Channel"] === "PUSH"
+                      ? "Push Notification"
+                      : "Notification",
                 row["Title Name"],
               ]
             ),
             row["Click Utc Ts"] &&
-              entry(
-                row,
-                "notification",
-                DateTime.fromSQL(row["Click Utc Ts"], { zone: "UTC" }),
-                [
-                  (row["Channel"] === "EMAIL"
-                    ? "Email"
-                    : row["Channel"] === "NOTIFICATIONS"
+            entry(
+              row,
+              "notification",
+              DateTime.fromSQL(row["Click Utc Ts"], { zone: "UTC" }),
+              [
+                (row["Channel"] === "EMAIL"
+                  ? "Email"
+                  : row["Channel"] === "NOTIFICATIONS"
                     ? "In-App Notification"
                     : row["Channel"] === "PUSH"
-                    ? "Push Notification"
-                    : "Notification") + " Click",
-                  row["Title Name"],
-                ]
-              ),
+                      ? "Push Notification"
+                      : "Notification") + " Click",
+                row["Title Name"],
+              ]
+            ),
           ])
-          .filter((x) => x): any);
+          .filter((x) => x);
       }
     } else if (file.path[1] === "PAYMENT_AND_BILLING") {
       if (file.path[2] === "BillingHistory.csv") {

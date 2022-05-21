@@ -1,6 +1,5 @@
-// @flow
 import EmojiMap from "emoji-name-map";
-import * as React from "react";
+import React from "react";
 
 import { getSlugAndDayTime, parseJSON } from "common/parse";
 import { Highlight, Pill } from "components/Record";
@@ -18,24 +17,24 @@ class Slack implements Provider<CategoryKey> {
   neonColor: string = "#f0f";
   neonColorHDR: string = "color(rec2020 0.92827 0.25757 1.11361)";
 
-  requestLink: {| href: string, text: string |} = {
+  requestLink: { href: string, text: string; } = {
     text: "Export Workspace Data",
     href: "https://slack.com/help/articles/201658943-Export-your-workspace-data",
   };
   waitTime: string = "a few days";
-  instructions: $ReadOnlyArray<string> = [];
+  instructions: ReadonlyArray<string> = [];
   singleFile: boolean = true;
   fileName: string = "zip file";
   privacyPolicy: string =
     "https://slack.com/trust/privacy/privacy-policy#california-rights";
   // Also: https://slack.com/trust/compliance/ccpa-faq
 
-  metadataFiles: $ReadOnlyArray<string | RegExp> = [
+  metadataFiles: ReadonlyArray<string | RegExp> = [
     "channels.json",
     "users.json",
   ];
 
-  timelineCategories: $ReadOnlyMap<CategoryKey, TimelineCategory> = new Map([
+  timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
       "message",
       {
@@ -59,7 +58,7 @@ class Slack implements Provider<CategoryKey> {
   async parse(
     file: DataFile,
     metadata: Map<string, any>
-  ): Promise<$ReadOnlyArray<TimelineEntry<CategoryKey>>> {
+  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
     if (file.path[1] === "users.json") {
       metadata.set("users", parseJSON(file.data));
       return [];
@@ -68,39 +67,36 @@ class Slack implements Provider<CategoryKey> {
       return [];
     } else if (file.path[1] === "integration_logs.json") {
       return parseJSON(file.data).map(
-        (log) =>
-          ({
-            file: file.path,
-            category: "integration",
-            ...getSlugAndDayTime(parseInt(log.date), log),
-            context: null,
-            value: log,
-          }: TimelineEntry<CategoryKey>)
+        (log: any) =>
+        ({
+          file: file.path,
+          category: "integration",
+          ...getSlugAndDayTime(parseInt(log.date), log),
+          context: null,
+          value: log,
+        } as TimelineEntry<CategoryKey>)
       );
     } else {
       return parseJSON(file.data).map(
-        (message) =>
-          ({
-            file: file.path,
-            category: "message",
-            ...getSlugAndDayTime(parseInt(message.ts), message),
-            context: null,
-            value: message,
-          }: TimelineEntry<CategoryKey>)
+        (message: any) =>
+        ({
+          file: file.path,
+          category: "message",
+          ...getSlugAndDayTime(parseInt(message.ts), message),
+          context: null,
+          value: message,
+        } as TimelineEntry<CategoryKey>)
       );
     }
   }
 
-  render: (
-    TimelineEntry<CategoryKey>,
-    $ReadOnlyMap<string, any>
-  ) => [?React.Node, ?string, ?{| display: string, color: ?string |}] = (
-    entry,
-    metadata
-  ) => {
+  render = (
+    entry: TimelineEntry<CategoryKey>,
+    metadata: ReadonlyMap<string, any>
+  ): [JSX.Element | void, string | void, { display: string, color?: string; } | void] => {
     const message = entry.value;
-    const users = metadata.get("users");
-    const channels = metadata.get("channels");
+    const users: ReadonlyArray<{ id: string, profile: any, color?: string; }> = metadata.get("users");
+    const channels: ReadonlyArray<{ id: string, name: string; }> = metadata.get("channels");
 
     if (!users || !channels) throw new Error("Failed to load metadata");
 
@@ -133,20 +129,19 @@ class Slack implements Provider<CategoryKey> {
     if (entry.category === "integration") {
       let verb = message.change_type;
       if (verb === "wildcard_resource_grant_created") verb = "created";
-      trailer = `${verb} integration ${
-        message.app_type || message.service_type
-      }`;
+      trailer = `${verb} integration ${message.app_type || message.service_type
+        }`;
       if (channelName) trailer += ` in #${channelName}`;
     }
     let key = 0;
-    const handleElement = (element) => {
+    const handleElement = (element: any) => {
       key++;
       if (element.type === "rich_text_section") {
         return element.elements.flatMap(handleElement);
       } else if (element.type === "rich_text_list") {
         return (
           <ul key={key}>
-            {element.elements.map((subelement) => (
+            {element.elements.map((subelement: any) => (
               <li key={key++}>{handleElement(subelement)}</li>
             ))}
           </ul>
@@ -175,15 +170,15 @@ class Slack implements Provider<CategoryKey> {
           </span>,
         ];
       } else if (element.type === "user") {
-        const user = users.find((x) => x.id === element.user_id) || {};
+        const user = users.find((x) => x.id === element.user_id);
         return [
           <Highlight key={key}>
-            @{user.display_name || user.real_name || "unknown"}
+            @{user?.profile.display_name || user?.profile.real_name || "unknown"}
           </Highlight>,
         ];
       } else if (element.type === "channel") {
-        const channel = channels.find((x) => x.id === element.channel_id) || {};
-        return [<Highlight key={key}>#{channel.name || "unknown"}</Highlight>];
+        const channel = channels.find((x) => x.id === element.channel_id);
+        return [<Highlight key={key}>#{channel?.name || "unknown"}</Highlight>];
       } else if (element.type === "link") {
         return [
           <a href={element.url} key={key} target="_blank" rel="noreferrer">
@@ -195,7 +190,7 @@ class Slack implements Provider<CategoryKey> {
       }
     };
     if (message.blocks) {
-      text = message.blocks.flatMap((block) => {
+      text = message.blocks.flatMap((block: any) => {
         key++;
         if (block.type !== "rich_text") {
           return <Pill key={key}>{block.type}</Pill>;

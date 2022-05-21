@@ -1,7 +1,6 @@
-// @flow
 import { DateTime } from "luxon";
 import { Minimatch } from "minimatch";
-import * as React from "react";
+import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -22,12 +21,12 @@ class Discord implements Provider<CategoryKey> {
   neonColor: string = "#4087ff";
   neonColorHDR: string = "color(rec2020 0.4889 0.52224 1.46496)";
 
-  requestLink: {| href: string, text: string |} = {
+  requestLink: { href: string; text: string; } = {
     text: "Discord",
     href: "https://discord.com/app",
   };
   waitTime: string = "about a week";
-  instructions: $ReadOnlyArray<string> = [
+  instructions: ReadonlyArray<string> = [
     "open User Settings",
     "Privacy & Safety tab",
     "scroll down",
@@ -37,12 +36,12 @@ class Discord implements Provider<CategoryKey> {
   privacyPolicy: string =
     "https://discord.com/privacy#information-for-california-users";
 
-  metadataFiles: $ReadOnlyArray<string | RegExp> = [
+  metadataFiles: ReadonlyArray<string | RegExp> = [
     "servers/index.json",
     /^channels\/c[0-9]+\/channel.json/,
   ];
 
-  timelineCategories: $ReadOnlyMap<CategoryKey, TimelineCategory> = new Map([
+  timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
       "activity",
       {
@@ -63,7 +62,7 @@ class Discord implements Provider<CategoryKey> {
     ],
   ]);
 
-  parsers: $ReadOnlyArray<Parser<CategoryKey, any>> = [
+  parsers: ReadonlyArray<Parser<CategoryKey, any>> = [
     {
       type: "metadata",
       glob: new Minimatch("servers/index.json"),
@@ -105,14 +104,12 @@ class Discord implements Provider<CategoryKey> {
   async parse(
     file: DataFile,
     metadata: Map<string, any>
-  ): Promise<$ReadOnlyArray<TimelineEntry<CategoryKey>>> {
+  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
     return await parseByStages(file, metadata, this.parsers);
   }
 
-  render: (
-    TimelineEntry<CategoryKey>,
-    $ReadOnlyMap<string, any>
-  ) => [?React.Node, ?string] = (entry, metadata) => {
+  render = (entry: TimelineEntry<CategoryKey>,
+    metadata: ReadonlyMap<string, any>): [JSX.Element, string | void] => {
     let body, trailer;
     if (entry.category === "activity") {
       const channel = metadata.get(
@@ -122,7 +119,7 @@ class Discord implements Provider<CategoryKey> {
         `server.${entry.value.guild_id || entry.value.server}`
       );
 
-      body = entry.value.event_type
+      body = (entry.value.event_type as string)
         .replace(/_/g, " ")
         .replace(/\w\S*/g, (w) => " " + w[0].toUpperCase() + w.slice(1));
       trailer =
@@ -132,7 +129,7 @@ class Discord implements Provider<CategoryKey> {
         (server && `in ${server}`) ||
         (entry.value.ip && `from ${entry.value.ip}`);
     } else if (entry.category === "message") {
-      body = entry.value.Contents.replaceAll(
+      body = (entry.value.Contents as string).replaceAll(
         /<(@!?|@&|#)([0-9]+)>/g,
         (original, type, snowflake) => {
           if (type === "@" || type === "@!") {
@@ -143,13 +140,12 @@ class Discord implements Provider<CategoryKey> {
             return "`&unknown`";
           } else if (type === "#") {
             const channel = metadata.get(`channel.${snowflake}`);
-            return `\`${
-              channel === undefined
-                ? "#unknown"
-                : channel.includes(" ")
+            return `\`${channel === undefined
+              ? "#unknown"
+              : channel.includes(" ")
                 ? channel
                 : `#${channel}`
-            }\``;
+              }\``;
           }
           return original;
         }
@@ -178,7 +174,7 @@ class Discord implements Provider<CategoryKey> {
     } else {
       throw new Error("Unknown category: " + entry.category);
     }
-    return [body, trailer];
+    return [body as JSX.Element, trailer];
   };
 }
 

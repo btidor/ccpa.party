@@ -1,6 +1,7 @@
 /// <reference types="react-scripts" />
 
 declare module "colorjs.io";
+declare module "emoji-name-map";
 
 declare module "js-untar" {
   type File = {
