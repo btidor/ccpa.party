@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
+import { test } from "vitest";
 
 import App from "@/App";
 
@@ -9,6 +10,5 @@ test("renders learn react link", () => {
       <App />
     </BrowserRouter>
   );
-  const linkElement = screen.getByText(/ccpa\.party/i);
-  // expect(linkElement).toBeInTheDocument(); // TODO
+  screen.getByText(/ccpa\.party/i);
 });

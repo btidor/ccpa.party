@@ -1,4 +1,5 @@
 import Color from "colorjs.io";
+import { expect, test } from "vitest";
 
 import { ProviderRegistry } from "@/common/provider";
 

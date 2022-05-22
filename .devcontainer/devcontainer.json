@@ -1,11 +1,12 @@
 {
-	"name": "Ubuntu",
-	"build": {
-		"dockerfile": "Dockerfile"
-	},
-	"extensions": [
-		"dbaeumer.vscode-eslint",
-		"esbenp.prettier-vscode"
-	],
-	"remoteUser": "vscode"
+  "name": "Ubuntu",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "extensions": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "ZixuanChen.vitest-explorer"
+  ],
+  "remoteUser": "vscode"
 }
