@@ -2,14 +2,14 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { TrashIcon } from "@primer/octicons-react";
 
-import { ProviderScopedDatabase } from "common/database";
-import { importFiles, resetProvider } from "common/importer";
+import { ProviderScopedDatabase } from "@/common/database";
+import { importFiles, resetProvider } from "@/common/importer";
 
-import Logo from "components/Logo";
+import Logo from "@/components/Logo";
 
-import styles from "Request.module.css";
+import styles from "@/Request.module.css";
 
-import type { Provider } from "common/provider";
+import type { Provider } from "@/common/provider";
 
 type Props<T> = {
   provider: Provider<T>;

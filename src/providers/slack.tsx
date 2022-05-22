@@ -1,11 +1,11 @@
 import EmojiMap from "emoji-name-map";
 import React from "react";
 
-import { getSlugAndDayTime, parseJSON } from "common/parse";
-import { Highlight, Pill } from "components/Record";
+import { getSlugAndDayTime, parseJSON } from "@/common/parse";
+import { Highlight, Pill } from "@/components/Record";
 
-import type { DataFile, TimelineEntry } from "common/database";
-import type { Provider, TimelineCategory } from "common/provider";
+import type { DataFile, TimelineEntry } from "@/common/database";
+import type { Provider, TimelineCategory } from "@/common/provider";
 
 type CategoryKey = "message" | "integration";
 

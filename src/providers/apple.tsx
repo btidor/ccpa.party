@@ -5,10 +5,14 @@ import {
   parseJSON,
   parseCSV,
   smartDecode,
-} from "common/parse";
+} from "@/common/parse";
 
-import type { DataFile, TimelineContext, TimelineEntry } from "common/database";
-import type { Provider, TimelineCategory } from "common/provider";
+import type {
+  DataFile,
+  TimelineContext,
+  TimelineEntry,
+} from "@/common/database";
+import type { Provider, TimelineCategory } from "@/common/provider";
 
 type CategoryKey = "account" | "activity" | "icloud" | "media";
 

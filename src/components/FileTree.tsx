@@ -1,6 +1,5 @@
 import React from "react";
 import { Tree } from "react-arborist";
-import { AutoSizer } from "react-virtualized";
 import {
   ChevronDownIcon,
   ChevronRightIcon,
@@ -8,9 +7,9 @@ import {
   FileZipIcon,
 } from "@primer/octicons-react";
 
-import styles from "components/FileTree.module.css";
+import styles from "@/components/FileTree.module.css";
 
-import type { DataFileKey } from "common/database";
+import type { DataFileKey } from "@/common/database";
 
 type Props = {
   items: ReadonlyArray<DataFileKey>;
@@ -87,57 +86,52 @@ function FileTree(props: Props): JSX.Element {
   }, [items, selected, tree]);
   const [expanded, setExpanded] = React.useState(defaultExpandedSet);
 
-  const AnyAutoSizer = AutoSizer as any;
   return (
     <div className={styles.tree}>
-      <AnyAutoSizer>
-        {({ width, height }: { width: number; height: number }) => (
-          <Tree
-            data={tree}
-            width={width}
-            height={height}
-            indent={12}
-            rowHeight={22}
-            hideRoot
-            isOpen={(node) => !node.id || expanded.has(node.id)}
-            onToggle={(id, isCollapsed) => {
-              const updated = new Set(expanded);
-              isCollapsed ? updated.add(id) : updated.delete(id);
-              setExpanded(updated);
-            }}
+      <Tree
+        data={tree}
+        width={100 /* TODO */}
+        height={500}
+        indent={12}
+        rowHeight={22}
+        hideRoot
+        isOpen={(node) => !node.id || expanded.has(node.id)}
+        onToggle={(id, isCollapsed) => {
+          const updated = new Set(expanded);
+          isCollapsed ? updated.add(id) : updated.delete(id);
+          setExpanded(updated);
+        }}
+      >
+        {({ styles: css, data, handlers }) => (
+          <div
+            className={styles.item}
+            style={css.row}
+            role="row"
+            aria-selected={!!selected && selected === data.index}
+            onClick={(event) =>
+              data.index ? onSelect(data.index) : handlers.toggle(event)
+            }
           >
-            {({ styles: css, data, handlers }) => (
-              <div
-                className={styles.item}
-                style={css.row}
-                role="row"
-                aria-selected={!!selected && selected === data.index}
-                onClick={(event) =>
-                  data.index ? onSelect(data.index) : handlers.toggle(event)
+            <div style={css.indent}>
+              {(() => {
+                if (data.item) {
+                  return <FileCodeIcon />;
+                } else if (
+                  data.name.endsWith(".zip") ||
+                  data.name.endsWith(".tar.gz")
+                ) {
+                  return <FileZipIcon />;
+                } else if (expanded.has(data.id)) {
+                  return <ChevronDownIcon />;
+                } else {
+                  return <ChevronRightIcon />;
                 }
-              >
-                <div style={css.indent}>
-                  {(() => {
-                    if (data.item) {
-                      return <FileCodeIcon />;
-                    } else if (
-                      data.name.endsWith(".zip") ||
-                      data.name.endsWith(".tar.gz")
-                    ) {
-                      return <FileZipIcon />;
-                    } else if (expanded.has(data.id)) {
-                      return <ChevronDownIcon />;
-                    } else {
-                      return <ChevronRightIcon />;
-                    }
-                  })()}
-                  {data.name}
-                </div>
-              </div>
-            )}
-          </Tree>
+              })()}
+              {data.name}
+            </div>
+          </div>
         )}
-      </AnyAutoSizer>
+      </Tree>
     </div>
   );
 }

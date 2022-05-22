@@ -16,16 +16,12 @@
     "react-dom": "^18.1.0",
     "react-markdown": "^8.0.3",
     "react-router-dom": "^6.3.0",
-    "react-virtualized": "^9.22.3",
     "react-virtuoso": "^2.11.0",
     "remark-gfm": "^3.0.1",
     "unzipit": "^1.4.0"
   },
   "devDependencies": {
-    "@craco/craco": "^6.4.3",
-    "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.2.0",
-    "@testing-library/user-event": "^14.1.1",
     "@types/imurmurhash": "^0.1.1",
     "@types/jest": "^27.5.1",
     "@types/luxon": "^2.3.2",
@@ -36,21 +32,16 @@
     "@types/react-dom": "^18.0.4",
     "@types/react-virtualized": "^9.21.21",
     "@types/web": "^0.0.67",
+    "@vitejs/plugin-react": "^1.3.0",
     "colorjs.io": "^0.0.5",
-    "flow-bin": "^0.177.0",
-    "flow-types": "^1.0.0",
     "prettier": "^2.6.2",
-    "react-scripts": "5.0.1",
-    "typescript": "^4.6.4"
+    "typescript": "^4.6.4",
+    "vite": "^2.9.9"
   },
   "scripts": {
-    "start": "IMAGE_INLINE_SIZE_LIMIT=0 craco start",
-    "build": "IMAGE_INLINE_SIZE_LIMIT=0 craco build",
-    "postbuild": "prettier -w build/*.html",
-    "test": "craco test --env=./src/jestEnv.js",
-    "flow": "flow",
-    "lint": "eslint src/",
-    "eject": "react-scripts eject"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
   "browserslist": {
     "production": [
@@ -66,8 +57,7 @@
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
-      "react-app/jest"
+      "react-app"
     ],
     "rules": {
       "no-restricted-imports": [
@@ -80,10 +70,5 @@
       ],
       "no-sequences": "off"
     }
-  },
-  "jest": {
-    "transformIgnorePatterns": [
-      "node_modules/(?!react-markdown)/"
-    ]
   }
 }

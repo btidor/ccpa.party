@@ -1,6 +1,6 @@
 import React from "react";
 
-import styles from "components/Record.module.css";
+import styles from "@/components/Record.module.css";
 
 type Props = {
   time?: string;

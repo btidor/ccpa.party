@@ -1,9 +1,13 @@
 import { DateTime } from "luxon";
 
-import { getSlugAndDayTime, parseJSON } from "common/parse";
+import { getSlugAndDayTime, parseJSON } from "@/common/parse";
 
-import type { DataFile, TimelineContext, TimelineEntry } from "common/database";
-import type { Provider, TimelineCategory } from "common/provider";
+import type {
+  DataFile,
+  TimelineContext,
+  TimelineEntry,
+} from "@/common/database";
+import type { Provider, TimelineCategory } from "@/common/provider";
 
 const categories = {
   installed_apps_v2: "activity",

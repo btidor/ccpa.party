@@ -1,6 +1,6 @@
 import Color from "colorjs.io";
 
-import { ProviderRegistry } from "common/provider";
+import { ProviderRegistry } from "@/common/provider";
 
 test.each(ProviderRegistry)("neonColors are computed for $slug", (provider) => {
   const rec2020 = new Color(provider.brandColor)

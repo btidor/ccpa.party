@@ -2,7 +2,11 @@ import csv from "csvtojson";
 import MurmurHash3 from "imurmurhash";
 
 import type { IMinimatch } from "minimatch";
-import type { DataFile, TimelineContext, TimelineEntry } from "common/database";
+import type {
+  DataFile,
+  TimelineContext,
+  TimelineEntry,
+} from "@/common/database";
 
 export type Parser<T, U> =
   | {

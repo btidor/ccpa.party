@@ -5,9 +5,9 @@ import {
   deserialize,
   getCookie,
   setCookie,
-} from "common/util";
+} from "@/common/util";
 
-import type { Provider } from "common/provider";
+import type { Provider } from "@/common/provider";
 
 export type DataFileKey = {
   provider: string;

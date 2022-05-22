@@ -1,9 +1,9 @@
 import { DateTime } from "luxon";
 
-import { getSlugAndDayTime, parseJSON } from "common/parse";
+import { getSlugAndDayTime, parseJSON } from "@/common/parse";
 
-import type { DataFile, TimelineEntry } from "common/database";
-import type { Provider, TimelineCategory } from "common/provider";
+import type { DataFile, TimelineEntry } from "@/common/database";
+import type { Provider, TimelineCategory } from "@/common/provider";
 
 type CategoryKey = "activity" | "message";
 

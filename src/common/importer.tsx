@@ -2,10 +2,10 @@ import pako from "pako";
 import untar from "js-untar";
 import { unzip } from "unzipit";
 
-import { WritableDatabase } from "common/database";
+import { WritableDatabase } from "@/common/database";
 
-import type { DataFile } from "common/database";
-import type { Provider } from "common/provider";
+import type { DataFile } from "@/common/database";
+import type { Provider } from "@/common/provider";
 
 export const fileSizeLimitMB = 16;
 

@@ -1,4 +1,4 @@
-import styles from "components/Party.module.css";
+import styles from "@/components/Party.module.css";
 
 type Params = {
   // If true, apply neon blur effect.
