@@ -86,12 +86,26 @@ function FileTree(props: Props): JSX.Element {
   }, [items, selected, tree]);
   const [expanded, setExpanded] = React.useState(defaultExpandedSet);
 
+  // The react-arborist Tree requires an explicit height. Use ResizeObserver to
+  // track this for us.
+  const [height, setHeight] = React.useState(0);
+  const observer = React.useMemo(() => {
+    return new ResizeObserver((entries) =>
+      setHeight(entries[0]?.contentRect?.height || 0)
+    );
+  }, []);
+  const ref = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    observer.disconnect();
+    ref.current && observer.observe(ref.current);
+  }, [ref]);
+
   return (
-    <div className={styles.tree}>
+    <div className={styles.tree} ref={ref}>
       <Tree
         data={tree}
-        width={100 /* TODO */}
-        height={500}
+        width={"100%" as any}
+        height={height}
         indent={12}
         rowHeight={22}
         hideRoot
