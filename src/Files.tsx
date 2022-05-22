@@ -24,7 +24,7 @@ const FileParseAction = (props: {
   file: DataFile;
   provider: Provider<any>;
 }): JSX.Element | null =>
-  process.env.NODE_ENV === "development" ? (
+  import.meta.env.DEV ? (
     <div
       className={styles.action}
       onClick={() => {

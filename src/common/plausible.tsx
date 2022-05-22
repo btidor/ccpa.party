@@ -29,7 +29,7 @@ export default function plausible(): void {
     console.warn("Ignoring Event: " + reason);
   }
 
-  var endpoint = process.env.REACT_APP_PLAUSIBLE_ORIGIN;
+  var endpoint = import.meta.env.VITE_PLAUSIBLE_ORIGIN;
   if (!endpoint) return;
 
   if (
