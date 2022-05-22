@@ -61,7 +61,7 @@ export const ProviderRegistry: ReadonlyArray<Provider<any>> = [
   new Google(),
   new Netflix(),
   new Slack(),
-] as any;
+];
 
 export const ProviderLookup: ReadonlyMap<string, Provider<any>> = new Map<
   string,

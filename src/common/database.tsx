@@ -82,7 +82,7 @@ export class Database {
     this._errored = errored;
     this._state = new Promise((resolve) => {
       const support = [
-        !!(navigator as any).locks,
+        !!navigator.locks,
         !!window.indexedDB,
         !!window.crypto?.subtle,
       ];
@@ -90,7 +90,7 @@ export class Database {
         console.error("Browser not supported:", support);
         errored?.();
       } else {
-        (navigator as any).locks.request(dbInitLock, async () => {
+        navigator.locks.request(dbInitLock, async () => {
           const db = await this._initializeState();
           // If there's an error (db is undefined), the _state promise should
           // never resolve so that database operations hang, but we should still
@@ -335,7 +335,7 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
     const release = new Promise<void>(
       (resolve) => (this._releaseLock = resolve)
     );
-    (navigator as any).locks.request(dbWriteLock, () => release);
+    navigator.locks.request(dbWriteLock, () => release);
   }
 
   async _generateAndSaveKey(db: IDBDatabase): Promise<boolean> {
@@ -426,7 +426,7 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
     (await this.getTimelineEntries()).forEach((e) => deletes.add(e.iv));
     deletes.add((await this._rootIndex)[this._provider.slug]);
     deletes.delete(undefined);
-    await this._deletes(deletes as any);
+    await this._deletes(deletes as Set<string>);
 
     // Update root index
     const root = await this._rootIndex;
