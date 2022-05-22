@@ -1,15 +1,14 @@
-// @flow
-import * as React from "react";
+import React from "react";
 
 import styles from "components/DatePicker.module.css";
 
 import type { Entry, Group } from "components/TimelineRow";
 
-type Props = {|
-  +index: number,
-  +rows: ?$ReadOnlyArray<Entry | Group>,
-  +scrollToIndex: (number) => void,
-|};
+type Props = {
+  index: number,
+  rows: ReadonlyArray<Entry | Group> | void,
+  scrollToIndex: (index: number) => void,
+};
 
 const VerboseDateFormat = new Intl.DateTimeFormat("en-US", {
   weekday: "long",
@@ -18,10 +17,10 @@ const VerboseDateFormat = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 });
 
-function DatePicker(props: Props): React.Node {
+function DatePicker(props: Props): JSX.Element {
   const { index, rows, scrollToIndex } = props;
 
-  const ref = React.useRef<?HTMLInputElement>();
+  const ref = React.useRef<HTMLInputElement>(null);
 
   let inner;
   const row = rows?.[index];
@@ -32,7 +31,7 @@ function DatePicker(props: Props): React.Node {
       <React.Fragment>
         <label
           // $FlowFixMe[prop-missing]
-          onClick={() => ref.current?.showPicker?.()}
+          onClick={() => (ref.current as any)?.showPicker?.()}
         >
           {VerboseDateFormat.format(date)}
           <input
@@ -41,7 +40,7 @@ function DatePicker(props: Props): React.Node {
             defaultValue={row.day}
             onChange={(e) => {
               let target = 0;
-              for (const [index, item] of rows.entries()) {
+              for (const [index, item] of rows as any) {
                 if (!item.isGroup) continue;
                 if (item.day < e.target.value) break;
                 target = index;

@@ -1,5 +1,4 @@
-// @flow
-import * as React from "react";
+import React from "react";
 
 import { smartDecode, parseJSON } from "common/parse";
 
@@ -7,20 +6,20 @@ import Placeholder from "components/Placeholder";
 
 import styles from "components/FilePreview.module.css";
 
-type Props = {|
-  +children:
-    | void // show standard loading message
-    | string // show custom placeholder message
-    | BufferSource // display file (please also pass filename)
-    | { [string]: any }, // display JSON object
-  +filename?: string,
-|};
+type Props = {
+  children:
+  | void // show standard loading message
+  | string // show custom placeholder message
+  | ArrayBufferLike // display file (please also pass filename)
+  | { [key: string]: any; }, // display JSON object
+  filename?: string,
+};
 
 const decodeFailureMessage = "🥗 Unable to decode text";
 const emptyMessage = "🥛 File is empty";
 const unknownMessage = "😕 Unknown file type";
 
-function displayText(data: BufferSource): React.Node {
+function displayText(data: ArrayBufferLike): JSX.Element {
   try {
     const raw = smartDecode(data);
     if (/^\n*$/.test(raw)) return <Placeholder>{emptyMessage}</Placeholder>;
@@ -30,7 +29,7 @@ function displayText(data: BufferSource): React.Node {
   }
 }
 
-function displayFile(data: BufferSource, filename: string): React.Node {
+function displayFile(data: ArrayBufferLike, filename: string): JSX.Element {
   const ext = filename.includes(".")
     ? filename.split(".").slice(-1)[0]
     : undefined;
@@ -111,14 +110,14 @@ function displayFile(data: BufferSource, filename: string): React.Node {
   }
 }
 
-function FilePreview(props: Props): React.Node {
+function FilePreview(props: Props): JSX.Element {
   const { children, filename } = props;
 
   let node;
   if (children === undefined || typeof children === "string") {
-    node = <pre>{children}</pre>;
-  } else if (children instanceof ArrayBuffer || ArrayBuffer.isView(children)) {
-    node = displayFile((children: any), filename || "");
+    node = <pre>{children || undefined}</pre>;
+  } else if (children instanceof ArrayBuffer) {
+    node = displayFile(children, filename || "");
   } else {
     node = <pre>{JSON.stringify(children, undefined, 2)}</pre>;
   }

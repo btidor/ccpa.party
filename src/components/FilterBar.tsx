@@ -1,42 +1,41 @@
-// @flow
-import * as React from "react";
+import React from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 
 import styles from "components/FilterBar.module.css";
 
 import type { Provider } from "common/provider";
 
-type Props = {|
-  +filter: string | void,
-  +filterPath: (string) => string,
-  +provider: Provider<any>,
-|};
+type Props = {
+  filter: string | void,
+  filterPath: (path: string) => string,
+  provider: Provider<any>,
+};
 
-function FilterBar(props: Props): React.Node {
+function FilterBar(props: Props): JSX.Element | JSX.Element[] {
   const { filter, filterPath, provider } = props;
   const navigate = useNavigate();
 
   const validChars = React.useMemo(
     () =>
-      new Set([...provider.timelineCategories.values()].map((cat) => cat.char)),
+      new Set(Array.from(provider.timelineCategories.values()).map((cat) => cat.char)),
     [provider]
   );
 
   if (filter === undefined) {
     // Redirect `/timeline` to `/timeline:defaultCategories`
-    const defaultFilter = [...provider.timelineCategories.values()]
+    const defaultFilter = Array.from(provider.timelineCategories.values())
       .filter((cat) => cat.defaultEnabled)
       .map((cat) => cat.char)
       .join("");
     return <Navigate to={filterPath(defaultFilter)} replace />;
-  } else if ([...filter].some((ch) => !validChars.has(ch))) {
+  } else if (Array.from(filter).some((ch) => !validChars.has(ch))) {
     // Strip invalid categories from URL
-    const filteredFilter = [...filter]
+    const filteredFilter = Array.from(filter)
       .filter((ch) => validChars.has(ch))
       .join("");
     return <Navigate to={filterPath(filteredFilter)} replace />;
   } else {
-    return [...provider.timelineCategories.entries()].map(
+    return Array.from(provider.timelineCategories.entries()).map(
       ([slug, category]) => {
         const checked = filter.includes(category.char);
         return (
@@ -45,7 +44,7 @@ function FilterBar(props: Props): React.Node {
               type="checkbox"
               checked={checked}
               onChange={() => {
-                const newFilter = [...provider.timelineCategories.entries()]
+                const newFilter = Array.from(provider.timelineCategories.entries())
                   .filter(([islug, icat]) =>
                     islug === slug ? !checked : filter.includes(icat.char)
                   )

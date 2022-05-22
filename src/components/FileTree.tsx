@@ -1,5 +1,4 @@
-// @flow
-import * as React from "react";
+import React from "react";
 import { Tree } from "react-arborist";
 import { AutoSizer } from "react-virtualized";
 import {
@@ -13,28 +12,28 @@ import styles from "components/FileTree.module.css";
 
 import type { DataFileKey } from "common/database";
 
-type Props = {|
-  +items: $ReadOnlyArray<DataFileKey>,
-  +selected: ?number, // index into items
-  +onSelect: (number) => void,
-|};
+type Props = {
+  items: ReadonlyArray<DataFileKey>,
+  selected?: number, // index into items
+  onSelect: (id: number) => void,
+};
 
-type TreeNode = {|
+type TreeNode = {
   id: string,
   name: string,
   children: Array<TreeNode>,
   _childmap: Map<string, TreeNode>,
   item?: DataFileKey,
-  index?: string,
-|};
+  index?: number,
+};
 
-function fileListToTree(items: $ReadOnlyArray<DataFileKey>): TreeNode {
+function fileListToTree(items: ReadonlyArray<DataFileKey>): TreeNode {
   const fileTree = ({
     id: "",
     name: "",
     children: [],
     _childmap: new Map(),
-  }: TreeNode);
+  } as TreeNode);
   for (let i = 0; items && i < items.length; i++) {
     const item = items[i];
     let node = fileTree;
@@ -58,7 +57,7 @@ function fileListToTree(items: $ReadOnlyArray<DataFileKey>): TreeNode {
       children: [],
       _childmap: new Map(),
       item,
-      index: i.toString(),
+      index: i,
     };
     node.children.push(leaf);
     node._childmap.set(leaf.id, leaf);
@@ -66,15 +65,15 @@ function fileListToTree(items: $ReadOnlyArray<DataFileKey>): TreeNode {
   return fileTree;
 }
 
-function FileTree(props: Props): React.Node {
+function FileTree(props: Props): JSX.Element {
   const { items, onSelect, selected } = props;
 
   const tree = React.useMemo(() => fileListToTree(items), [items]);
 
-  const defaultExpandedSet = React.useMemo((): $ReadOnlySet<string> => {
+  const defaultExpandedSet = React.useMemo((): ReadonlySet<string> => {
     if (selected && items[selected]) {
       // Expand path to default file
-      const expanded = new Set();
+      const expanded = new Set<string>();
       let path = "";
       for (const part of items[selected].path) {
         path += "/" + part;
@@ -88,10 +87,11 @@ function FileTree(props: Props): React.Node {
   }, [items, selected, tree]);
   const [expanded, setExpanded] = React.useState(defaultExpandedSet);
 
+  const AnyAutoSizer = AutoSizer as any;
   return (
     <div className={styles.tree}>
-      <AutoSizer>
-        {({ width, height }) => (
+      <AnyAutoSizer>
+        {({ width, height }: { width: number, height: number; }) => (
           <Tree
             data={tree}
             width={width}
@@ -111,9 +111,9 @@ function FileTree(props: Props): React.Node {
                 className={styles.item}
                 style={css.row}
                 role="row"
-                aria-selected={selected && selected === data.index}
+                aria-selected={!!selected && selected === data.index}
                 onClick={(event) =>
-                  data.item ? onSelect(data.index) : handlers.toggle(event)
+                  data.index ? onSelect(data.index) : handlers.toggle(event)
                 }
               >
                 <div style={css.indent}>
@@ -137,7 +137,7 @@ function FileTree(props: Props): React.Node {
             )}
           </Tree>
         )}
-      </AutoSizer>
+      </AnyAutoSizer>
     </div>
   );
 }

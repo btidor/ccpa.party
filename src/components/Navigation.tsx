@@ -1,5 +1,4 @@
-// @flow
-import * as React from "react";
+import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import Logo from "components/Logo";
@@ -15,18 +14,16 @@ const links = [
   { label: "Files", to: "files" },
 ];
 
-type Props = {|
-  +provider: Provider<any>,
-  +pageSlug: string,
-|};
+type Props = {
+  provider: Provider<any>,
+  pageSlug: string,
+};
 
-function Navigation(props: Props): React.Node {
+function Navigation(props: Props): JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const { provider, pageSlug } = props;
-  const [providers, setProviders] = React.useState(
-    (undefined: ?$ReadOnlyArray<Provider<any>>)
-  );
+  const [providers, setProviders] = React.useState<ReadonlyArray<Provider<any>>>();
   const [epoch, setEpoch] = React.useState(0);
 
   React.useEffect(() => {

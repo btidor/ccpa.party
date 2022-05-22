@@ -1,14 +1,11 @@
-// @flow
-import * as React from "react";
-
 import styles from "components/Party.module.css";
 
-type Params = {|
+type Params = {
   // If true, apply neon blur effect.
   glow?: boolean,
-|};
+};
 
-function Party(params: Params): React.Node {
+function Party(params: Params): JSX.Element {
   const { glow } = params;
 
   // On Safari, enabling the glow effect makes the image very pixelated.

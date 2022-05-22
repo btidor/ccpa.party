@@ -1,41 +1,39 @@
-// @flow
 import { DateTime } from "luxon";
-import * as React from "react";
+import React from "react";
 
 import { ProviderScopedDatabase } from "common/database";
 import Record from "components/Record";
 
 import styles from "components/TimelineRow.module.css";
 
-import type { TimelineEntryKey } from "common/database";
+import type { TimelineEntryKey, TimelineEntry } from "common/database";
 import type { Provider } from "common/provider";
 
-export type Entry = $ReadOnly<{|
-  isGroup: false,
-  ...TimelineEntryKey<any>,
-  time: ?string,
-|}>;
+export type Entry = TimelineEntryKey<any> & {
+  isGroup: false;
+  time?: string;
+};
 
-export type Group = {|
-  isGroup: true,
-  +day: string,
-  +first?: boolean,
-|};
+export type Group = {
+  isGroup: true;
+  day: string;
+  first?: boolean;
+};
 
-type Props = {|
-  +db: ProviderScopedDatabase<any>,
-  +isLast: boolean,
-  +metadata: $ReadOnlyMap<string, any>,
-  +provider: Provider<any>,
-  +row: Entry | Group,
-  +selected: ?string,
-  +setSelected: (string) => any,
-|};
+type Props = {
+  db: ProviderScopedDatabase<any>;
+  isLast: boolean;
+  metadata: ReadonlyMap<string, any>;
+  provider: Provider<any>;
+  row: Entry | Group;
+  selected?: string;
+  setSelected: (selected: string) => any;
+};
 
-function TimelineRow(props: Props): React.Node {
+function TimelineRow(props: Props): JSX.Element {
   const { db, isLast, metadata, provider, row, selected, setSelected } = props;
 
-  const [hydrated, setHydrated] = React.useState();
+  const [hydrated, setHydrated] = React.useState<TimelineEntry<any> | void>();
   React.useEffect(() => {
     (async () => {
       if (row.isGroup) return;
@@ -72,10 +70,8 @@ function TimelineRow(props: Props): React.Node {
         <div className={styles.content}>
           {hydrated ? (
             (() => {
-              // $FlowFixMe[invalid-tuple-index]
-              // $FlowFixMe[incompatible-use]
               const [body, trailer, username] =
-                provider.render?.(hydrated, metadata) || hydrated.context;
+                (provider.render?.(hydrated, metadata) || hydrated.context as any);
               return (
                 <Record
                   time={row.time}
