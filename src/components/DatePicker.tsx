@@ -29,10 +29,7 @@ function DatePicker<T>(props: Props<T>): JSX.Element {
     const date = new Date(parts[0], parts[1] - 1, parts[2]);
     inner = (
       <React.Fragment>
-        <label
-          // $FlowFixMe[prop-missing]
-          onClick={() => (ref.current as any)?.showPicker?.()}
-        >
+        <label onClick={() => (ref.current as any)?.showPicker?.()}>
           {VerboseDateFormat.format(date)}
           <input
             type="date"
@@ -40,10 +37,12 @@ function DatePicker<T>(props: Props<T>): JSX.Element {
             defaultValue={row.day}
             onChange={(e) => {
               let target = 0;
-              for (const [index, item] of rows as any) {
+              let index = -1;
+              for (const item of rows) {
+                index++;
                 if (!item.isGroup) continue;
                 if (item.day < e.target.value) break;
-                target = index;
+                target = index + 1;
               }
               scrollToIndex(target);
             }}
