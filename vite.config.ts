@@ -12,6 +12,19 @@ export default defineConfig({
   resolve: {
     alias: [{ find: "@", replacement: path.resolve(__dirname, "src") }],
   },
+  server: {
+    headers: {
+      "Content-Security-Policy": [
+        "default-src 'self' 'unsafe-eval' 'unsafe-inline' blob: data:",
+        "object-src 'none'",
+        "base-uri 'none'",
+        "frame-ancestors 'none'",
+        "form-action 'none'",
+      ].join("; "),
+      "Cross-Origin-Embedder-Policy": "require-corp",
+      "Cross-Origin-Opener-Policy": "same-origin",
+    },
+  },
   test: {
     environment: "happy-dom",
     setupFiles: ["src/setupTests.tsx"],
