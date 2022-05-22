@@ -35,8 +35,9 @@ class AssetPathReplacementPlugin {
                 (match) => {
                   const asset = match.slice("%ASSET_URL%".length);
                   const url = stats.get(asset);
-                  if (!url)
-                    throw new Error("Could not resolve asset: " + asset);
+                  console.error(stats, url);
+                  if (!url) return match; // TODO
+                  // throw new Error("Could not resolve asset: " + asset);
                   return url;
                 }
               );

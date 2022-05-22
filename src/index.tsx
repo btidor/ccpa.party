@@ -10,13 +10,6 @@ import "index.css";
 import faviconSvg from "img/favicon.svg";
 import faviconDarkSvg from "img/favicon-dark.svg";
 
-// Tell Webpack to also emit these resources
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import _1 from "img/favicon.png";
-import _2 from "img/favicon-dark.png";
-import _3 from "img/logo.png";
-/* eslint-enable */
-
 const root = ReactDOMClient.createRoot(document.getElementById("root")!);
 root.render(
   <React.StrictMode>
