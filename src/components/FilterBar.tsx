@@ -5,19 +5,21 @@ import styles from "components/FilterBar.module.css";
 
 import type { Provider } from "common/provider";
 
-type Props = {
-  filter: string | void,
-  filterPath: (path: string) => string,
-  provider: Provider<any>,
+type Props<T> = {
+  filter: string | void;
+  filterPath: (path: string) => string;
+  provider: Provider<T>;
 };
 
-function FilterBar(props: Props): JSX.Element | JSX.Element[] {
+function FilterBar<T>(props: Props<T>): JSX.Element {
   const { filter, filterPath, provider } = props;
   const navigate = useNavigate();
 
   const validChars = React.useMemo(
     () =>
-      new Set(Array.from(provider.timelineCategories.values()).map((cat) => cat.char)),
+      new Set(
+        Array.from(provider.timelineCategories.values()).map((cat) => cat.char)
+      ),
     [provider]
   );
 
@@ -35,28 +37,34 @@ function FilterBar(props: Props): JSX.Element | JSX.Element[] {
       .join("");
     return <Navigate to={filterPath(filteredFilter)} replace />;
   } else {
-    return Array.from(provider.timelineCategories.entries()).map(
-      ([slug, category]) => {
-        const checked = filter.includes(category.char);
-        return (
-          <label className={styles.filter} key={slug}>
-            <input
-              type="checkbox"
-              checked={checked}
-              onChange={() => {
-                const newFilter = Array.from(provider.timelineCategories.entries())
-                  .filter(([islug, icat]) =>
-                    islug === slug ? !checked : filter.includes(icat.char)
-                  )
-                  .map(([_, icat]) => icat.char)
-                  .join("");
-                navigate(filterPath(newFilter));
-              }}
-            />
-            {category.displayName}
-          </label>
-        );
-      }
+    return (
+      <React.Fragment>
+        {Array.from(provider.timelineCategories.entries()).map(
+          ([slug, category]) => {
+            const checked = filter.includes(category.char);
+            return (
+              <label className={styles.filter} key={slug as any}>
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => {
+                    const newFilter = Array.from(
+                      provider.timelineCategories.entries()
+                    )
+                      .filter(([islug, icat]) =>
+                        islug === slug ? !checked : filter.includes(icat.char)
+                      )
+                      .map(([_, icat]) => icat.char)
+                      .join("");
+                    navigate(filterPath(newFilter));
+                  }}
+                />
+                {category.displayName}
+              </label>
+            );
+          }
+        )}
+      </React.Fragment>
     );
   }
 }

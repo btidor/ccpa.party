@@ -17,7 +17,7 @@ class Slack implements Provider<CategoryKey> {
   neonColor: string = "#f0f";
   neonColorHDR: string = "color(rec2020 0.92827 0.25757 1.11361)";
 
-  requestLink: { href: string, text: string; } = {
+  requestLink: { href: string; text: string } = {
     text: "Export Workspace Data",
     href: "https://slack.com/help/articles/201658943-Export-your-workspace-data",
   };
@@ -68,24 +68,24 @@ class Slack implements Provider<CategoryKey> {
     } else if (file.path[1] === "integration_logs.json") {
       return parseJSON(file.data).map(
         (log: any) =>
-        ({
-          file: file.path,
-          category: "integration",
-          ...getSlugAndDayTime(parseInt(log.date), log),
-          context: null,
-          value: log,
-        } as TimelineEntry<CategoryKey>)
+          ({
+            file: file.path,
+            category: "integration",
+            ...getSlugAndDayTime(parseInt(log.date), log),
+            context: null,
+            value: log,
+          } as TimelineEntry<CategoryKey>)
       );
     } else {
       return parseJSON(file.data).map(
         (message: any) =>
-        ({
-          file: file.path,
-          category: "message",
-          ...getSlugAndDayTime(parseInt(message.ts), message),
-          context: null,
-          value: message,
-        } as TimelineEntry<CategoryKey>)
+          ({
+            file: file.path,
+            category: "message",
+            ...getSlugAndDayTime(parseInt(message.ts), message),
+            context: null,
+            value: message,
+          } as TimelineEntry<CategoryKey>)
       );
     }
   }
@@ -93,10 +93,16 @@ class Slack implements Provider<CategoryKey> {
   render = (
     entry: TimelineEntry<CategoryKey>,
     metadata: ReadonlyMap<string, any>
-  ): [JSX.Element | void, string | void, { display: string, color?: string; } | void] => {
+  ): [
+    JSX.Element | void,
+    string | void,
+    { display: string; color?: string } | void
+  ] => {
     const message = entry.value;
-    const users: ReadonlyArray<{ id: string, profile: any, color?: string; }> = metadata.get("users");
-    const channels: ReadonlyArray<{ id: string, name: string; }> = metadata.get("channels");
+    const users: ReadonlyArray<{ id: string; profile: any; color?: string }> =
+      metadata.get("users");
+    const channels: ReadonlyArray<{ id: string; name: string }> =
+      metadata.get("channels");
 
     if (!users || !channels) throw new Error("Failed to load metadata");
 
@@ -129,8 +135,9 @@ class Slack implements Provider<CategoryKey> {
     if (entry.category === "integration") {
       let verb = message.change_type;
       if (verb === "wildcard_resource_grant_created") verb = "created";
-      trailer = `${verb} integration ${message.app_type || message.service_type
-        }`;
+      trailer = `${verb} integration ${
+        message.app_type || message.service_type
+      }`;
       if (channelName) trailer += ` in #${channelName}`;
     }
     let key = 0;
@@ -173,7 +180,8 @@ class Slack implements Provider<CategoryKey> {
         const user = users.find((x) => x.id === element.user_id);
         return [
           <Highlight key={key}>
-            @{user?.profile.display_name || user?.profile.real_name || "unknown"}
+            @
+            {user?.profile.display_name || user?.profile.real_name || "unknown"}
           </Highlight>,
         ];
       } else if (element.type === "channel") {

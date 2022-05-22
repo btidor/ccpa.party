@@ -15,7 +15,7 @@ class Netflix implements Provider<CategoryKey> {
   neonColor: string = "#ff0006";
   neonColorHDR: string = "color(rec2020 1.0185 0.26889 0.13682)";
 
-  requestLink: { href: string; text: string; } = {
+  requestLink: { href: string; text: string } = {
     text: "Get My Info",
     href: "https://www.netflix.com/account/getmyinfo",
   };
@@ -160,8 +160,8 @@ class Netflix implements Provider<CategoryKey> {
                 ? row["Thumbs Value"] === "1"
                   ? "Thumbs Down"
                   : row["Thumbs Value"] === "2"
-                    ? "Thumbs Up"
-                    : "Rated"
+                  ? "Thumbs Up"
+                  : "Rated"
                 : "Rated",
               row["Title Name"],
             ]
@@ -191,19 +191,19 @@ class Netflix implements Provider<CategoryKey> {
         return (await parseCSV(file.data)).flatMap((row: any) =>
           [
             row["Acct First Playback Date"] &&
-            entry(
-              row,
-              "account",
-              DateTime.fromISO(row["Acct First Playback Date"]),
-              ["Device Activated", row["Device Type"]]
-            ),
+              entry(
+                row,
+                "account",
+                DateTime.fromISO(row["Acct First Playback Date"]),
+                ["Device Activated", row["Device Type"]]
+              ),
             row["Deactivation Time"] &&
-            entry(
-              row,
-              "account",
-              DateTime.fromISO(row["Deactivation Time"]),
-              ["Device Deactivated", row["Device Type"]]
-            ),
+              entry(
+                row,
+                "account",
+                DateTime.fromISO(row["Deactivation Time"]),
+                ["Device Deactivated", row["Device Type"]]
+              ),
           ].filter((x) => x)
         );
       }
@@ -235,29 +235,29 @@ class Netflix implements Provider<CategoryKey> {
                 row["Channel"] === "EMAIL"
                   ? "Email"
                   : row["Channel"] === "NOTIFICATIONS"
-                    ? "In-App Notification"
-                    : row["Channel"] === "PUSH"
-                      ? "Push Notification"
-                      : "Notification",
+                  ? "In-App Notification"
+                  : row["Channel"] === "PUSH"
+                  ? "Push Notification"
+                  : "Notification",
                 row["Title Name"],
               ]
             ),
             row["Click Utc Ts"] &&
-            entry(
-              row,
-              "notification",
-              DateTime.fromSQL(row["Click Utc Ts"], { zone: "UTC" }),
-              [
-                (row["Channel"] === "EMAIL"
-                  ? "Email"
-                  : row["Channel"] === "NOTIFICATIONS"
+              entry(
+                row,
+                "notification",
+                DateTime.fromSQL(row["Click Utc Ts"], { zone: "UTC" }),
+                [
+                  (row["Channel"] === "EMAIL"
+                    ? "Email"
+                    : row["Channel"] === "NOTIFICATIONS"
                     ? "In-App Notification"
                     : row["Channel"] === "PUSH"
-                      ? "Push Notification"
-                      : "Notification") + " Click",
-                row["Title Name"],
-              ]
-            ),
+                    ? "Push Notification"
+                    : "Notification") + " Click",
+                  row["Title Name"],
+                ]
+              ),
           ])
           .filter((x) => x);
       }

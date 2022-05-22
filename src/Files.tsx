@@ -1,5 +1,4 @@
-// @flow
-import * as React from "react";
+import React from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { BeakerIcon, DesktopDownloadIcon } from "@primer/octicons-react";
 
@@ -16,16 +15,16 @@ import styles from "Drilldown.module.css";
 import type { DataFileKey, DataFile } from "common/database";
 import type { Provider } from "common/provider";
 
-type Props = {|
-  +provider: Provider<any>,
-  +selected?: number,
-|};
+type Props<T> = {
+  provider: Provider<T>;
+  selected: number | undefined;
+};
 
-const FileParseAction = (props: {|
-  +file: DataFile,
-  +provider: Provider<any>,
-|}): React.Node =>
-  process.env.NODE_ENV === "development" && (
+const FileParseAction = (props: {
+  file: DataFile;
+  provider: Provider<any>;
+}): JSX.Element | null =>
+  process.env.NODE_ENV === "development" ? (
     <div
       className={styles.action}
       onClick={() => {
@@ -37,9 +36,9 @@ const FileParseAction = (props: {|
     >
       <BeakerIcon />
     </div>
-  );
+  ) : null;
 
-const FileDownloadAction = (props: {| +file: DataFile |}): React.Node => (
+const FileDownloadAction = (props: { file: DataFile }): JSX.Element => (
   <a
     className={styles.action}
     download={props.file.path.slice(-1)[0]}
@@ -49,7 +48,7 @@ const FileDownloadAction = (props: {| +file: DataFile |}): React.Node => (
   </a>
 );
 
-function Files(props: Props): React.Node {
+function Files<T>(props: Props<T>): JSX.Element {
   const navigate = useNavigate();
   const { provider, selected } = props;
 
@@ -59,20 +58,18 @@ function Files(props: Props): React.Node {
     [epoch, provider]
   );
 
-  const [items, setItems] = React.useState(
-    (undefined: ?$ReadOnlyArray<DataFileKey>)
-  );
+  const [items, setItems] = React.useState<ReadonlyArray<DataFileKey>>();
   React.useEffect(() => {
     // When `provider` changes, immediately unset `items`. This prevents
     // components like FileTree from performing their initialization with
     // incorrect data (e.g. expanding the wrong root).
-    setItems();
+    setItems(undefined);
     (async () => {
       setItems(await db.getFiles());
     })();
   }, [db, provider]);
 
-  const [item, setItem] = React.useState((undefined: DataFile | void));
+  const [item, setItem] = React.useState<DataFile>();
   React.useEffect(() => {
     // When `items` or `selected` changes, *don't* immediately unset `item`.
     // Rather than flashing a loading message, we allow the previous item to
@@ -94,14 +91,19 @@ function Files(props: Props): React.Node {
   return (
     <div
       className={styles.outer}
-      style={{
-        "--neon-hex": props.provider.neonColor,
-        "--neon-hdr": props.provider.neonColorHDR,
-      }}
+      style={
+        {
+          "--neon-hex": props.provider.neonColor,
+          "--neon-hdr": props.provider.neonColorHDR,
+        } as React.CSSProperties
+      }
     >
       <Navigation provider={provider} pageSlug="files" />
       <main className={styles.drilldown}>
-        <div className={styles.container} style={{ "--left-width": "30vw" }}>
+        <div
+          className={styles.container}
+          style={{ "--left-width": "30vw" } as React.CSSProperties}
+        >
           <div className={styles.left}>
             <div className={styles.bar}></div>
             <div className={styles.box}>

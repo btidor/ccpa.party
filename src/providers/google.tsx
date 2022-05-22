@@ -17,7 +17,7 @@ class Google implements Provider<CategoryKey> {
   neonColor: string = "#00c300";
   neonColorHDR: string = "color(rec2020 0.1856 0.71527 0.06415)";
 
-  requestLink: { href: string, text: string; } = {
+  requestLink: { href: string; text: string } = {
     text: "Google Takeout",
     href: "https://takeout.google.com/",
   };
@@ -93,10 +93,10 @@ class Google implements Provider<CategoryKey> {
       transform: (item) =>
         item.last_modified_by_me
           ? [
-            "activity",
-            DateTime.fromISO(item.last_modified_by_me),
-            [`Edited "${item.title}"`, "Google Drive"],
-          ]
+              "activity",
+              DateTime.fromISO(item.last_modified_by_me),
+              [`Edited "${item.title}"`, "Google Drive"],
+            ]
           : undefined,
     },
   ];

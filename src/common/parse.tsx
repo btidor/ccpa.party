@@ -6,17 +6,17 @@ import type { DataFile, TimelineContext, TimelineEntry } from "common/database";
 
 export type Parser<T, U> =
   | {
-    type?: void; // timeline, the default
-    glob: IMinimatch;
-    tokenize: (data: ArrayBufferLike | string) => U;
-    transform: (item: U) => [T, any, TimelineContext] | void;
-  }
+      type?: void; // timeline, the default
+      glob: IMinimatch;
+      tokenize: (data: ArrayBufferLike | string) => U;
+      transform: (item: U) => [T, any, TimelineContext] | void;
+    }
   | {
-    type: "metadata";
-    glob: IMinimatch;
-    tokenize: (data: ArrayBufferLike | string) => U;
-    transform: (item: U) => [string, any];
-  };
+      type: "metadata";
+      glob: IMinimatch;
+      tokenize: (data: ArrayBufferLike | string) => U;
+      transform: (item: U) => [string, any];
+    };
 
 const printableRegExp =
   // U+F8FF is the Apple logo on macOS
@@ -37,7 +37,7 @@ export function parseJSON(
   data: ArrayBufferLike | string,
   // Use `smart: true` to try UTF-8 double-decoding everything. (Incurs a ~5x
   // slowdown).
-  opts?: { smart?: boolean; }
+  opts?: { smart?: boolean }
 ): any {
   let text;
   if (typeof data === "string") text = data;
@@ -58,7 +58,7 @@ export function parseJSON(
 
 export function parseJSONND(
   data: ArrayBufferLike | string,
-  opts?: { smart?: boolean; }
+  opts?: { smart?: boolean }
 ): Array<any> {
   let text;
   if (typeof data === "string") text = data;
@@ -72,7 +72,7 @@ export function parseJSONND(
 
 export async function parseCSV(
   data: ArrayBufferLike | string
-): Promise<ReadonlyArray<{ [key: string]: string; }>> {
+): Promise<ReadonlyArray<{ [key: string]: string }>> {
   let text;
   if (typeof data === "string") text = data;
   else text = smartDecode(data);

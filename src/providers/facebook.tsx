@@ -110,7 +110,7 @@ class Facebook implements Provider<CategoryKey> {
   neonColor: string = "#009eff";
   neonColorHDR: string = "color(rec2020 0.12623 0.5874 1.52179)";
 
-  requestLink: { href: string; text: string; } = {
+  requestLink: { href: string; text: string } = {
     text: "Download Your Information",
     href: "https://www.facebook.com/ccpa/download_your_information/",
   };

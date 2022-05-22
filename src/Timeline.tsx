@@ -1,6 +1,5 @@
-// @flow
 import { DateTime } from "luxon";
-import * as React from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 
@@ -15,16 +14,17 @@ import TimelineRow from "components/TimelineRow";
 
 import styles from "Drilldown.module.css";
 
+import type { TimelineEntryKey, TimelineEntry } from "common/database";
 import type { Provider } from "common/provider";
 import type { Entry, Group } from "components/TimelineRow";
 
-type Props = {|
-  +provider: Provider<any>,
-  +filter?: string,
-  +selected?: string,
-|};
+type Props<T> = {
+  provider: Provider<T>;
+  filter?: string;
+  selected?: string;
+};
 
-function Timeline(props: Props): React.Node {
+function Timeline<T>(props: Props<T>): JSX.Element {
   const { provider, filter, selected } = props;
   const navigate = useNavigate();
   const [epoch, setEpoch] = React.useState(0);
@@ -38,9 +38,9 @@ function Timeline(props: Props): React.Node {
   const selectedCategories = React.useMemo(
     () =>
       new Set(
-        (filter ? [...filter] : []).map(
+        Array.from(filter || []).map(
           (ch) =>
-            [...provider.timelineCategories.entries()].find(
+            Array.from(provider.timelineCategories.entries()).find(
               ([slug, category]) => category.char === ch
             )?.[0]
         )
@@ -50,14 +50,14 @@ function Timeline(props: Props): React.Node {
 
   // Load *all* timeline entries from the database (unhydrated: these are just
   // the keys), as well as the provider-specific metadata.
-  const [entries, setEntries] = React.useState();
-  const [metadata, setMetadata] = React.useState();
+  const [entries, setEntries] = React.useState<TimelineEntryKey<T>[]>();
+  const [metadata, setMetadata] = React.useState<ReadonlyMap<string, any>>();
   React.useEffect(() => {
     // When `provider` changes, immediately unset `entries` and `metadata`. This
     // prevents downstream components from performing their initialization with
     // incorrect data.
-    setEntries();
-    setMetadata();
+    setEntries(undefined);
+    setMetadata(undefined);
     (async () => {
       const entries = await db.getTimelineEntries();
       entries.reverse(); // sort in descending order by timestamp/slug
@@ -89,7 +89,7 @@ function Timeline(props: Props): React.Node {
       const filtered = entries.filter((entry) =>
         selectedCategories.has(entry.category)
       );
-      const rows = ([]: Array<Entry | Group>);
+      const rows = [] as Array<Entry<T> | Group>;
       let lastGroup;
       let lastTime;
       for (const entry of filtered) {
@@ -102,9 +102,9 @@ function Timeline(props: Props): React.Node {
           lastGroup = entry.day;
           lastTime = undefined;
         }
-        let time = DateTime.fromSeconds(entry.timestamp).toLocaleString(
-          DateTime.TIME_24_SIMPLE
-        );
+        let time: string | undefined = DateTime.fromSeconds(
+          entry.timestamp
+        ).toLocaleString(DateTime.TIME_24_SIMPLE);
         lastTime === time ? (time = undefined) : (lastTime = time);
         rows.push({ ...entry, time, isGroup: false });
       }
@@ -114,7 +114,7 @@ function Timeline(props: Props): React.Node {
 
   // Hydrate the currently-selected entry from the database. We have to
   // recompute this every time the selected entry changes.
-  const [selectedEntry, setSelectedEntry] = React.useState();
+  const [selectedEntry, setSelectedEntry] = React.useState<TimelineEntry<T>>();
   React.useEffect(() => {
     // When the dependencies change, *don't* immediately unset `selectedEntry`.
     // This would cause the loading message to appear briefly; instead, we allow
@@ -133,7 +133,7 @@ function Timeline(props: Props): React.Node {
           navigate(`/${provider.slug}/timeline:${filter}`, { replace: true });
         }
       }
-      setSelectedEntry(drilldownItem);
+      setSelectedEntry(drilldownItem || undefined);
     })();
   }, [db, filter, navigate, provider, selected, selectedCategories]);
 
@@ -157,14 +157,19 @@ function Timeline(props: Props): React.Node {
   return (
     <div
       className={styles.outer}
-      style={{
-        "--neon-hex": props.provider.neonColor,
-        "--neon-hdr": props.provider.neonColorHDR,
-      }}
+      style={
+        {
+          "--neon-hex": props.provider.neonColor,
+          "--neon-hdr": props.provider.neonColorHDR,
+        } as React.CSSProperties
+      }
     >
       <Navigation provider={provider} pageSlug="timeline" />
       <main className={styles.drilldown}>
-        <div className={styles.container} style={{ "--left-width": "60vw" }}>
+        <div
+          className={styles.container}
+          style={{ "--left-width": "60vw" } as React.CSSProperties}
+        >
           <div className={styles.left}>
             <div className={styles.bar}>
               <FilterBar

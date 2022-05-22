@@ -9,11 +9,11 @@ import Home from "Home";
 import Request from "Request";
 
 type Props = {
-  children: JSX.Element,
+  children: JSX.Element;
 };
 
 type State = {
-  hasError: boolean,
+  hasError: boolean;
 };
 
 class ErrorBoundary extends React.Component<Props, State> {
@@ -111,7 +111,9 @@ function App(): JSX.Element {
             if (pageSlug === "files") {
               // URL: `/:provider/files(@selected)?`
               if (matches[2]) return do404();
-              let selected = !!matches[3] ? matches[3].slice(1) : undefined;
+              let selected = !!matches[3]
+                ? parseInt(matches[3].slice(1))
+                : undefined;
               return <Files provider={provider} selected={selected} />;
             } else if (pageSlug === "timeline") {
               // URL: `/:provider/timeline(:filter)?(@selected)?`

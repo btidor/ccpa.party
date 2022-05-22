@@ -8,11 +8,11 @@ import styles from "components/FilePreview.module.css";
 
 type Props = {
   children:
-  | void // show standard loading message
-  | string // show custom placeholder message
-  | ArrayBufferLike // display file (please also pass filename)
-  | { [key: string]: any; }, // display JSON object
-  filename?: string,
+    | void // show standard loading message
+    | string // show custom placeholder message
+    | ArrayBufferLike // display file (please also pass filename)
+    | { [key: string]: any }; // display JSON object
+  filename?: string;
 };
 
 const decodeFailureMessage = "🥗 Unable to decode text";

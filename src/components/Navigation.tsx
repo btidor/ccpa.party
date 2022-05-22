@@ -14,16 +14,17 @@ const links = [
   { label: "Files", to: "files" },
 ];
 
-type Props = {
-  provider: Provider<any>,
-  pageSlug: string,
+type Props<T> = {
+  provider: Provider<T>;
+  pageSlug: string;
 };
 
-function Navigation(props: Props): JSX.Element {
+function Navigation<T>(props: Props<T>): JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const { provider, pageSlug } = props;
-  const [providers, setProviders] = React.useState<ReadonlyArray<Provider<any>>>();
+  const [providers, setProviders] =
+    React.useState<ReadonlyArray<Provider<T>>>();
   const [epoch, setEpoch] = React.useState(0);
 
   React.useEffect(() => {

@@ -1,5 +1,4 @@
-// @flow
-import * as React from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { TrashIcon } from "@primer/octicons-react";
 
@@ -12,15 +11,17 @@ import styles from "Request.module.css";
 
 import type { Provider } from "common/provider";
 
-type Props = {|
-  +provider: Provider<any>,
-|};
+type Props<T> = {
+  provider: Provider<T>;
+};
 
-function Request(props: Props): React.Node {
+type Display = "explore" | "import" | "pending" | "error";
+
+function Request<T>(props: Props<T>): JSX.Element {
   const { provider } = props;
 
-  const [db, setDb] = React.useState();
-  const [display, setDisplay] = React.useState();
+  const [db, setDb] = React.useState<ProviderScopedDatabase<T>>();
+  const [display, setDisplay] = React.useState<Display>();
   const [epoch, setEpoch] = React.useState(0);
   const [errors, setErrors] = React.useState(0);
   React.useEffect(
@@ -45,24 +46,24 @@ function Request(props: Props): React.Node {
     })();
   }, [db, provider]);
 
-  React.useEffect(() => {});
-
-  const fileHandler = (event) => (
-    setDisplay("pending"),
-    importFiles(provider, event.target.files, () => setEpoch(epoch + 1))
-  );
-  const resetHandler = (event) => (
+  const fileHandler: React.ChangeEventHandler<HTMLInputElement> = (event) =>
+    event.target.files &&
+    (setDisplay("pending"),
+    importFiles(provider, event.target.files, () => setEpoch(epoch + 1)));
+  const resetHandler: React.ChangeEventHandler<any> = () => (
     setDisplay("pending"), resetProvider(provider, () => setEpoch(epoch + 1))
   );
 
-  const inputRef = React.useRef<?HTMLInputElement>();
+  const inputRef = React.useRef<HTMLInputElement>(null);
   return (
     <main
       className={styles.request}
-      style={{
-        "--neon-hex": provider.neonColor,
-        "--neon-hdr": provider.neonColorHDR,
-      }}
+      style={
+        {
+          "--neon-hex": provider.neonColor,
+          "--neon-hdr": provider.neonColorHDR,
+        } as React.CSSProperties
+      }
     >
       {/* HACK: place extra <div>s so that vertical spacing gets distriuted
           in a 2:3 ratio above/below the <section> */}

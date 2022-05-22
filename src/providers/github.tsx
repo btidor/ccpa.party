@@ -15,7 +15,7 @@ class GitHub implements Provider<CategoryKey> {
   neonColor: string = "#bd65ff";
   neonColorHDR: string = "color(rec2020 0.69493 0.4398 1.36255)";
 
-  requestLink: { href: string, text: string; } = {
+  requestLink: { href: string; text: string } = {
     text: "Account Settings",
     href: "https://github.com/settings/admin",
   };
@@ -119,7 +119,7 @@ class GitHub implements Provider<CategoryKey> {
             return undefined;
           }
 
-          return ({
+          return {
             file: file.path,
             category,
             ...getSlugAndDayTime(
@@ -128,7 +128,7 @@ class GitHub implements Provider<CategoryKey> {
             ),
             context: [title, trailer],
             value: item,
-          });
+          };
         })
         .filter((x?: TimelineEntry<CategoryKey>) => x);
     }

@@ -1,7 +1,7 @@
 import styles from "components/Placeholder.module.css";
 
 type Props = {
-  children?: string,
+  children?: string;
 };
 
 const loadingMessage = "📊 Loading...";

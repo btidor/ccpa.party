@@ -10,13 +10,13 @@ import type { Provider } from "common/provider";
 export const fileSizeLimitMB = 16;
 
 type ImportFile = {
-  path: ReadonlyArray<string>,
-  data: () => Promise<ArrayBufferLike>,
+  path: ReadonlyArray<string>;
+  data: () => Promise<ArrayBufferLike>;
 };
 
-export async function importFiles(
-  provider: Provider<any>,
-  files: ReadonlyArray<File>,
+export async function importFiles<T>(
+  provider: Provider<T>,
+  files: FileList,
   terminated: () => void
 ) {
   const start = new Date().getTime();
@@ -40,23 +40,23 @@ export async function importFiles(
       path.slice(-1)[0].endsWith(".zip") ||
       path.slice(-1)[0].endsWith(".tar.gz")
     ) {
-      return ({ path, data: () => Promise.resolve(data) });
+      return { path, data: () => Promise.resolve(data) };
     } else if (data.byteLength > (2 << 20) * fileSizeLimitMB) {
-      const dataFile = ({
+      const dataFile = {
         provider: provider.slug,
         path,
         data: new ArrayBuffer(0),
         skipped: "tooLarge",
-      } as DataFile);
+      } as DataFile;
       db.putFile(dataFile);
       return;
     } else {
-      const dataFile = ({
+      const dataFile = {
         provider: provider.slug,
         path,
         data,
         skipped: undefined,
-      });
+      };
       db.putFile(dataFile);
       try {
         (await provider.parse(dataFile, metadata)).forEach((entry) =>
@@ -73,7 +73,7 @@ export async function importFiles(
   for (const { path, data } of work) {
     if (path.slice(-1)[0].endsWith(".zip")) {
       const zip = await unzip(await data());
-      for (const entry of (Object.values(zip.entries || []))) {
+      for (const entry of Object.values(zip.entries || [])) {
         if (entry.isDirectory) continue;
         const subpath = [
           ...path,
@@ -107,8 +107,8 @@ export async function importFiles(
   console.warn(`Total Time: ${(new Date().getTime() - start) / 1000}s`);
 }
 
-export async function resetProvider(
-  provider: Provider<any>,
+export async function resetProvider<T>(
+  provider: Provider<T>,
   terminated: () => void
 ) {
   const db = new WritableDatabase(provider, terminated);

@@ -20,7 +20,7 @@ class Apple implements Provider<CategoryKey> {
   neonColor: string = "#e08800";
   neonColorHDR: string = "color(rec2020 0.75646 0.54656 -0.09204)";
 
-  requestLink: { href: string, text: string; } = {
+  requestLink: { href: string; text: string } = {
     text: "Data and Privacy",
     href: "https://privacy.apple.com/",
   };
@@ -132,9 +132,9 @@ class Apple implements Provider<CategoryKey> {
             [
               "Latest Sign-on",
               row["Application"] +
-              (row["IP Address"] !== "N/A"
-                ? ` from ${row["IP Address"]}`
-                : ""),
+                (row["IP Address"] !== "N/A"
+                  ? ` from ${row["IP Address"]}`
+                  : ""),
             ]
           )
         );
@@ -157,13 +157,13 @@ class Apple implements Provider<CategoryKey> {
             (row["Preference"] === "LOVE"
               ? "Loved"
               : row["Preference"] === "DISLIKE"
-                ? "Disliked"
-                : "Marked") + " Track",
+              ? "Disliked"
+              : "Marked") + " Track",
             row["Item Description"],
           ])
         );
       } else if (file.path.slice(-1)[0] === "Apple Music Play Activity.csv") {
-        return ((await parseCSV(file.data))
+        return (await parseCSV(file.data))
           .map(
             (row) =>
               row["Song Name"] &&
@@ -177,13 +177,13 @@ class Apple implements Provider<CategoryKey> {
                   row["Event Type"] === "PLAY_END"
                     ? "Played Track"
                     : row["Event Type"] === "LYRIC_DISPLAY"
-                      ? "Viewed Lyrics"
-                      : "Media Event",
+                    ? "Viewed Lyrics"
+                    : "Media Event",
                   row["Song Name"],
                 ]
               )
           )
-          .filter((x): x is TimelineEntry<CategoryKey> => !!x));
+          .filter((x): x is TimelineEntry<CategoryKey> => !!x);
       } else if (
         file.path.slice(-1)[0] ===
         "Customer Device History - Computer Authorizations.csv"
@@ -218,9 +218,10 @@ class Apple implements Provider<CategoryKey> {
       } else if (file.path.slice(-1)[0] === "Store Transaction History.csv") {
         return (await parseCSV(file.data)).map((row) =>
           entry(row, "account", DateTime.fromISO(row["Item Purchased Date"]), [
-            `Purchased ${row["Content Type"].includes("Apps")
-              ? "App"
-              : row["Content Type"].endsWith("s")
+            `Purchased ${
+              row["Content Type"].includes("Apps")
+                ? "App"
+                : row["Content Type"].endsWith("s")
                 ? row["Content Type"].slice(0, -1)
                 : row["Content Type"]
             }`,
@@ -246,7 +247,7 @@ class Apple implements Provider<CategoryKey> {
         file.path.slice(-1)[0] === "Apple Music Click Activity.csv" ||
         file.path.slice(-1)[0] === "Apps And Service Analytics.csv" ||
         file.path.slice(-1)[0] ===
-        "TV App with Channel Support Click Activity.csv"
+          "TV App with Channel Support Click Activity.csv"
       ) {
         return (await parseCSV(file.data)).map((row) => {
           let type = row["Event Type"];
@@ -499,8 +500,9 @@ class Apple implements Provider<CategoryKey> {
           return Array.from(root.children).map((item) => {
             const keys = item.getElementsByTagName("key");
             const name = keys[0]?.innerHTML;
-            const added = Array.from(keys).find((k) => k.innerHTML === "added_at")
-              ?.nextElementSibling?.innerHTML!;
+            const added = Array.from(keys).find(
+              (k) => k.innerHTML === "added_at"
+            )?.nextElementSibling?.innerHTML!;
             return entry(
               item.innerHTML,
               "icloud",

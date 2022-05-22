@@ -9,7 +9,7 @@ import styles from "components/TimelineRow.module.css";
 import type { TimelineEntryKey, TimelineEntry } from "common/database";
 import type { Provider } from "common/provider";
 
-export type Entry = TimelineEntryKey<any> & {
+export type Entry<T> = TimelineEntryKey<T> & {
   isGroup: false;
   time?: string;
 };
@@ -20,20 +20,20 @@ export type Group = {
   first?: boolean;
 };
 
-type Props = {
-  db: ProviderScopedDatabase<any>;
+type Props<T> = {
+  db: ProviderScopedDatabase<T>;
   isLast: boolean;
   metadata: ReadonlyMap<string, any>;
-  provider: Provider<any>;
-  row: Entry | Group;
+  provider: Provider<T>;
+  row: Entry<T> | Group;
   selected?: string;
   setSelected: (selected: string) => any;
 };
 
-function TimelineRow(props: Props): JSX.Element {
+function TimelineRow<T>(props: Props<T>): JSX.Element {
   const { db, isLast, metadata, provider, row, selected, setSelected } = props;
 
-  const [hydrated, setHydrated] = React.useState<TimelineEntry<any> | void>();
+  const [hydrated, setHydrated] = React.useState<TimelineEntry<T> | void>();
   React.useEffect(() => {
     (async () => {
       if (row.isGroup) return;
@@ -71,7 +71,8 @@ function TimelineRow(props: Props): JSX.Element {
           {hydrated ? (
             (() => {
               const [body, trailer, username] =
-                (provider.render?.(hydrated, metadata) || hydrated.context as any);
+                provider.render?.(hydrated, metadata) ||
+                (hydrated.context as any);
               return (
                 <Record
                   time={row.time}

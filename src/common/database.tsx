@@ -10,33 +10,33 @@ import {
 import type { Provider } from "common/provider";
 
 export type DataFileKey = {
-  provider: string,
-  path: ReadonlyArray<string>,
-  skipped: "tooLarge" | void,
-  iv?: string,
+  provider: string;
+  path: ReadonlyArray<string>;
+  skipped: "tooLarge" | void;
+  iv?: string;
 };
 
-export type DataFile = DataFileKey & { data: ArrayBufferLike; };
+export type DataFile = DataFileKey & { data: ArrayBufferLike };
 
 export type TimelineEntryKey<T> = {
-  day: string,
-  timestamp: number,
-  slug: string,
-  category: T,
-  iv?: string,
-  offset?: number,
+  day: string;
+  timestamp: number;
+  slug: string;
+  category: T;
+  iv?: string;
+  offset?: number;
 };
 
 export type TimelineContext =
   | null
   | [string]
   | [string, string | void]
-  | [string, string | void, { display: string, color?: string; } | void];
+  | [string, string | void, { display: string; color?: string } | void];
 
 export type TimelineEntry<T> = TimelineEntryKey<T> & {
-  file: ReadonlyArray<string>,
-  context: TimelineContext,
-  value: { [key: string]: any; },
+  file: ReadonlyArray<string>;
+  context: TimelineContext;
+  value: { [key: string]: any };
 };
 
 const dbName = "ccpa.party";
@@ -59,16 +59,16 @@ const keyUsages: KeyUsage[] = ["encrypt", "decrypt"];
 // browsers (because the per-put overhead is so high). :(
 const batchSize = 250;
 
-type RootIndex = { [key: string]: string; }; // provider slug -> iv
+type RootIndex = { [key: string]: string }; // provider slug -> iv
 
 type ProviderIndex = {
-  files: Array<DataFileKey>,
-  metadata: Array<[string, any]>,
-  timeline: Array<[string, number, string, number, string, string]>,
-  errors?: number,
+  files: Array<DataFileKey>;
+  metadata: Array<[string, any]>;
+  timeline: Array<[string, number, string, number, string, string]>;
+  errors?: number;
 };
 
-type AsyncState = { db: IDBDatabase, key: any; };
+type AsyncState = { db: IDBDatabase; key: any };
 
 export class Database {
   _terminated: () => void;
@@ -86,7 +86,7 @@ export class Database {
         !!window.indexedDB,
         !!window.crypto?.subtle,
       ];
-      if (!support.every(x => x)) {
+      if (!support.every((x) => x)) {
         console.error("Browser not supported:", support);
         errored?.();
       } else {
@@ -198,7 +198,7 @@ export class Database {
 
   async _get(
     k: string,
-    opts?: { binary?: boolean, named?: boolean; }
+    opts?: { binary?: boolean; named?: boolean }
   ): Promise<any> {
     const state = await this._state;
     if (!state) return; // failed to initialize, treat as empty database
@@ -257,7 +257,7 @@ export class ProviderScopedDatabase<T> extends Database {
     return (await this._providerIndex).files;
   }
 
-  async hydrateFile(file: DataFileKey): Promise<DataFile | void> {
+  async hydrateFile(file: DataFileKey): Promise<DataFile | undefined> {
     if (!file.iv) throw new Error("DataFileKey is missing IV");
     if (file.skipped) return { ...file, data: new ArrayBuffer(0) };
     const data = await this._get(file.iv, { binary: true });
@@ -275,7 +275,7 @@ export class ProviderScopedDatabase<T> extends Database {
         day,
         timestamp,
         slug,
-        category: (category as any),
+        category: category as any,
         iv,
         offset,
       })
@@ -309,7 +309,7 @@ export class ProviderScopedDatabase<T> extends Database {
       day,
       timestamp,
       slug: s,
-      category: (category as any),
+      category: category as any,
       iv,
       offset,
     });
@@ -318,13 +318,13 @@ export class ProviderScopedDatabase<T> extends Database {
 
 export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
   _additions: {
-    files: Array<DataFile>,
-    metadata: Map<string, any>,
-    timeline: Array<TimelineEntry<T>>,
-    timelineDedup: Set<string>,
+    files: Array<DataFile>;
+    metadata: Map<string, any>;
+    timeline: Array<TimelineEntry<T>>;
+    timelineDedup: Set<string>;
   };
 
-  constructor(provider: Provider<any>, terminated: () => void) {
+  constructor(provider: Provider<T>, terminated: () => void) {
     super(provider, terminated);
     this._additions = {
       files: [],
@@ -332,8 +332,8 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
       timeline: [],
       timelineDedup: new Set(),
     };
-    const release = new Promise<void>((resolve) =>
-      this._releaseLock = resolve
+    const release = new Promise<void>(
+      (resolve) => (this._releaseLock = resolve)
     );
     (navigator as any).locks.request(dbWriteLock, () => release);
   }
@@ -373,7 +373,8 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
     metadataIndex.sort();
 
     // Write timeline entries and compute index
-    const workingIndex: [string | void, number, string, number, string, T][][] = [];
+    const workingIndex: [string | void, number, string, number, string, T][][] =
+      [];
     const writeQueue = [];
     for (let i = 0; i < this._additions.timeline.length; i += batchSize) {
       const batch = this._additions.timeline.slice(i, i + batchSize);
@@ -480,7 +481,7 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
 
   async _puts(
     data: ReadonlyArray<any>,
-    opts?: { binary?: boolean; }
+    opts?: { binary?: boolean }
   ): Promise<Array<string>> {
     const state = await this._state;
     if (!state) throw new Error("Writing to closed database");
@@ -541,4 +542,4 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
       this._additions.timelineDedup.add(entry.slug);
     }
   }
-};
+}

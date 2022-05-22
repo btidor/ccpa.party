@@ -1,6 +1,5 @@
-// @flow
-import * as React from "react";
-import * as ReactDOMClient from "react-dom/client";
+import React from "react";
+import ReactDOMClient from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
 import App from "App";
@@ -12,13 +11,13 @@ import faviconSvg from "img/favicon.svg";
 import faviconDarkSvg from "img/favicon-dark.svg";
 
 // Tell Webpack to also emit these resources
-/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import _1 from "img/favicon.png";
 import _2 from "img/favicon-dark.png";
 import _3 from "img/logo.png";
 /* eslint-enable */
 
-const root = ReactDOMClient.createRoot(document.getElementById("root"));
+const root = ReactDOMClient.createRoot(document.getElementById("root")!);
 root.render(
   <React.StrictMode>
     <BrowserRouter>
@@ -42,7 +41,7 @@ const swapIcons = () => {
   const head = document.head;
   if (!head) return;
 
-  const links = [...(head.getElementsByTagName("link") || [])];
+  const links = Array.from(head.getElementsByTagName("link"));
   links.find((x) => x.rel === "icon")?.remove();
 
   if (dark.matches) {

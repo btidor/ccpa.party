@@ -2,7 +2,7 @@ import styles from "components/Party.module.css";
 
 type Params = {
   // If true, apply neon blur effect.
-  glow?: boolean,
+  glow?: boolean;
 };
 
 function Party(params: Params): JSX.Element {

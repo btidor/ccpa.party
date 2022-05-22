@@ -21,7 +21,7 @@ class Discord implements Provider<CategoryKey> {
   neonColor: string = "#4087ff";
   neonColorHDR: string = "color(rec2020 0.4889 0.52224 1.46496)";
 
-  requestLink: { href: string; text: string; } = {
+  requestLink: { href: string; text: string } = {
     text: "Discord",
     href: "https://discord.com/app",
   };
@@ -108,8 +108,10 @@ class Discord implements Provider<CategoryKey> {
     return await parseByStages(file, metadata, this.parsers);
   }
 
-  render = (entry: TimelineEntry<CategoryKey>,
-    metadata: ReadonlyMap<string, any>): [JSX.Element, string | void] => {
+  render = (
+    entry: TimelineEntry<CategoryKey>,
+    metadata: ReadonlyMap<string, any>
+  ): [JSX.Element, string | void] => {
     let body, trailer;
     if (entry.category === "activity") {
       const channel = metadata.get(
@@ -140,12 +142,13 @@ class Discord implements Provider<CategoryKey> {
             return "`&unknown`";
           } else if (type === "#") {
             const channel = metadata.get(`channel.${snowflake}`);
-            return `\`${channel === undefined
-              ? "#unknown"
-              : channel.includes(" ")
+            return `\`${
+              channel === undefined
+                ? "#unknown"
+                : channel.includes(" ")
                 ? channel
                 : `#${channel}`
-              }\``;
+            }\``;
           }
           return original;
         }

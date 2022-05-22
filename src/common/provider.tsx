@@ -25,7 +25,7 @@ export interface Provider<T> {
   neonColor: string;
   neonColorHDR: string;
 
-  requestLink: { text: string; href: string; };
+  requestLink: { text: string; href: string };
   instructions: ReadonlyArray<string>;
   waitTime: string;
   singleFile: boolean;
@@ -46,10 +46,10 @@ export interface Provider<T> {
   ) =>
     | [JSX.Element, string | void]
     | [
-      JSX.Element | void,
-      string | void,
-      { display: string; color?: string; } | void
-    ];
+        JSX.Element | void,
+        string | void,
+        { display: string; color?: string } | void
+      ];
 }
 
 export const ProviderRegistry: ReadonlyArray<Provider<any>> = [

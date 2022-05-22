@@ -13,27 +13,27 @@ import styles from "components/FileTree.module.css";
 import type { DataFileKey } from "common/database";
 
 type Props = {
-  items: ReadonlyArray<DataFileKey>,
-  selected?: number, // index into items
-  onSelect: (id: number) => void,
+  items: ReadonlyArray<DataFileKey>;
+  selected?: number; // index into items
+  onSelect: (id: number) => void;
 };
 
 type TreeNode = {
-  id: string,
-  name: string,
-  children: Array<TreeNode>,
-  _childmap: Map<string, TreeNode>,
-  item?: DataFileKey,
-  index?: number,
+  id: string;
+  name: string;
+  children: Array<TreeNode>;
+  _childmap: Map<string, TreeNode>;
+  item?: DataFileKey;
+  index?: number;
 };
 
 function fileListToTree(items: ReadonlyArray<DataFileKey>): TreeNode {
-  const fileTree = ({
+  const fileTree = {
     id: "",
     name: "",
     children: [],
     _childmap: new Map(),
-  } as TreeNode);
+  } as TreeNode;
   for (let i = 0; items && i < items.length; i++) {
     const item = items[i];
     let node = fileTree;
@@ -91,7 +91,7 @@ function FileTree(props: Props): JSX.Element {
   return (
     <div className={styles.tree}>
       <AnyAutoSizer>
-        {({ width, height }: { width: number, height: number; }) => (
+        {({ width, height }: { width: number; height: number }) => (
           <Tree
             data={tree}
             width={width}

@@ -3,18 +3,18 @@ import React from "react";
 import styles from "components/Record.module.css";
 
 type Props = {
-  time?: string,
-  icon?: string,
-  username?: { display: string, color?: string; },
-  body?: JSX.Element,
-  trailer?: string,
+  time?: string;
+  icon?: string;
+  username?: { display: string; color?: string };
+  body?: JSX.Element;
+  trailer?: string;
 };
 
-export const Highlight = (props: { children: React.ReactNode; }): JSX.Element => (
-  <span className={styles.highlight}>{props.children}</span>
-);
+export const Highlight = (props: {
+  children: React.ReactNode;
+}): JSX.Element => <span className={styles.highlight}>{props.children}</span>;
 
-export const Pill = (props: { children: React.ReactNode; }): JSX.Element => (
+export const Pill = (props: { children: React.ReactNode }): JSX.Element => (
   <div className={styles.pill}>{props.children}</div>
 );
 
@@ -28,7 +28,9 @@ function Record(props: Props): JSX.Element {
         {username && (
           <span
             className={styles.username}
-            style={{ "--custom": username.color || "#ccc" } as React.CSSProperties}
+            style={
+              { "--custom": username.color || "#ccc" } as React.CSSProperties
+            }
           >
             {username.display}
           </span>

@@ -1,5 +1,4 @@
-// @flow
-import * as React from "react";
+import React from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import { Database } from "common/database";
@@ -9,16 +8,16 @@ import Logo from "components/Logo";
 
 import styles from "Home.module.css";
 
-function Home(): React.Node {
+function Home(): JSX.Element {
   const location = useLocation();
-  const ref = React.useRef<?HTMLElement>(null);
+  const ref = React.useRef<HTMLElement>(null);
   React.useEffect(
     () => ref.current?.scrollTo?.(location.state ? 9999 : 0, 0),
     [location, ref]
   );
 
   const [epoch, setEpoch] = React.useState(0);
-  const [imported, setImported] = React.useState();
+  const [imported, setImported] = React.useState<Set<string>>();
   React.useEffect(() => {
     (async () =>
       setImported(
@@ -30,7 +29,10 @@ function Home(): React.Node {
     <main className={styles.home} ref={ref}>
       <section>
         <div className={styles.intro}>
-          <div className={styles.logo} style={{ "--neon": "#fff" }}>
+          <div
+            className={styles.logo}
+            style={{ "--neon": "#fff" } as React.CSSProperties}
+          >
             <Logo block="home" party="glow" />
           </div>
           <p>
@@ -47,10 +49,12 @@ function Home(): React.Node {
           {ProviderRegistry.map((provider) => (
             <div
               key={provider.slug}
-              style={{
-                "--neon-hex": provider.neonColor,
-                "--neon-hdr": provider.neonColorHDR,
-              }}
+              style={
+                {
+                  "--neon-hex": provider.neonColor,
+                  "--neon-hdr": provider.neonColorHDR,
+                } as React.CSSProperties
+              }
             >
               <span>{imported?.has(provider.slug) && "␥"}</span>
               <Link to={`/${provider.slug}`}>{provider.displayName}</Link>

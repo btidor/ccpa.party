@@ -4,10 +4,10 @@ import styles from "components/DatePicker.module.css";
 
 import type { Entry, Group } from "components/TimelineRow";
 
-type Props = {
-  index: number,
-  rows: ReadonlyArray<Entry | Group> | void,
-  scrollToIndex: (index: number) => void,
+type Props<T> = {
+  index: number;
+  rows: ReadonlyArray<Entry<T> | Group> | void;
+  scrollToIndex: (index: number) => void;
 };
 
 const VerboseDateFormat = new Intl.DateTimeFormat("en-US", {
@@ -17,7 +17,7 @@ const VerboseDateFormat = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 });
 
-function DatePicker(props: Props): JSX.Element {
+function DatePicker<T>(props: Props<T>): JSX.Element {
   const { index, rows, scrollToIndex } = props;
 
   const ref = React.useRef<HTMLInputElement>(null);
