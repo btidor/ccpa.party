@@ -75,7 +75,7 @@ function Files<T>(props: Props<T>): JSX.Element {
     // loaded.
     (async () => {
       setItem(
-        selected && items?.[selected]
+        selected !== undefined && items?.[selected]
           ? await db.hydrateFile(items[selected])
           : undefined
       );
@@ -132,7 +132,7 @@ function Files<T>(props: Props<T>): JSX.Element {
               {item && <FileDownloadAction file={item} />}
             </div>
             <div className={styles.box}>
-              {!selected ? undefined : item?.skipped ? (
+              {selected === undefined ? undefined : item?.skipped ? (
                 <FilePreview>
                   {`🐘 Not imported due to ${fileSizeLimitMB}MB size limit`}
                 </FilePreview>

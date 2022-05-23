@@ -13,7 +13,7 @@ import styles from "@/components/FileTree.module.css";
 
 type Props = {
   items: ReadonlyArray<DataFileKey>;
-  selected?: number; // index into items
+  selected?: number; // 1-indexed index into items
   onSelect: (id: number) => void;
 };
 
@@ -70,7 +70,7 @@ function FileTree(props: Props): JSX.Element {
   const tree = React.useMemo(() => fileListToTree(items), [items]);
 
   const defaultExpandedSet = React.useMemo((): ReadonlySet<string> => {
-    if (selected && items[selected]) {
+    if (selected !== undefined && items[selected]) {
       // Expand path to default file
       const expanded = new Set<string>();
       let path = "";
@@ -121,9 +121,11 @@ function FileTree(props: Props): JSX.Element {
             className={styles.item}
             style={css.row}
             role="row"
-            aria-selected={!!selected && selected === data.index}
+            aria-selected={selected !== undefined && selected === data.index}
             onClick={(event) =>
-              data.index ? onSelect(data.index) : handlers.toggle(event)
+              data.index !== undefined
+                ? onSelect(data.index)
+                : handlers.toggle(event)
             }
           >
             <div style={css.indent}>
