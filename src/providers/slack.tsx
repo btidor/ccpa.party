@@ -1,8 +1,18 @@
 import EmojiMap from "emoji-name-map";
+import { DateTime } from "luxon";
+import { Minimatch } from "minimatch";
 import React from "react";
 
 import type { DataFile, TimelineEntry } from "@/common/database";
-import { getSlugAndDayTime, parseJSON } from "@/common/parse";
+import {
+  MetadataParser,
+  TimelineParser,
+  getSlugAndDayTime,
+  parseByStages,
+  parseCSV,
+  parseJSON,
+  parseJSONND,
+} from "@/common/parse";
 import type { Provider, TimelineCategory } from "@/common/provider";
 import { Highlight, Pill } from "@/components/Record";
 
@@ -49,39 +59,50 @@ class Slack implements Provider<CategoryKey> {
     ],
   ]);
 
+  metadataParsers: ReadonlyArray<MetadataParser> = [
+    {
+      glob: new Minimatch("users.json"),
+      tokenize: parseJSON,
+      transform: (item) => [`user.${item.id}`, item],
+    },
+    {
+      glob: new Minimatch("channels.json"),
+      tokenize: parseJSON,
+      transform: (item) => [`channel.${item.id}`, item],
+    },
+  ];
+
+  timelineParsers: ReadonlyArray<TimelineParser<CategoryKey>> = [
+    {
+      glob: new Minimatch("*/*.json"),
+      tokenize: parseJSON,
+      transform: (item) => [
+        "message",
+        DateTime.fromSeconds(parseInt(item.ts)),
+        null,
+      ],
+    },
+    {
+      glob: new Minimatch("integration_logs.json"),
+      tokenize: parseJSON,
+      transform: (item) => [
+        "integration",
+        DateTime.fromSeconds(parseInt(item.date)),
+        null,
+      ],
+    },
+  ];
+
   async parse(
     file: DataFile,
     metadata: Map<string, any>
   ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
-    if (file.path[1] === "users.json") {
-      metadata.set("users", parseJSON(file.data));
-      return [];
-    } else if (file.path[1] === "channels.json") {
-      metadata.set("channels", parseJSON(file.data));
-      return [];
-    } else if (file.path[1] === "integration_logs.json") {
-      return parseJSON(file.data).map(
-        (log: any) =>
-          ({
-            file: file.path,
-            category: "integration",
-            ...getSlugAndDayTime(parseInt(log.date), log),
-            context: null,
-            value: log,
-          } as TimelineEntry<CategoryKey>)
-      );
-    } else {
-      return parseJSON(file.data).map(
-        (message: any) =>
-          ({
-            file: file.path,
-            category: "message",
-            ...getSlugAndDayTime(parseInt(message.ts), message),
-            context: null,
-            value: message,
-          } as TimelineEntry<CategoryKey>)
-      );
-    }
+    return await parseByStages(
+      file,
+      metadata,
+      this.timelineParsers,
+      this.metadataParsers
+    );
   }
 
   render = (
@@ -92,24 +113,15 @@ class Slack implements Provider<CategoryKey> {
     string | void,
     { display: string; color?: string } | void
   ] => {
+    console.warn(metadata);
     const message = entry.value;
-    const users: ReadonlyArray<{
-      id: string;
-      profile: any;
-      color?: string;
-    }> = metadata.get("users");
-    const channels: ReadonlyArray<{ id: string; name: string }> =
-      metadata.get("channels");
-
-    if (!users || !channels) throw new Error("Failed to load metadata");
-
     const channelName =
       entry.category === "message"
         ? entry.file[1]
-        : channels.find((x) => x.id === message.channel)?.name;
+        : metadata.get(`channel.${message.channel}`)?.name;
     let trailer = channelName && `#${channelName}`;
 
-    const user = users.find((x) => x.id === (message.user || message.user_id));
+    const user = metadata.get(`user.${message.user || message.user_id}`);
     const username = {
       display: user
         ? user.profile.display_name || user.profile.real_name
@@ -174,7 +186,7 @@ class Slack implements Provider<CategoryKey> {
           </span>,
         ];
       } else if (element.type === "user") {
-        const user = users.find((x) => x.id === element.user_id);
+        const user = metadata.get(`user.${element.user_id}`);
         return [
           <Highlight key={key}>
             @
@@ -182,7 +194,7 @@ class Slack implements Provider<CategoryKey> {
           </Highlight>,
         ];
       } else if (element.type === "channel") {
-        const channel = channels.find((x) => x.id === element.channel_id);
+        const channel = metadata.get(`channel.${element.channel_id}`);
         return [<Highlight key={key}>#{channel?.name || "unknown"}</Highlight>];
       } else if (element.type === "link") {
         return [
