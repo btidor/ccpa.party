@@ -65,25 +65,24 @@ class Discord implements Provider<CategoryKey> {
     {
       glob: new Minimatch("servers/index.json"),
       tokenize: (data) => Object.entries(parseJSON(data)),
-      transform: ([k, v]) => [`server.${k}`, v],
+      parse: ([k, v]) => [`server.${k}`, v],
     },
     {
       glob: new Minimatch("messages/index.json"),
       tokenize: (data) => Object.entries(parseJSON(data)),
-      transform: ([k, v]) => [`channel.${k}`, v],
+      parse: ([k, v]) => [`channel.${k}`, v],
     },
     {
       glob: new Minimatch("messages/*/channel.json"),
       tokenize: (data) => [parseJSON(data)],
-      transform: (item) => [`channel_meta.${item.id}`, item],
+      parse: (item) => [`channel_meta.${item.id}`, item],
     },
   ];
 
   timelineParsers: ReadonlyArray<TimelineParser<CategoryKey>> = [
     {
       glob: new Minimatch("messages/*/messages.csv"),
-      tokenize: parseCSV,
-      transform: (item) => [
+      parse: (item) => [
         "message",
         DateTime.fromJSDate(new Date(item.Timestamp)),
         null,
@@ -92,7 +91,7 @@ class Discord implements Provider<CategoryKey> {
     {
       glob: new Minimatch("activity/*/events-*.json"),
       tokenize: parseJSONND,
-      transform: (item) => [
+      parse: (item) => [
         "activity",
         DateTime.fromISO(item.timestamp.slice(1, -1)),
         null,

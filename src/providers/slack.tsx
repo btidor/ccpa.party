@@ -62,21 +62,18 @@ class Slack implements Provider<CategoryKey> {
   metadataParsers: ReadonlyArray<MetadataParser> = [
     {
       glob: new Minimatch("users.json"),
-      tokenize: parseJSON,
-      transform: (item) => [`user.${item.id}`, item],
+      parse: (item) => [`user.${item.id}`, item],
     },
     {
       glob: new Minimatch("channels.json"),
-      tokenize: parseJSON,
-      transform: (item) => [`channel.${item.id}`, item],
+      parse: (item) => [`channel.${item.id}`, item],
     },
   ];
 
   timelineParsers: ReadonlyArray<TimelineParser<CategoryKey>> = [
     {
       glob: new Minimatch("*/*.json"),
-      tokenize: parseJSON,
-      transform: (item) => [
+      parse: (item) => [
         "message",
         DateTime.fromSeconds(parseInt(item.ts)),
         null,
@@ -84,8 +81,7 @@ class Slack implements Provider<CategoryKey> {
     },
     {
       glob: new Minimatch("integration_logs.json"),
-      tokenize: parseJSON,
-      transform: (item) => [
+      parse: (item) => [
         "integration",
         DateTime.fromSeconds(parseInt(item.date)),
         null,

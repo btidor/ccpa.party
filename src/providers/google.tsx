@@ -57,8 +57,7 @@ class Google implements Provider<CategoryKey> {
   timelineParsers: ReadonlyArray<TimelineParser<CategoryKey>> = [
     {
       glob: new Minimatch("Takeout/My Activity/*/MyActivity.json"),
-      tokenize: parseJSON,
-      transform: (item) => {
+      parse: (item) => {
         let { title, header } = item;
         if (item.details?.some((x: any) => x.name === "From Google Ads"))
           header = "Google Ads";
@@ -72,8 +71,7 @@ class Google implements Provider<CategoryKey> {
     },
     {
       glob: new Minimatch("Takeout/Access Log Activity/Activities - *.csv"),
-      tokenize: parseCSV,
-      transform: (item) => [
+      parse: (item) => [
         "security",
         DateTime.fromSQL(item["Activity Timestamp"]),
         [
@@ -87,7 +85,7 @@ class Google implements Provider<CategoryKey> {
     {
       glob: new Minimatch("Drive/**/*-info.json"),
       tokenize: (data) => [parseJSON(data)],
-      transform: (item) =>
+      parse: (item) =>
         item.last_modified_by_me
           ? [
               "activity",

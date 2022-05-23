@@ -10,14 +10,21 @@ import type {
 
 export type MetadataParser = {
   glob: IMinimatch;
-  tokenize: (data: ArrayBufferLike | string) => any[] | Promise<any[]>;
-  transform: (item: any) => [string, any];
+  tokenize?: (data: ArrayBufferLike | string) => any[] | Promise<any[]>;
+  parse: (item: any) => [string, any];
 };
 
 export type TimelineParser<T> = {
   glob: IMinimatch;
-  tokenize: (data: ArrayBufferLike | string) => any[] | Promise<any[]>;
-  transform: (item: any) => [T, any, TimelineContext] | void;
+  tokenize?: (data: ArrayBufferLike | string) => any[] | Promise<any[]>;
+  parse: (item: any) => [T, any, TimelineContext] | void;
+};
+
+type Parser<T> = MetadataParser | TimelineParser<T>;
+
+const defaultTokenizers = {
+  csv: parseCSV,
+  json: parseJSON,
 };
 
 const printableRegExp =
@@ -159,6 +166,34 @@ export function getSlugAndDayTime(
   return { slug, day, timestamp };
 }
 
+async function tokenize<T>(
+  parser: Parser<T>,
+  path: string,
+  data: ArrayBufferLike
+): Promise<any[]> {
+  const ext = path.split(".").slice(-1)[0];
+
+  const tokenizer = parser.tokenize || (defaultTokenizers as any)[ext];
+  if (!tokenizer) {
+    console.error(`No default tokenizer for .${ext}`);
+    return [];
+  }
+
+  let tokens;
+  try {
+    tokens = await tokenizer(data);
+  } catch (e) {
+    console.error("Tokenization Error", path, e);
+    return [];
+  }
+
+  if (!Array.isArray(tokens)) {
+    console.error("Non-Array Tokenization", path, tokens);
+    return [];
+  }
+  return tokens;
+}
+
 export async function parseByStages<T>(
   file: DataFile,
   metadata: Map<string, any>,
@@ -169,22 +204,11 @@ export async function parseByStages<T>(
   const timelineParser = timelineParsers.find((c) => c.glob.match(path));
   const metadataParser = metadataParsers.find((c) => c.glob.match(path));
   if (timelineParser) {
-    let tokens;
-    try {
-      tokens = await timelineParser.tokenize(file.data);
-    } catch (e) {
-      console.error("Tokenization Error", path, e);
-      return [];
-    }
-    if (!Array.isArray(tokens)) {
-      console.error("Non-Array Tokenization", path, tokens);
-      return [];
-    }
-    return tokens
+    return (await tokenize(timelineParser, path, file.data))
       .map((tok) => {
         let parsed;
         try {
-          parsed = timelineParser.transform(tok);
+          parsed = timelineParser.parse(tok);
         } catch (e) {
           console.error("Parse Error", path, tok, e);
           return undefined;
@@ -201,21 +225,10 @@ export async function parseByStages<T>(
       })
       .filter((x): x is TimelineEntry<T> => !!x);
   } else if (metadataParser) {
-    let tokens;
-    try {
-      tokens = await metadataParser.tokenize(file.data);
-    } catch (e) {
-      console.error("Tokenization Error", path, e);
-      return [];
-    }
-    if (!Array.isArray(tokens)) {
-      console.error("Non-Array Tokenization", path, tokens);
-      return [];
-    }
-    tokens.forEach((tok) => {
+    (await tokenize(metadataParser, path, file.data)).forEach((tok) => {
       let parsed;
       try {
-        parsed = metadataParser.transform(tok);
+        parsed = metadataParser.parse(tok);
       } catch (e) {
         console.error("Parse Error", path, tok, e);
         return undefined;
