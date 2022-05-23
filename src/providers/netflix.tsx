@@ -1,11 +1,8 @@
 import { DateTime } from "luxon";
+import { Minimatch } from "minimatch";
 
-import type {
-  DataFile,
-  TimelineContext,
-  TimelineEntry,
-} from "@/common/database";
-import { getSlugAndDayTime, parseCSV } from "@/common/parse";
+import type { DataFile, TimelineEntry } from "@/common/database";
+import { TimelineParser, parseByStages } from "@/common/parse";
 import type { Provider, TimelineCategory } from "@/common/provider";
 
 type CategoryKey = "account" | "activity" | "notification";
@@ -58,231 +55,198 @@ class Netflix implements Provider<CategoryKey> {
     ],
   ]);
 
-  async parse(
-    file: DataFile
-  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
-    const entry = (
-      row: any,
-      category: CategoryKey,
-      datetime: any,
-      context: TimelineContext
-    ) => ({
-      file: file.path,
-      category,
-      ...getSlugAndDayTime(datetime.toSeconds(), row),
-      context,
-      value: row,
-    });
+  timelineParsers: ReadonlyArray<TimelineParser<CategoryKey>> = [
+    {
+      glob: new Minimatch("ACCOUNT/AccountDetails.csv"),
+      parse: (item) => [
+        "account",
+        DateTime.fromISO(item["Customer Creation Timestamp"]),
+        ["Account Created", item["Email Address"]],
+      ],
+    },
+    {
+      glob: new Minimatch("ACCOUNT/SubscriptionHistory.csv"),
+      parse: (item) => [
+        "account",
+        DateTime.fromSQL(item["Subscription Opened Ts"]),
+        ["Subscription Started"],
+      ],
+    },
+    {
+      glob: new Minimatch("ACCOUNT/TermsOfUse.csv"),
+      parse: (item) => [
+        "account",
+        DateTime.fromSQL(item["Tou Accepted Date"], { zone: "UTC" }),
+        ["Accepted Terms of Use"],
+      ],
+    },
+    {
+      glob: new Minimatch("CLICKSTREAM/Clickstream.csv"),
+      parse: (item) => {
+        let nav = item["Navigation Level"].replace(/([A-Z])/g, " $1");
+        nav = nav[0].toUpperCase() + nav.slice(1);
+        return [
+          "activity",
+          DateTime.fromSQL(item["Click Utc Ts"], { zone: "UTC" }),
+          ["Click", `${nav} on ${item["Source"]}`],
+        ];
+      },
+    },
+    {
+      glob: new Minimatch("CONTENT_INTERACTION/PlaybackRelatedEvents.csv"),
+      parse: (item) =>
+        JSON.parse(item.Playtraces).map((trace: any) => {
+          let type =
+            "Playback " +
+            trace.eventType[0].toUpperCase() +
+            trace.eventType.slice(1);
+          if (trace.eventType === "playing") type = "Playing";
+          else if (trace.eventType === "start") type = "Playback Started";
 
-    if (file.path[1] === "ACCOUNT") {
-      if (file.path[2] === "AccountDetails.csv") {
-        return (await parseCSV(file.data)).map((row) =>
-          entry(
-            row,
-            "account",
-            DateTime.fromISO(row["Customer Creation Timestamp"]),
-            ["Account Created", row["Email Address"]]
-          )
-        );
-      } else if (file.path[2] === "SubscriptionHistory.csv") {
-        return (await parseCSV(file.data)).map((row) =>
-          entry(
-            row,
-            "account",
-            DateTime.fromSQL(row["Subscription Opened Ts"]),
-            ["Subscription Started"]
-          )
-        );
-      } else if (file.path[2] === "TermsOfUse.csv") {
-        return (await parseCSV(file.data)).map((row) =>
-          entry(
-            row,
-            "account",
-            DateTime.fromSQL(row["Tou Accepted Date"], { zone: "UTC" }),
-            ["Accepted Terms of Use"]
-          )
-        );
-      }
-    } else if (file.path[1] === "CLICKSTREAM") {
-      if (file.path[2] === "Clickstream.csv") {
-        return (await parseCSV(file.data)).map((row) => {
-          let nav = row["Navigation Level"].replace(/([A-Z])/g, " $1");
-          nav = nav[0].toUpperCase() + nav.slice(1);
-          return entry(
-            row,
-            "activity",
-            DateTime.fromSQL(row["Click Utc Ts"], { zone: "UTC" }),
-            ["Click", `${nav} on ${row["Source"]}`]
-          );
-        });
-      }
-    } else if (file.path[1] === "CONTENT_INTERACTION") {
-      if (file.path[2] === "PlaybackRelatedEvents.csv") {
-        return (await parseCSV(file.data)).flatMap((row) =>
-          JSON.parse(row.Playtraces).map((trace: any) => {
-            let type =
-              "Playback " +
-              trace.eventType[0].toUpperCase() +
-              trace.eventType.slice(1);
-            if (trace.eventType === "playing") type = "Playing";
-            else if (trace.eventType === "start") type = "Playback Started";
+          let offset = Math.trunc(trace.mediaOffsetMs / 1000);
+          let mediaTime = (offset % 60).toString().padStart(2, "0");
+          offset = Math.trunc(offset / 60);
+          mediaTime =
+            Math.trunc(offset % 60)
+              .toString()
+              .padStart(2, "0") +
+            ":" +
+            mediaTime;
+          offset = Math.trunc(offset / 60);
+          if (offset)
+            mediaTime = Math.trunc(offset).toString() + ":" + mediaTime;
 
-            let offset = Math.trunc(trace.mediaOffsetMs / 1000);
-            let mediaTime = (offset % 60).toString().padStart(2, "0");
-            offset = Math.trunc(offset / 60);
-            mediaTime =
-              Math.trunc(offset % 60)
-                .toString()
-                .padStart(2, "0") +
-              ":" +
-              mediaTime;
-            offset = Math.trunc(offset / 60);
-            if (offset)
-              mediaTime = Math.trunc(offset).toString() + ":" + mediaTime;
-
-            return entry(
-              row,
-              "activity",
-              DateTime.fromSQL(row["Playback Start Utc Ts"], {
-                zone: "UTC",
-              }).plus(trace.sessionOffsetMs),
-              [type, `${row["Title Description"]} @ ${mediaTime}`]
-            );
-          })
-        );
-      } else if (file.path[2] === "Ratings.csv") {
-        return (await parseCSV(file.data)).map((row) =>
-          entry(
-            row,
+          return [
+            "activity",
+            DateTime.fromSQL(item["Playback Start Utc Ts"], {
+              zone: "UTC",
+            }).plus(trace.sessionOffsetMs),
+            [type, `${item["Title Description"]} @ ${mediaTime}`],
+          ];
+        }),
+    },
+    {
+      glob: new Minimatch("CONTENT_INTERACTION/Ratings.csv"),
+      parse: (item) => [
+        "account",
+        DateTime.fromSQL(item["Event Utc Ts"], { zone: "UTC" }),
+        [
+          item["Rating Type"] === "thumb"
+            ? item["Thumbs Value"] === "1"
+              ? "Thumbs Down"
+              : item["Thumbs Value"] === "2"
+              ? "Thumbs Up"
+              : "Rated"
+            : "Rated",
+          item["Title Name"],
+        ],
+      ],
+    },
+    {
+      glob: new Minimatch("CONTENT_INTERACTION/SearchHistory.csv"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromSQL(item["Utc Timestamp"], { zone: "UTC" }),
+        ["Search", item["Query Typed"] || item["Displayed Name"]],
+      ],
+    },
+    {
+      glob: new Minimatch("CONTENT_INTERACTION/ViewingActivity.csv"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromSQL(item["Start Time"], { zone: "UTC" }),
+        ["Viewing Activity", item["Title"]],
+      ],
+    },
+    {
+      glob: new Minimatch("DEVICES/Devices.csv"),
+      parse: (item) =>
+        [
+          item["Acct First Playback Date"] && [
             "account",
-            DateTime.fromSQL(row["Event Utc Ts"], { zone: "UTC" }),
-            [
-              row["Rating Type"] === "thumb"
-                ? row["Thumbs Value"] === "1"
-                  ? "Thumbs Down"
-                  : row["Thumbs Value"] === "2"
-                  ? "Thumbs Up"
-                  : "Rated"
-                : "Rated",
-              row["Title Name"],
-            ]
-          )
-        );
-      } else if (file.path[2] === "SearchHistory.csv") {
-        return (await parseCSV(file.data)).map((row) =>
-          entry(
-            row,
-            "activity",
-            DateTime.fromSQL(row["Utc Timestamp"], { zone: "UTC" }),
-            ["Search", row["Query Typed"] || row["Displayed Name"]]
-          )
-        );
-      } else if (file.path[2] === "ViewingActivity.csv") {
-        return (await parseCSV(file.data)).map((row) =>
-          entry(
-            row,
-            "activity",
-            DateTime.fromSQL(row["Start Time"], { zone: "UTC" }),
-            ["Viewing Activity", row["Title"]]
-          )
-        );
-      }
-    } else if (file.path[1] === "DEVICES") {
-      if (file.path[2] === "Devices.csv") {
-        return (await parseCSV(file.data)).flatMap((row: any) =>
+            DateTime.fromISO(item["Acct First Playback Date"]),
+            ["Device Activated", item["Device Type"]],
+          ],
+          item["Deactivation Time"] && [
+            "account",
+            DateTime.fromISO(item["Deactivation Time"]),
+            ["Device Deactivated", item["Device Type"]],
+          ],
+        ].filter((x) => x),
+    },
+    {
+      glob: new Minimatch("IP_ADDRESSES/IpAddressesLogin.csv"),
+      parse: (item) => [
+        "account",
+        DateTime.fromSQL(item["Ts"], { zone: "UTC" }),
+        ["Login", item["Ip"]],
+      ],
+    },
+    {
+      glob: new Minimatch("IP_ADDRESSES/IpAddressesStreaming.csv"),
+      parse: (item) => [
+        "account",
+        DateTime.fromISO(item["Ts"]),
+        ["Streaming Session", item["Ip"]],
+      ],
+    },
+    {
+      glob: new Minimatch("MESSAGES/MessagesSentByNetflix.csv"),
+      parse: (item) =>
+        [
           [
-            row["Acct First Playback Date"] &&
-              entry(
-                row,
-                "account",
-                DateTime.fromISO(row["Acct First Playback Date"]),
-                ["Device Activated", row["Device Type"]]
-              ),
-            row["Deactivation Time"] &&
-              entry(
-                row,
-                "account",
-                DateTime.fromISO(row["Deactivation Time"]),
-                ["Device Deactivated", row["Device Type"]]
-              ),
-          ].filter((x) => x)
-        );
-      }
-    } else if (file.path[1] === "IP_ADDRESSES") {
-      if (file.path[2] === "IpAddressesLogin.csv") {
-        return (await parseCSV(file.data)).map((row) =>
-          entry(row, "account", DateTime.fromSQL(row["Ts"], { zone: "UTC" }), [
-            "Login",
-            row["Ip"],
-          ])
-        );
-      } else if (file.path[2] === "IpAddressesStreaming.csv") {
-        return (await parseCSV(file.data)).map((row) =>
-          entry(row, "account", DateTime.fromISO(row["Ts"]), [
-            "Streaming Session",
-            row["Ip"],
-          ])
-        );
-      }
-    } else if (file.path[1] === "MESSAGES") {
-      if (file.path[2] === "MessagesSentByNetflix.csv") {
-        return (await parseCSV(file.data))
-          .flatMap((row: any) => [
-            entry(
-              row,
-              "notification",
-              DateTime.fromSQL(row["Sent Utc Ts"], { zone: "UTC" }),
-              [
-                row["Channel"] === "EMAIL"
-                  ? "Email"
-                  : row["Channel"] === "NOTIFICATIONS"
-                  ? "In-App Notification"
-                  : row["Channel"] === "PUSH"
-                  ? "Push Notification"
-                  : "Notification",
-                row["Title Name"],
-              ]
-            ),
-            row["Click Utc Ts"] &&
-              entry(
-                row,
-                "notification",
-                DateTime.fromSQL(row["Click Utc Ts"], { zone: "UTC" }),
-                [
-                  (row["Channel"] === "EMAIL"
-                    ? "Email"
-                    : row["Channel"] === "NOTIFICATIONS"
-                    ? "In-App Notification"
-                    : row["Channel"] === "PUSH"
-                    ? "Push Notification"
-                    : "Notification") + " Click",
-                  row["Title Name"],
-                ]
-              ),
-          ])
-          .filter((x) => x);
-      }
-    } else if (file.path[1] === "PAYMENT_AND_BILLING") {
-      if (file.path[2] === "BillingHistory.csv") {
-        return (await parseCSV(file.data)).map((row) =>
-          entry(row, "account", DateTime.fromSQL(row["Transaction Date"]), [
-            "Payment Event",
-          ])
-        );
-      }
-    } else if (file.path[1] === "PROFILES") {
-      if (file.path[2] === "Profiles.csv") {
-        return (await parseCSV(file.data)).map((row) =>
-          entry(
-            row,
-            "account",
-            DateTime.fromISO(row["Profile Creation Time"]),
-            ["Profile Created", row["Profile Name"]]
-          )
-        );
-      }
-    }
-    return [];
+            "notification",
+            DateTime.fromSQL(item["Sent Utc Ts"], { zone: "UTC" }),
+            [
+              item["Channel"] === "EMAIL"
+                ? "Email"
+                : item["Channel"] === "NOTIFICATIONS"
+                ? "In-App Notification"
+                : item["Channel"] === "PUSH"
+                ? "Push Notification"
+                : "Notification",
+              item["Title Name"],
+            ],
+          ],
+          item["Click Utc Ts"] && [
+            "notification",
+            DateTime.fromSQL(item["Click Utc Ts"], { zone: "UTC" }),
+            [
+              (item["Channel"] === "EMAIL"
+                ? "Email"
+                : item["Channel"] === "NOTIFICATIONS"
+                ? "In-App Notification"
+                : item["Channel"] === "PUSH"
+                ? "Push Notification"
+                : "Notification") + " Click",
+              item["Title Name"],
+            ],
+          ],
+        ].filter((x) => x),
+    },
+    {
+      glob: new Minimatch("PAYMENT_AND_BILLING/BillingHistory.csv"),
+      parse: (item) => [
+        "account",
+        DateTime.fromSQL(item["Transaction Date"]),
+        ["Payment Event"],
+      ],
+    },
+    {
+      glob: new Minimatch("PROFILES/Profiles.csv"),
+      parse: (item) => [
+        "account",
+        DateTime.fromISO(item["Profile Creation Time"]),
+        ["Profile Created", item["Profile Name"]],
+      ],
+    },
+  ];
+
+  async parse(
+    file: DataFile,
+    metadata: Map<string, any>
+  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
+    return await parseByStages(file, metadata, this.timelineParsers, []);
   }
 }
 

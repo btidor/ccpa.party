@@ -8,6 +8,8 @@ import type {
   TimelineEntry,
 } from "@/common/database";
 
+export type TimelineTuple<T> = [T, any, TimelineContext];
+
 export type MetadataParser = {
   glob: IMinimatch;
   tokenize?: (data: ArrayBufferLike | string) => any[] | Promise<any[]>;
@@ -17,7 +19,7 @@ export type MetadataParser = {
 export type TimelineParser<T> = {
   glob: IMinimatch;
   tokenize?: (data: ArrayBufferLike | string) => any[] | Promise<any[]>;
-  parse: (item: any) => [T, any, TimelineContext] | void;
+  parse: (item: any) => TimelineTuple<T> | TimelineTuple<T>[] | void;
 };
 
 type Parser<T> = MetadataParser | TimelineParser<T>;
@@ -204,26 +206,28 @@ export async function parseByStages<T>(
   const timelineParser = timelineParsers.find((c) => c.glob.match(path));
   const metadataParser = metadataParsers.find((c) => c.glob.match(path));
   if (timelineParser) {
-    return (await tokenize(timelineParser, path, file.data))
-      .map((tok) => {
-        let parsed;
-        try {
-          parsed = timelineParser.parse(tok);
-        } catch (e) {
-          console.error("Parse Error", path, tok, e);
-          return undefined;
+    return (await tokenize(timelineParser, path, file.data)).flatMap((tok) => {
+      let parsed;
+      try {
+        parsed = timelineParser.parse(tok);
+        if (typeof parsed?.[0] === "string") {
+          parsed = [parsed];
         }
-        if (!parsed) return undefined;
-        const [category, datetime, context] = parsed;
-        return {
-          file: file.path,
-          category,
-          ...getSlugAndDayTime(datetime.toSeconds(), parsed),
-          context,
-          value: tok,
-        } as TimelineEntry<T>;
-      })
-      .filter((x): x is TimelineEntry<T> => !!x);
+      } catch (e) {
+        console.error("Parse Error", path, tok, e);
+        return [];
+      }
+      return (parsed || []).map(
+        ([category, datetime, context]) =>
+          ({
+            file: file.path,
+            category,
+            ...getSlugAndDayTime(datetime.toSeconds(), tok as any),
+            context,
+            value: tok,
+          } as TimelineEntry<T>)
+      );
+    });
   } else if (metadataParser) {
     (await tokenize(metadataParser, path, file.data)).forEach((tok) => {
       let parsed;
