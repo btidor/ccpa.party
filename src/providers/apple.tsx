@@ -4,14 +4,14 @@ import type {
   DataFile,
   TimelineContext,
   TimelineEntry,
-} from "@/common/database";
+} from "@src/common/database";
 import {
   getSlugAndDayTime,
   parseCSV,
   parseJSON,
   smartDecode,
-} from "@/common/parse";
-import type { Provider, TimelineCategory } from "@/common/provider";
+} from "@src/common/parse";
+import type { Provider, TimelineCategory } from "@src/common/provider";
 
 type CategoryKey = "account" | "activity" | "icloud" | "media";
 

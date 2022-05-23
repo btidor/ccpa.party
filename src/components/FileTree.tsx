@@ -7,9 +7,9 @@ import {
 import React from "react";
 import { Tree } from "react-arborist";
 
-import type { DataFileKey } from "@/common/database";
+import type { DataFileKey } from "@src/common/database";
 
-import styles from "@/components/FileTree.module.css";
+import styles from "@src/components/FileTree.module.css";
 
 type Props = {
   items: ReadonlyArray<DataFileKey>;

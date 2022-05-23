@@ -1,20 +1,14 @@
 import { DateTime } from "luxon";
 import { Minimatch } from "minimatch";
 
-import type {
-  DataFile,
-  TimelineContext,
-  TimelineEntry,
-} from "@/common/database";
+import type { DataFile, TimelineEntry } from "@src/common/database";
 import {
   TimelineParser,
-  TimelineTuple,
-  getSlugAndDayTime,
   parseByStages,
   parseJSON,
   smartDecodeText,
-} from "@/common/parse";
-import type { Provider, TimelineCategory } from "@/common/provider";
+} from "@src/common/parse";
+import type { Provider, TimelineCategory } from "@src/common/provider";
 
 type CategoryKey =
   | "activity"

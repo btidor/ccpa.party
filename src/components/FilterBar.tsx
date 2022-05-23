@@ -1,9 +1,9 @@
 import React from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 
-import type { Provider } from "@/common/provider";
+import type { Provider } from "@src/common/provider";
 
-import styles from "@/components/FilterBar.module.css";
+import styles from "@src/components/FilterBar.module.css";
 
 type Props<T> = {
   filter: string | void;

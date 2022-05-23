@@ -2,12 +2,12 @@ import { TrashIcon } from "@primer/octicons-react";
 import React from "react";
 import { Link } from "react-router-dom";
 
-import { ProviderScopedDatabase } from "@/common/database";
-import { importFiles, resetProvider } from "@/common/importer";
-import type { Provider } from "@/common/provider";
-import Logo from "@/components/Logo";
+import { ProviderScopedDatabase } from "@src/common/database";
+import { importFiles, resetProvider } from "@src/common/importer";
+import type { Provider } from "@src/common/provider";
+import Logo from "@src/components/Logo";
 
-import styles from "@/Request.module.css";
+import styles from "@src/Request.module.css";
 
 type Props<T> = {
   provider: Provider<T>;

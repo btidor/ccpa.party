@@ -1,8 +1,8 @@
 import React from "react";
 
-import type { Entry, Group } from "@/components/TimelineRow";
+import type { Entry, Group } from "@src/components/TimelineRow";
 
-import styles from "@/components/DatePicker.module.css";
+import styles from "@src/components/DatePicker.module.css";
 
 type Props<T> = {
   index: number;

@@ -1,9 +1,9 @@
 import { DateTime } from "luxon";
 import { Minimatch } from "minimatch";
 
-import type { DataFile, TimelineEntry } from "@/common/database";
-import { TimelineParser, parseByStages } from "@/common/parse";
-import type { Provider, TimelineCategory } from "@/common/provider";
+import type { DataFile, TimelineEntry } from "@src/common/database";
+import { TimelineParser, parseByStages } from "@src/common/parse";
+import type { Provider, TimelineCategory } from "@src/common/provider";
 
 type CategoryKey = "account" | "activity" | "notification";
 

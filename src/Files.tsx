@@ -2,16 +2,16 @@ import { BeakerIcon, DesktopDownloadIcon } from "@primer/octicons-react";
 import React from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 
-import { ProviderScopedDatabase } from "@/common/database";
-import type { DataFile, DataFileKey } from "@/common/database";
-import { fileSizeLimitMB } from "@/common/importer";
-import type { Provider } from "@/common/provider";
-import FilePreview from "@/components/FilePreview";
-import FileTree from "@/components/FileTree";
-import Navigation from "@/components/Navigation";
-import Placeholder from "@/components/Placeholder";
+import { ProviderScopedDatabase } from "@src/common/database";
+import type { DataFile, DataFileKey } from "@src/common/database";
+import { fileSizeLimitMB } from "@src/common/importer";
+import type { Provider } from "@src/common/provider";
+import FilePreview from "@src/components/FilePreview";
+import FileTree from "@src/components/FileTree";
+import Navigation from "@src/components/Navigation";
+import Placeholder from "@src/components/Placeholder";
 
-import styles from "@/Drilldown.module.css";
+import styles from "@src/Drilldown.module.css";
 
 type Props<T> = {
   provider: Provider<T>;

@@ -1,12 +1,12 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
-import { Database } from "@/common/database";
-import { ProviderRegistry } from "@/common/provider";
-import type { Provider } from "@/common/provider";
-import Logo from "@/components/Logo";
+import { Database } from "@src/common/database";
+import { ProviderRegistry } from "@src/common/provider";
+import type { Provider } from "@src/common/provider";
+import Logo from "@src/components/Logo";
 
-import styles from "@/components/Navigation.module.css";
+import styles from "@src/components/Navigation.module.css";
 
 const links = [
   { label: "Timeline", to: "timeline" },

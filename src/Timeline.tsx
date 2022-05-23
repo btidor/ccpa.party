@@ -3,18 +3,18 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 
-import { ProviderScopedDatabase } from "@/common/database";
-import type { TimelineEntry, TimelineEntryKey } from "@/common/database";
-import type { Provider } from "@/common/provider";
-import DatePicker from "@/components/DatePicker";
-import FilePreview from "@/components/FilePreview";
-import FilterBar from "@/components/FilterBar";
-import Navigation from "@/components/Navigation";
-import Placeholder from "@/components/Placeholder";
-import TimelineRow from "@/components/TimelineRow";
-import type { Entry, Group } from "@/components/TimelineRow";
+import { ProviderScopedDatabase } from "@src/common/database";
+import type { TimelineEntry, TimelineEntryKey } from "@src/common/database";
+import type { Provider } from "@src/common/provider";
+import DatePicker from "@src/components/DatePicker";
+import FilePreview from "@src/components/FilePreview";
+import FilterBar from "@src/components/FilterBar";
+import Navigation from "@src/components/Navigation";
+import Placeholder from "@src/components/Placeholder";
+import TimelineRow from "@src/components/TimelineRow";
+import type { Entry, Group } from "@src/components/TimelineRow";
 
-import styles from "@/Drilldown.module.css";
+import styles from "@src/Drilldown.module.css";
 
 type Props<T> = {
   provider: Provider<T>;

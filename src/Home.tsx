@@ -1,11 +1,11 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 
-import { Database } from "@/common/database";
-import { ProviderRegistry } from "@/common/provider";
-import Logo from "@/components/Logo";
+import { Database } from "@src/common/database";
+import { ProviderRegistry } from "@src/common/provider";
+import Logo from "@src/components/Logo";
 
-import styles from "@/Home.module.css";
+import styles from "@src/Home.module.css";
 
 function Home(): JSX.Element {
   const location = useLocation();

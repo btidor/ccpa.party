@@ -1,12 +1,12 @@
 import { DateTime } from "luxon";
 import React from "react";
 
-import { ProviderScopedDatabase } from "@/common/database";
-import type { TimelineEntry, TimelineEntryKey } from "@/common/database";
-import type { Provider } from "@/common/provider";
-import Record from "@/components/Record";
+import { ProviderScopedDatabase } from "@src/common/database";
+import type { TimelineEntry, TimelineEntryKey } from "@src/common/database";
+import type { Provider } from "@src/common/provider";
+import Record from "@src/components/Record";
 
-import styles from "@/components/TimelineRow.module.css";
+import styles from "@src/components/TimelineRow.module.css";
 
 export type Entry<T> = TimelineEntryKey<T> & {
   isGroup: false;

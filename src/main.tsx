@@ -1,12 +1,13 @@
-import faviconDarkSvg from "@/img/favicon-dark.svg";
-import faviconSvg from "@/img/favicon.svg";
-import "@/index.css";
+import faviconDarkSvg from "@src/img/favicon-dark.svg";
+import faviconSvg from "@src/img/favicon.svg";
 import React from "react";
 import ReactDOMClient from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
-import App from "@/App";
-import plausible from "@/common/plausible";
+import App from "@src/App";
+import plausible from "@src/common/plausible";
+
+import "@src/index.css";
 
 const root = ReactDOMClient.createRoot(document.getElementById("root")!);
 root.render(

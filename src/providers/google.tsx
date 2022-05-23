@@ -1,10 +1,10 @@
 import { DateTime } from "luxon";
 import { Minimatch } from "minimatch";
 
-import type { DataFile, TimelineEntry } from "@/common/database";
-import { parseByStages, parseCSV, parseJSON } from "@/common/parse";
-import type { TimelineParser } from "@/common/parse";
-import type { Provider, TimelineCategory } from "@/common/provider";
+import type { DataFile, TimelineEntry } from "@src/common/database";
+import { parseByStages, parseJSON } from "@src/common/parse";
+import type { TimelineParser } from "@src/common/parse";
+import type { Provider, TimelineCategory } from "@src/common/provider";
 
 type CategoryKey = "activity" | "security";
 

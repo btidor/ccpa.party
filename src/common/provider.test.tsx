@@ -1,7 +1,7 @@
 import Color from "colorjs.io";
 import { expect, test } from "vitest";
 
-import { ProviderRegistry } from "@/common/provider";
+import { ProviderRegistry } from "@src/common/provider";
 
 test.each(ProviderRegistry)("neonColors are computed for $slug", (provider) => {
   const rec2020 = new Color(provider.brandColor)

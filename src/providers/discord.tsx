@@ -4,16 +4,11 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import type { DataFile, TimelineEntry } from "@/common/database";
-import {
-  parseByStages,
-  parseCSV,
-  parseJSON,
-  parseJSONND,
-} from "@/common/parse";
-import type { MetadataParser, TimelineParser } from "@/common/parse";
-import type { Provider, TimelineCategory } from "@/common/provider";
-import { Pill } from "@/components/Record";
+import type { DataFile, TimelineEntry } from "@src/common/database";
+import { parseByStages, parseJSON, parseJSONND } from "@src/common/parse";
+import type { MetadataParser, TimelineParser } from "@src/common/parse";
+import type { Provider, TimelineCategory } from "@src/common/provider";
+import { Pill } from "@src/components/Record";
 
 type CategoryKey = "activity" | "message";
 

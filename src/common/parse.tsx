@@ -6,7 +6,7 @@ import type {
   DataFile,
   TimelineContext,
   TimelineEntry,
-} from "@/common/database";
+} from "@src/common/database";
 
 export type TimelineTuple<T> = [T, any, TimelineContext];
 

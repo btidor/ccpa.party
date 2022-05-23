@@ -1,9 +1,7 @@
-import React from "react";
+import { parseJSON, smartDecode } from "@src/common/parse";
+import Placeholder from "@src/components/Placeholder";
 
-import { parseJSON, smartDecode } from "@/common/parse";
-import Placeholder from "@/components/Placeholder";
-
-import styles from "@/components/FilePreview.module.css";
+import styles from "@src/components/FilePreview.module.css";
 
 type Props = {
   children:

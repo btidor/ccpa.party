@@ -1,11 +1,11 @@
 import React from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 
-import Files from "@/Files";
-import Home from "@/Home";
-import Request from "@/Request";
-import Timeline from "@/Timeline";
-import { ProviderLookup } from "@/common/provider";
+import Files from "@src/Files";
+import Home from "@src/Home";
+import Request from "@src/Request";
+import Timeline from "@src/Timeline";
+import { ProviderLookup } from "@src/common/provider";
 
 type Props = {
   children: JSX.Element;

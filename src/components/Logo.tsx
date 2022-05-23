@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 
-import Party from "@/components/Party";
+import Party from "@src/components/Party";
 
-import styles from "@/components/Logo.module.css";
+import styles from "@src/components/Logo.module.css";
 
 type Params = {
   block: "home" | "request" | "nav";
