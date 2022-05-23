@@ -1,9 +1,8 @@
-import { Minimatch } from "minimatch";
 import { DateTime } from "luxon";
-
-import { parseByStages, parseCSV, parseJSON } from "@/common/parse";
+import { Minimatch } from "minimatch";
 
 import type { DataFile, TimelineEntry } from "@/common/database";
+import { parseByStages, parseCSV, parseJSON } from "@/common/parse";
 import type { TimelineParser } from "@/common/parse";
 import type { Provider, TimelineCategory } from "@/common/provider";
 

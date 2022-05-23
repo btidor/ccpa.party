@@ -1,13 +1,12 @@
+import type { Provider } from "@/common/provider";
 import {
-  b64enc,
   b64dec,
-  serialize,
+  b64enc,
   deserialize,
   getCookie,
+  serialize,
   setCookie,
 } from "@/common/util";
-
-import type { Provider } from "@/common/provider";
 
 export type DataFileKey = {
   provider: string;

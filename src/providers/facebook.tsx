@@ -1,12 +1,11 @@
 import { DateTime } from "luxon";
 
-import { getSlugAndDayTime, parseJSON } from "@/common/parse";
-
 import type {
   DataFile,
   TimelineContext,
   TimelineEntry,
 } from "@/common/database";
+import { getSlugAndDayTime, parseJSON } from "@/common/parse";
 import type { Provider, TimelineCategory } from "@/common/provider";
 
 const categories = {

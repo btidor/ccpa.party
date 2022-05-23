@@ -1,15 +1,15 @@
-import React from "react";
-import { Tree } from "react-arborist";
 import {
   ChevronDownIcon,
   ChevronRightIcon,
   FileCodeIcon,
   FileZipIcon,
 } from "@primer/octicons-react";
-
-import styles from "@/components/FileTree.module.css";
+import React from "react";
+import { Tree } from "react-arborist";
 
 import type { DataFileKey } from "@/common/database";
+
+import styles from "@/components/FileTree.module.css";
 
 type Props = {
   items: ReadonlyArray<DataFileKey>;

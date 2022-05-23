@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 
 import { Database } from "@/common/database";
 import { ProviderRegistry } from "@/common/provider";
-
 import Logo from "@/components/Logo";
 
 import styles from "@/Home.module.css";

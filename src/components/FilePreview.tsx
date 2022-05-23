@@ -1,7 +1,6 @@
 import React from "react";
 
-import { smartDecode, parseJSON } from "@/common/parse";
-
+import { parseJSON, smartDecode } from "@/common/parse";
 import Placeholder from "@/components/Placeholder";
 
 import styles from "@/components/FilePreview.module.css";

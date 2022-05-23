@@ -1,3 +1,4 @@
+import type { DataFile, TimelineEntry } from "@/common/database";
 import Amazon from "@/providers/amazon";
 import Apple from "@/providers/apple";
 import Discord from "@/providers/discord";
@@ -6,8 +7,6 @@ import GitHub from "@/providers/github";
 import Google from "@/providers/google";
 import Netflix from "@/providers/netflix";
 import Slack from "@/providers/slack";
-
-import type { DataFile, TimelineEntry } from "@/common/database";
 
 export type TimelineCategory = {
   char: string; // single-character identifier for URLs

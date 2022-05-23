@@ -1,11 +1,10 @@
 import EmojiMap from "emoji-name-map";
 import React from "react";
 
-import { getSlugAndDayTime, parseJSON } from "@/common/parse";
-import { Highlight, Pill } from "@/components/Record";
-
 import type { DataFile, TimelineEntry } from "@/common/database";
+import { getSlugAndDayTime, parseJSON } from "@/common/parse";
 import type { Provider, TimelineCategory } from "@/common/provider";
+import { Highlight, Pill } from "@/components/Record";
 
 type CategoryKey = "message" | "integration";
 
@@ -99,8 +98,11 @@ class Slack implements Provider<CategoryKey> {
     { display: string; color?: string } | void
   ] => {
     const message = entry.value;
-    const users: ReadonlyArray<{ id: string; profile: any; color?: string }> =
-      metadata.get("users");
+    const users: ReadonlyArray<{
+      id: string;
+      profile: any;
+      color?: string;
+    }> = metadata.get("users");
     const channels: ReadonlyArray<{ id: string; name: string }> =
       metadata.get("channels");
 

@@ -1,7 +1,7 @@
 import csv from "csvtojson";
 import MurmurHash3 from "imurmurhash";
-
 import type { IMinimatch } from "minimatch";
+
 import type {
   DataFile,
   TimelineContext,

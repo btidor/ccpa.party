@@ -1,17 +1,16 @@
 import { DateTime } from "luxon";
 
-import {
-  getSlugAndDayTime,
-  parseJSON,
-  parseCSV,
-  smartDecode,
-} from "@/common/parse";
-
 import type {
   DataFile,
   TimelineContext,
   TimelineEntry,
 } from "@/common/database";
+import {
+  getSlugAndDayTime,
+  parseCSV,
+  parseJSON,
+  smartDecode,
+} from "@/common/parse";
 import type { Provider, TimelineCategory } from "@/common/provider";
 
 type CategoryKey = "account" | "activity" | "icloud" | "media";
