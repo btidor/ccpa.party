@@ -8,19 +8,17 @@ import type {
   TimelineEntry,
 } from "@/common/database";
 
-export type Parser<T, U> =
-  | {
-      type?: void; // timeline, the default
-      glob: IMinimatch;
-      tokenize: (data: ArrayBufferLike | string) => U;
-      transform: (item: U) => [T, any, TimelineContext] | void;
-    }
-  | {
-      type: "metadata";
-      glob: IMinimatch;
-      tokenize: (data: ArrayBufferLike | string) => U;
-      transform: (item: U) => [string, any];
-    };
+export type MetadataParser = {
+  glob: IMinimatch;
+  tokenize: (data: ArrayBufferLike | string) => any[] | Promise<any[]>;
+  transform: (item: any) => [string, any];
+};
+
+export type TimelineParser<T> = {
+  glob: IMinimatch;
+  tokenize: (data: ArrayBufferLike | string) => any[] | Promise<any[]>;
+  transform: (item: any) => [T, any, TimelineContext] | void;
+};
 
 const printableRegExp =
   // U+F8FF is the Apple logo on macOS
@@ -76,7 +74,7 @@ export function parseJSONND(
 
 export async function parseCSV(
   data: ArrayBufferLike | string
-): Promise<ReadonlyArray<{ [key: string]: string }>> {
+): Promise<{ [key: string]: string }[]> {
   let text;
   if (typeof data === "string") text = data;
   else text = smartDecode(data);
@@ -164,42 +162,29 @@ export function getSlugAndDayTime(
 export async function parseByStages<T>(
   file: DataFile,
   metadata: Map<string, any>,
-  parsers: ReadonlyArray<Parser<T, any>>
-): Promise<ReadonlyArray<TimelineEntry<T>>> {
+  timelineParsers: ReadonlyArray<TimelineParser<T>>,
+  metadataParsers: ReadonlyArray<MetadataParser>
+): Promise<TimelineEntry<T>[]> {
   const path = file.path.slice(1).join("/");
-  const parser = parsers.find((c) => c.glob.match(path));
-  if (!parser) return [];
-
-  let tokens;
-  try {
-    tokens = await parser.tokenize(file.data);
-  } catch (e) {
-    console.error("Tokenization Error", path, e);
-    return [];
-  }
-
-  if (!Array.isArray(tokens)) {
-    console.error("Non-Array Tokenization", path, tokens);
-    return [];
-  }
-
-  return tokens
-    .map((tok) => {
-      if (parser.type === "metadata") {
+  const timelineParser = timelineParsers.find((c) => c.glob.match(path));
+  const metadataParser = metadataParsers.find((c) => c.glob.match(path));
+  if (timelineParser) {
+    let tokens;
+    try {
+      tokens = await timelineParser.tokenize(file.data);
+    } catch (e) {
+      console.error("Tokenization Error", path, e);
+      return [];
+    }
+    if (!Array.isArray(tokens)) {
+      console.error("Non-Array Tokenization", path, tokens);
+      return [];
+    }
+    return tokens
+      .map((tok) => {
         let parsed;
         try {
-          parsed = parser.transform(tok);
-        } catch (e) {
-          console.error("Parse Error", path, tok, e);
-          return undefined;
-        }
-        const [key, value] = parsed;
-        metadata.set(key, value);
-        return undefined;
-      } else {
-        let parsed;
-        try {
-          parsed = parser.transform(tok);
+          parsed = timelineParser.transform(tok);
         } catch (e) {
           console.error("Parse Error", path, tok, e);
           return undefined;
@@ -213,7 +198,33 @@ export async function parseByStages<T>(
           context,
           value: tok,
         } as TimelineEntry<T>;
+      })
+      .filter((x): x is TimelineEntry<T> => !!x);
+  } else if (metadataParser) {
+    let tokens;
+    try {
+      tokens = await metadataParser.tokenize(file.data);
+    } catch (e) {
+      console.error("Tokenization Error", path, e);
+      return [];
+    }
+    if (!Array.isArray(tokens)) {
+      console.error("Non-Array Tokenization", path, tokens);
+      return [];
+    }
+    tokens.forEach((tok) => {
+      let parsed;
+      try {
+        parsed = metadataParser.transform(tok);
+      } catch (e) {
+        console.error("Parse Error", path, tok, e);
+        return undefined;
       }
-    })
-    .filter((x): x is TimelineEntry<T> => !!x);
+      const [key, value] = parsed;
+      metadata.set(key, value);
+    });
+    return [];
+  } else {
+    return [];
+  }
 }

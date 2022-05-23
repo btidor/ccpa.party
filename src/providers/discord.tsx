@@ -13,7 +13,7 @@ import {
 import { Pill } from "@/components/Record";
 
 import type { DataFile, TimelineEntry } from "@/common/database";
-import type { Parser } from "@/common/parse";
+import type { MetadataParser, TimelineParser } from "@/common/parse";
 import type { Provider, TimelineCategory } from "@/common/provider";
 
 type CategoryKey = "activity" | "message";
@@ -67,25 +67,25 @@ class Discord implements Provider<CategoryKey> {
     ],
   ]);
 
-  parsers: ReadonlyArray<Parser<CategoryKey, any>> = [
+  metadataParsers: ReadonlyArray<MetadataParser> = [
     {
-      type: "metadata",
       glob: new Minimatch("servers/index.json"),
       tokenize: (data) => Object.entries(parseJSON(data)),
       transform: ([k, v]) => [`server.${k}`, v],
     },
     {
-      type: "metadata",
       glob: new Minimatch("messages/index.json"),
       tokenize: (data) => Object.entries(parseJSON(data)),
       transform: ([k, v]) => [`channel.${k}`, v],
     },
     {
-      type: "metadata",
       glob: new Minimatch("messages/*/channel.json"),
       tokenize: (data) => [parseJSON(data)],
       transform: (item) => [`channel_meta.${item.id}`, item],
     },
+  ];
+
+  timelineParsers: ReadonlyArray<TimelineParser<CategoryKey>> = [
     {
       glob: new Minimatch("messages/*/messages.csv"),
       tokenize: parseCSV,
@@ -110,7 +110,12 @@ class Discord implements Provider<CategoryKey> {
     file: DataFile,
     metadata: Map<string, any>
   ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
-    return await parseByStages(file, metadata, this.parsers);
+    return await parseByStages(
+      file,
+      metadata,
+      this.timelineParsers,
+      this.metadataParsers
+    );
   }
 
   render = (

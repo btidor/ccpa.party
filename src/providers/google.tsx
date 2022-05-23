@@ -4,7 +4,7 @@ import { DateTime } from "luxon";
 import { parseByStages, parseCSV, parseJSON } from "@/common/parse";
 
 import type { DataFile, TimelineEntry } from "@/common/database";
-import type { Parser } from "@/common/parse";
+import type { TimelineParser } from "@/common/parse";
 import type { Provider, TimelineCategory } from "@/common/provider";
 
 type CategoryKey = "activity" | "security";
@@ -57,7 +57,7 @@ class Google implements Provider<CategoryKey> {
     ],
   ]);
 
-  parsers: ReadonlyArray<Parser<CategoryKey, any>> = [
+  timelineParsers: ReadonlyArray<TimelineParser<CategoryKey>> = [
     {
       glob: new Minimatch("Takeout/My Activity/*/MyActivity.json"),
       tokenize: parseJSON,
@@ -105,7 +105,7 @@ class Google implements Provider<CategoryKey> {
     file: DataFile,
     metadata: Map<string, any>
   ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
-    return await parseByStages(file, metadata, this.parsers);
+    return await parseByStages(file, metadata, this.timelineParsers, []);
   }
 }
 
