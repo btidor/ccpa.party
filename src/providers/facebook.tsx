@@ -1,102 +1,20 @@
 import { DateTime } from "luxon";
+import { Minimatch } from "minimatch";
 
 import type {
   DataFile,
   TimelineContext,
   TimelineEntry,
 } from "@/common/database";
-import { getSlugAndDayTime, parseJSON } from "@/common/parse";
+import {
+  TimelineParser,
+  TimelineTuple,
+  getSlugAndDayTime,
+  parseByStages,
+  parseJSON,
+  smartDecodeText,
+} from "@/common/parse";
 import type { Provider, TimelineCategory } from "@/common/provider";
-
-const categories = {
-  installed_apps_v2: "activity",
-  comments_v2: "content",
-  reactions_v2: "content",
-  events_invited_v2: "content",
-  received_requests_v2: "content",
-  friends_v2: "content",
-  rejected_requests_v2: "content",
-  deleted_friends_v2: "content",
-  group_comments_v2: "content",
-  groups_joined_v2: "content",
-  groups_admined_v2: "activity",
-  group_posts_v2: "content",
-  notifications_v2: "notification",
-  pages_unfollowed_v2: "activity",
-  poll_votes_v2: "content",
-  account_activity_v2: "security",
-  contact_verifications_v2: "security",
-  used_ip_address_v2: "security",
-  login_protection_data_v2: "security",
-  account_accesses_v2: "security",
-  admin_records_v2: "security",
-};
-
-const mappers = {
-  installed_apps_v2: (item: any) => [
-    `App ${item.category[0].toUpperCase() + item.category.slice(1)}`,
-    item.name,
-  ],
-  comments_v2: (item: any) => [
-    "Comment",
-    item.data?.[0]?.comment?.comment || item.title,
-  ],
-  reactions_v2: (item: any) => ["Reaction", item.title],
-  events_invited_v2: (item: any) => ["Event Invitation", item.name],
-  received_requests_v2: (item: any) => ["Friend Request", item.name],
-  friends_v2: (item: any) => ["Became Friends", item.name],
-  rejected_requests_v2: (item: any) => ["Rejected Friend Request", item.name],
-  deleted_friends_v2: (item: any) => ["Unfriended", item.name],
-  group_comments_v2: (item: any) => [
-    "Comment",
-    item.data?.[0]?.comment?.comment || item.title,
-  ],
-  groups_joined_v2: (item: any) => [
-    "Joined Group",
-    item.data?.[0]?.name || item.title,
-  ],
-  groups_admined_v2: (item: any) => ["Became Group Admin", item.name],
-  group_posts_v2: (item: any) => ["Post", item.data?.[0]?.post || item.title],
-  notifications_v2: (item: any) => ["Notification", item.text],
-  pages_unfollowed_v2: (item: any) => [
-    "Un-Followed",
-    item.data?.[0]?.name || item.title,
-  ],
-  poll_votes_v2: (item: any) => ["Voted on Poll"],
-  account_activity_v2: (item: any) => [
-    (item.action as string)
-      .split(" ")
-      .map((w) => w[0].toUpperCase() + w.slice(1))
-      .join(" "),
-    item.ip_address,
-  ],
-  contact_verifications_v2: (item: any) => [
-    "Verified Email Address",
-    item.contact,
-  ],
-  used_ip_address_v2: (item: any) => [
-    (item.action as string)
-      .split(" ")
-      .map((w) => w[0].toUpperCase() + w.slice(1))
-      .join(" "),
-    item.ip,
-  ],
-  login_protection_data_v2: (item: any) => ["Session", item.name],
-  account_accesses_v2: (item: any) => [
-    (item.action as string)
-      .split(" ")
-      .map((w) => w[0].toUpperCase() + w.slice(1))
-      .join(" "),
-    item.ip_address,
-  ],
-  admin_records_v2: (item: any) => [
-    (item.event as string)
-      .split(" ")
-      .map((w) => w[0].toUpperCase() + w.slice(1))
-      .join(" "),
-    item.session?.ip_address,
-  ],
-};
 
 type CategoryKey =
   | "activity"
@@ -171,171 +89,400 @@ class Facebook implements Provider<CategoryKey> {
     ],
   ]);
 
-  async parse(
-    file: DataFile
-  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
-    const entry = (
-      row: any,
-      category: CategoryKey,
-      datetime: any,
-      context: TimelineContext
-    ) => ({
-      file: file.path,
-      category,
-      ...getSlugAndDayTime(datetime.toSeconds(), row),
-      context,
-      value: row,
-    });
-
-    if (file.path[1] === "messages") {
-      const filename = file.path.slice(-1)[0];
-      if (filename.startsWith("message_") && filename.endsWith(".json")) {
-        let parsed: any;
-        try {
-          parsed = parseJSON(file.data, { smart: true });
-        } catch {
-          return [];
-        }
-        return parsed.messages.map((item: any) =>
-          entry(item, "message", DateTime.fromMillis(item.timestamp_ms), [
-            item.content,
-            parsed.title === item.sender_name ? undefined : parsed.title,
-            { color: "var(--neon)", display: item.sender_name },
-          ])
-        );
-      }
-    } else if (file.path[1] === "posts") {
-      if (
-        file.path[2].startsWith("your_posts") &&
-        file.path[2].endsWith(".json")
-      ) {
-        let parsed = parseJSON(file.data, { smart: true });
-        if (!Array.isArray(parsed)) parsed = [parsed];
-        return parsed.map((item: any) =>
-          entry(item, "content", DateTime.fromSeconds(item.timestamp), [
-            "Post",
-            item.data?.[0]?.post,
-          ])
-        );
-      }
-    } else if (file.path.slice(-1)[0] === "your_event_responses.json") {
-      const parsed = parseJSON(file.data, { smart: true });
-      const root = parsed.event_responses_v2;
-      return root.events_joined
-        .map((item: any) =>
-          entry(item, "content", DateTime.fromSeconds(item.start_timestamp), [
-            "Going to Event",
-            item.name,
-          ])
-        )
-        .concat(
-          root.events_declined.map((item: any) =>
-            entry(item, "content", DateTime.fromSeconds(item.start_timestamp), [
-              "Declined Event",
-              item.name,
-            ])
-          )
-        );
-    } else if (file.path.slice(-1)[0] === "your_off-facebook_activity.json") {
-      return parseJSON(file.data, {
-        smart: true,
-      }).off_facebook_activity_v2.flatMap((company: any) =>
-        company.events.map((item: any) =>
-          entry(item, "activity", DateTime.fromSeconds(item.timestamp), [
-            "Off-Facebook Purchase",
-            company.name,
-          ])
-        )
-      );
-    } else if (file.path.slice(-1)[0] === "feed.json") {
-      return parseJSON(file.data, {
-        smart: true,
-      }).people_and_friends_v2.flatMap((feed: any) =>
-        feed.entries.map((item: any) =>
-          entry(item, "activity", DateTime.fromSeconds(item.timestamp), [
-            feed.name,
-            item.data.name,
-          ])
-        )
-      );
-    } else if (file.path.slice(-1)[0] === "profile_information.json") {
-      const parsed = parseJSON(file.data, { smart: true }).profile_v2;
-      return [
-        entry(
-          parsed,
-          "activity",
-          DateTime.fromSeconds(parsed.registration_timestamp),
-          ["Created Profile", parsed.name.full_name]
+  timelineParsers: ReadonlyArray<TimelineParser<CategoryKey>> = [
+    {
+      glob: new Minimatch(
+        "apps_and_websites_off_of_facebook/apps_and_websites.json"
+      ),
+      tokenize: (data) => parseJSON(data, { smart: true }).installed_apps_v2,
+      parse: (item) => [
+        "activity",
+        DateTime.fromSeconds(item.removed_timestamp || item.added_timestamp),
+        [
+          `App ${item.category[0].toUpperCase() + item.category.slice(1)}`,
+          item.name,
+        ],
+      ],
+    },
+    {
+      glob: new Minimatch(
+        "apps_and_websites_off_of_facebook/your_off-facebook_activity.json"
+      ),
+      tokenize: (data) =>
+        parseJSON(data, {
+          smart: true,
+        }).off_facebook_activity_v2.flatMap(({ events, ...rest }: any) =>
+          events.map((item: any) => ({ company: rest, ...item }))
         ),
-      ];
-    } else if (file.path.slice(-1)[0] === "recently_viewed.json") {
-      return parseJSON(file.data, { smart: true })
-        .recently_viewed.flatMap((category: any) =>
-          category.entries?.map(
-            (item: any) =>
-              item.timestamp &&
-              entry(item, "activity", DateTime.fromSeconds(item.timestamp), [
-                `Viewed ${category.name}`,
-                item.data.name,
-              ])
-          )
-        )
-        .filter((x: any) => x);
-    } else if (file.path.slice(-1)[0] === "recently_visited.json") {
-      return parseJSON(file.data, { smart: true })
-        .visited_things_v2.flatMap(
+      parse: (item) => [
+        "activity",
+        DateTime.fromSeconds(item.timestamp),
+        ["Off-Facebook Purchase", item.company.name],
+      ],
+    },
+    {
+      glob: new Minimatch("comments_and_reactions/comments.json"),
+      tokenize: (data) => parseJSON(data, { smart: true }).comments_v2,
+      parse: (item) => [
+        "content",
+        DateTime.fromSeconds(item.timestamp),
+        ["Comment", item.data?.[0]?.comment?.comment || item.title],
+      ],
+    },
+    {
+      glob: new Minimatch("comments_and_reactions/posts_and_comments.json"),
+      tokenize: (data) => parseJSON(data, { smart: true }).reactions_v2,
+      parse: (item) => [
+        "content",
+        DateTime.fromSeconds(item.timestamp),
+        ["Reaction", item.title],
+      ],
+    },
+    {
+      glob: new Minimatch("events/event_invitations.json"),
+      tokenize: (data) => parseJSON(data, { smart: true }).events_invited_v2,
+      parse: (item) => [
+        "content",
+        DateTime.fromSeconds(item.start_timestamp),
+        ["Event Invitation", item.name],
+      ],
+    },
+    {
+      glob: new Minimatch("events/your_event_responses.json"),
+      tokenize: (data) => {
+        const parsed = parseJSON(data, { smart: true }).event_responses_v2;
+        return parsed.events_joined
+          .map((item: any) => ({
+            type: "joined",
+            ...item,
+          }))
+          .concat(
+            parsed.events_declined.map((item: any) => ({
+              type: "declined",
+              ...item,
+            }))
+          );
+      },
+      parse: (item) => [
+        "content",
+        DateTime.fromSeconds(item.start_timestamp),
+        [
+          item.type === "joined" ? "Going to Event" : "Declined Event",
+          item.name,
+        ],
+      ],
+    },
+    {
+      glob: new Minimatch("feed/feed.json"),
+      tokenize: (data) =>
+        parseJSON(data, { smart: true }).people_and_friends_v2.flatMap(
           (category: any) =>
-            category.name === "Profile visits" &&
-            category.entries.map(
-              (item: any) =>
-                item.timestamp &&
-                entry(item, "activity", DateTime.fromSeconds(item.timestamp), [
-                  "Viewed Profile",
-                  item.data.name,
-                ])
-            )
-        )
-        .filter((x: any) => x);
-    } else if (file.path.slice(-1)[0].endsWith(".json")) {
-      return Object.entries(parseJSON(file.data, { smart: true }))
-        .flatMap(([key, value]) => {
-          if (
-            Array.isArray(value) &&
-            (categories as any)[key] &&
-            (mappers as any)[key]
-          ) {
-            return value.map((item: any) => {
-              const timestamp =
-                item.timestamp ||
-                item.start_timestamp ||
-                item.removed_timestamp ||
-                item.added_timestamp ||
-                item.verification_time ||
-                item.session?.created_timestamp;
-              if (!timestamp) {
-                console.warn(
-                  "Skipping entry due to no timestamp:",
-                  file.path.slice(1).join("/"),
-                  item
-                );
-              }
-              return (
-                timestamp &&
-                entry(
-                  item,
-                  (categories as any)[key],
-                  DateTime.fromSeconds(timestamp),
-                  (mappers as any)[key](item)
-                )
-              );
-            });
-          } else {
-            return [];
-          }
-        })
-        .filter((x) => x);
-    }
-    return [];
+            category.entries.map((entry: any) => ({
+              name: category.name,
+              ...entry,
+            }))
+        ),
+      parse: (item) => [
+        "activity",
+        DateTime.fromSeconds(item.timestamp),
+        [item.name, item.data.name],
+      ],
+    },
+    {
+      glob: new Minimatch(
+        "friends_and_followers/friend_requests_received.json"
+      ),
+      tokenize: (data) => parseJSON(data, { smart: true }).received_requests_v2,
+      parse: (item) => [
+        "content",
+        DateTime.fromSeconds(item.timestamp),
+        ["Friend Request", item.name],
+      ],
+    },
+    {
+      glob: new Minimatch("friends_and_followers/friends.json"),
+      tokenize: (data) => parseJSON(data, { smart: true }).friends_v2,
+      parse: (item) => [
+        "content",
+        DateTime.fromSeconds(item.timestamp),
+        ["Became Friends", item.name],
+      ],
+    },
+    {
+      glob: new Minimatch(
+        "friends_and_followers/rejected_friend_requests.json"
+      ),
+      tokenize: (data) => parseJSON(data, { smart: true }).rejected_requests_v2,
+      parse: (item) => [
+        "content",
+        DateTime.fromSeconds(item.timestamp),
+        ["Rejected Friend Request", item.name],
+      ],
+    },
+    {
+      glob: new Minimatch("friends_and_followers/removed_friends.json"),
+      tokenize: (data) => parseJSON(data, { smart: true }).deleted_friends_v2,
+      parse: (item) => [
+        "content",
+        DateTime.fromSeconds(item.timestamp),
+        ["Unfriended", item.name],
+      ],
+    },
+    {
+      glob: new Minimatch("groups/your_comments_in_groups.json"),
+      tokenize: (data) => parseJSON(data, { smart: true }).group_comments_v2,
+      parse: (item) => [
+        "content",
+        DateTime.fromSeconds(item.timestamp),
+        ["Comment", item.data?.[0]?.comment?.comment || item.title],
+      ],
+    },
+    {
+      glob: new Minimatch("groups/your_group_membership_activity.json"),
+      tokenize: (data) => parseJSON(data, { smart: true }).groups_joined_v2,
+      parse: (item) => [
+        "content",
+        DateTime.fromSeconds(item.timestamp),
+        ["Joined Group", item.data?.[0]?.name || item.title],
+      ],
+    },
+    {
+      glob: new Minimatch("groups/your_groups.json"),
+      tokenize: (data) => parseJSON(data, { smart: true }).groups_admined_v2,
+      parse: (item) => [
+        "activity",
+        DateTime.fromSeconds(item.timestamp),
+        ["Became Group Admin", item.name],
+      ],
+    },
+    {
+      glob: new Minimatch("groups/your_posts_in_groups.json"),
+      tokenize: (data) => parseJSON(data, { smart: true }).group_posts_v2,
+      parse: (item) => [
+        "content",
+        DateTime.fromSeconds(item.timestamp),
+        ["Post", item.data?.[0]?.post || item.title],
+      ],
+    },
+    {
+      glob: new Minimatch("groups/your_posts_in_groups.json"),
+      tokenize: (data) => parseJSON(data, { smart: true }).group_posts_v2,
+      parse: (item) => [
+        "content",
+        DateTime.fromSeconds(item.timestamp),
+        ["Post", item.data?.[0]?.post || item.title],
+      ],
+    },
+    {
+      glob: new Minimatch("messages/**/message_*.json"),
+      tokenize: (data) => {
+        const { messages, ...rest } = parseJSON(data, { smart: false });
+        return messages.map((item: any) => ({
+          ...item,
+          thread: rest,
+        }));
+      },
+      parse: (item) => [
+        "message",
+        DateTime.fromMillis(item.timestamp_ms),
+        [
+          item.content,
+          item.thread.title === item.sender_name
+            ? undefined
+            : smartDecodeText(item.thread.title),
+          { color: "var(--neon)", display: smartDecodeText(item.sender_name) },
+        ],
+      ],
+    },
+    {
+      glob: new Minimatch("notifications/notifications.json"),
+      tokenize: (data) => parseJSON(data, { smart: true }).notifications_v2,
+      parse: (item) => [
+        "notification",
+        DateTime.fromSeconds(item.timestamp),
+        ["Notification", item.text],
+      ],
+    },
+    {
+      glob: new Minimatch("pages/pages_you've_unfollowed.json"),
+      tokenize: (data) => parseJSON(data, { smart: true }).pages_unfollowed_v2,
+      parse: (item) => [
+        "activity",
+        DateTime.fromSeconds(item.timestamp),
+        ["Un-Followed", item.data?.[0]?.name || item.title],
+      ],
+    },
+    {
+      glob: new Minimatch("polls/polls_you_voted_on.json"),
+      tokenize: (data) => parseJSON(data, { smart: true }).poll_votes_v2,
+      parse: (item) => [
+        "content",
+        DateTime.fromSeconds(item.timestamp),
+        ["Voted on Poll"],
+      ],
+    },
+    {
+      glob: new Minimatch("posts/your_posts_*.json"),
+      tokenize: (data) => {
+        const parsed = parseJSON(data, { smart: true });
+        if (!Array.isArray(parsed)) return [parsed];
+        return parsed;
+      },
+      parse: (item) => [
+        "content",
+        DateTime.fromSeconds(item.timestamp),
+        ["Post", item.data[0].post],
+      ],
+    },
+    {
+      glob: new Minimatch("profile_information/profile_information.json"),
+      tokenize: (data) => [parseJSON(data, { smart: true }).profile_v2],
+      parse: (item) => [
+        "activity",
+        DateTime.fromSeconds(item.registration_timestamp),
+        ["Created Profile", item.name.full_name],
+      ],
+    },
+    {
+      glob: new Minimatch(
+        "security_and_login_information/account_activity.json"
+      ),
+      tokenize: (data) => parseJSON(data, { smart: true }).account_activity_v2,
+      parse: (item) => [
+        "security",
+        DateTime.fromSeconds(item.timestamp),
+        [
+          (item.action as string)
+            .split(" ")
+            .map((w) => w[0].toUpperCase() + w.slice(1))
+            .join(" "),
+          item.ip_address,
+        ],
+      ],
+    },
+    {
+      glob: new Minimatch(
+        "security_and_login_information/email_address_verifications.json"
+      ),
+      tokenize: (data) =>
+        parseJSON(data, { smart: true }).contact_verifications_v2,
+      parse: (item) => [
+        "security",
+        DateTime.fromSeconds(item.verification_time),
+        ["Verified Email Address", item.contact],
+      ],
+    },
+    {
+      glob: new Minimatch(
+        "security_and_login_information/ip_address_activity.json"
+      ),
+      tokenize: (data) => parseJSON(data, { smart: true }).used_ip_address_v2,
+      parse: (item) => [
+        "security",
+        DateTime.fromSeconds(item.timestamp),
+        [
+          (item.action as string)
+            .split(" ")
+            .map((w) => w[0].toUpperCase() + w.slice(1))
+            .join(" "),
+          item.ip,
+        ],
+      ],
+    },
+    {
+      glob: new Minimatch(
+        "security_and_login_information/login_protection_data.json"
+      ),
+      tokenize: (data) =>
+        parseJSON(data, { smart: true }).login_protection_data_v2,
+      parse: (item) => [
+        "security",
+        DateTime.fromSeconds(item.session.created_timestamp),
+        ["Session", item.name],
+      ],
+    },
+    {
+      glob: new Minimatch(
+        "security_and_login_information/logins_and_logouts.json"
+      ),
+      tokenize: (data) => parseJSON(data, { smart: true }).account_accesses_v2,
+      parse: (item) => [
+        "security",
+        DateTime.fromSeconds(item.timestamp),
+        [
+          (item.action as string)
+            .split(" ")
+            .map((w) => w[0].toUpperCase() + w.slice(1))
+            .join(" "),
+          item.ip_address,
+        ],
+      ],
+    },
+    {
+      glob: new Minimatch("security_and_login_information/record_details.json"),
+      tokenize: (data) => parseJSON(data, { smart: true }).admin_records_v2,
+      parse: (item) => [
+        "security",
+        DateTime.fromSeconds(item.session.created_timestamp),
+        [
+          (item.event as string)
+            .split(" ")
+            .map((w) => w[0].toUpperCase() + w.slice(1))
+            .join(" "),
+          item.session?.ip_address,
+        ],
+      ],
+    },
+    {
+      glob: new Minimatch("your_interactions_on_facebook/recently_viewed.json"),
+      tokenize: (data) =>
+        parseJSON(data, {
+          smart: true,
+        }).recently_viewed.flatMap(({ entries, ...rest }: any) =>
+          (entries || [])
+            .map((item: any) => ({ category: rest, ...item }))
+            .filter((item: any) => item.timestamp)
+        ),
+      parse: (item) => [
+        "activity",
+        DateTime.fromSeconds(item.timestamp),
+        [`Viewed ${item.category.name}`, item.data.name],
+      ],
+    },
+    {
+      glob: new Minimatch(
+        "your_interactions_on_facebook/recently_visited.json"
+      ),
+      tokenize: (data) =>
+        parseJSON(data, {
+          smart: true,
+        }).visited_things_v2.flatMap(({ entries, ...rest }: any) =>
+          (entries || [])
+            .map((item: any) => ({ category: rest, ...item }))
+            .filter((item: any) => item.timestamp)
+        ),
+      parse: (item) => [
+        "activity",
+        DateTime.fromSeconds(item.timestamp),
+        [
+          item.category.name === "Profile visits"
+            ? "Viewed Profile"
+            : item.category.name === "Events visited"
+            ? "Viewed Event"
+            : item.category.name === "Groups visited"
+            ? "Viewed Group"
+            : `Activity: ${item.category.name}`,
+          item.data.name,
+        ],
+      ],
+    },
+  ];
+
+  async parse(
+    file: DataFile,
+    metadata: Map<string, any>
+  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
+    return await parseByStages(file, metadata, this.timelineParsers, []);
   }
 }
 
