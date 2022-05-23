@@ -12,13 +12,13 @@ export type TimelineTuple<T> = [T, any, TimelineContext];
 
 export type MetadataParser = {
   glob: IMinimatch;
-  tokenize?: (data: ArrayBufferLike | string) => any[] | Promise<any[]>;
+  tokenize?: (data: ArrayBufferLike) => any[] | Promise<any[]>;
   parse: (item: any) => [string, any];
 };
 
 export type TimelineParser<T> = {
   glob: IMinimatch;
-  tokenize?: (data: ArrayBufferLike | string) => any[] | Promise<any[]>;
+  tokenize?: (data: ArrayBufferLike) => any[] | Promise<any[]>;
   parse: (item: any) => TimelineTuple<T> | TimelineTuple<T>[] | void;
 };
 
