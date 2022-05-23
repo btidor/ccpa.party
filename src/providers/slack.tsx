@@ -28,11 +28,6 @@ class Slack implements Provider<CategoryKey> {
     "https://slack.com/trust/privacy/privacy-policy#california-rights";
   // Also: https://slack.com/trust/compliance/ccpa-faq
 
-  metadataFiles: ReadonlyArray<string | RegExp> = [
-    "channels.json",
-    "users.json",
-  ];
-
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
       "message",

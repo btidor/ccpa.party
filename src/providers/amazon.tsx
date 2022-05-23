@@ -30,8 +30,6 @@ class Amazon implements Provider<CategoryKey> {
   privacyPolicy: string =
     "https://www.amazon.com/gp/help/customer/display.html?nodeId=GC5HB5DVMU5Y8CJ2";
 
-  metadataFiles: ReadonlyArray<string | RegExp> = [];
-
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
       "activity",

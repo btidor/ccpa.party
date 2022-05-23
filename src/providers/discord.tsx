@@ -40,11 +40,6 @@ class Discord implements Provider<CategoryKey> {
   privacyPolicy: string =
     "https://discord.com/privacy#information-for-california-users";
 
-  metadataFiles: ReadonlyArray<string | RegExp> = [
-    "servers/index.json",
-    /^channels\/c[0-9]+\/channel.json/,
-  ];
-
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
       "activity",

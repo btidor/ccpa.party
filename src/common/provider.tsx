@@ -31,7 +31,6 @@ export interface Provider<T> {
   fileName: string;
   privacyPolicy: string;
 
-  metadataFiles: ReadonlyArray<string | RegExp>;
   timelineCategories: ReadonlyMap<T, TimelineCategory>;
 
   parse(

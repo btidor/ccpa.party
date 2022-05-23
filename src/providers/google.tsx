@@ -33,8 +33,6 @@ class Google implements Provider<CategoryKey> {
   privacyPolicy: string =
     "https://policies.google.com/privacy?hl=en#california";
 
-  metadataFiles: ReadonlyArray<string | RegExp> = [];
-
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
       "activity",

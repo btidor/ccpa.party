@@ -28,8 +28,6 @@ class Netflix implements Provider<CategoryKey> {
   fileName: string = "netflix.zip";
   privacyPolicy: string = "https://help.netflix.com/legal/privacy#ccpa";
 
-  metadataFiles: ReadonlyArray<string | RegExp> = [];
-
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
       "account",

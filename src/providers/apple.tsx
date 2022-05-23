@@ -33,8 +33,6 @@ class Apple implements Provider<CategoryKey> {
   fileName: string = "zip files";
   privacyPolicy: string = "https://www.apple.com/legal/privacy/california/";
 
-  metadataFiles: ReadonlyArray<string | RegExp> = [];
-
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
       "account",

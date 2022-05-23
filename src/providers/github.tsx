@@ -25,8 +25,6 @@ class GitHub implements Provider<CategoryKey> {
   privacyPolicy: string =
     "https://docs.github.com/en/site-policy/privacy-policies/githubs-notice-about-the-california-consumer-privacy-act";
 
-  metadataFiles: ReadonlyArray<string | RegExp> = [];
-
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
       "activity",

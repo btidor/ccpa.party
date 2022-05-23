@@ -123,8 +123,6 @@ class Facebook implements Provider<CategoryKey> {
   fileName: string = "facebook.zip";
   privacyPolicy: string = "https://www.facebook.com/legal/policy/ccpa";
 
-  metadataFiles: ReadonlyArray<string | RegExp> = [];
-
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
       "activity",
