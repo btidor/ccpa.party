@@ -1,7 +1,13 @@
 import { DateTime } from "luxon";
+import { Minimatch } from "minimatch";
 
 import type { DataFile, TimelineEntry } from "@/common/database";
-import { getSlugAndDayTime, parseJSON } from "@/common/parse";
+import {
+  TimelineParser,
+  getSlugAndDayTime,
+  parseByStages,
+  parseJSON,
+} from "@/common/parse";
 import type { Provider, TimelineCategory } from "@/common/provider";
 
 type CategoryKey = "activity" | "message";
@@ -46,90 +52,116 @@ class GitHub implements Provider<CategoryKey> {
     ],
   ]);
 
-  async parse(
-    file: DataFile
-  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
-    const object = (url: string) => {
-      const parts = url.split("/");
-      const repo = parts[4];
-      if (repo === undefined) return parts[3]; // user
-      switch (parts[5]) {
-        case undefined:
-          return repo;
-        case "commit":
-          return `${repo}@${parts[6].slice(0, 8)}`;
-        case "issues":
-        case "pull":
-          return `${repo}#${parts[6].split("#")[0]}`;
-        default:
-          throw new Error("Can't parse object: " + url);
-      }
-    };
-    const body = (body: string) => {
-      const parts = body.split("\n");
-      return parts.length > 1 ? parts[0] + " [...]" : parts[0];
-    };
-
-    const supportedPrefixes = [
-      "commit_comments_",
-      "issue_comments_",
-      "issue_events_",
-      "issues_",
-      "pull_requests_",
-      "repositories_",
-    ];
-    if (supportedPrefixes.some((p) => file.path[1].startsWith(p))) {
-      return parseJSON(file.data)
-        .map((item: any) => {
-          let category, title, trailer;
-
-          if (item.type === "commit_comment" || item.type === "issue_comment") {
-            category = "message";
-            title = body(item.body);
-            trailer = `${object(item.user)} commented on ${object(item.url)}`;
-          } else if (item.type === "issue_event") {
-            category = "activity";
-            title =
-              "Issue " +
-              (item.event as string)
-                .replace(/_/g, " ")
-                .replace(
-                  /\w\S*/g,
-                  (w) => " " + w[0].toUpperCase() + w.slice(1)
-                );
-            trailer = `by ${object(item.actor)} on ${object(item.url)}`;
-          } else if (item.type === "issue") {
-            category = "message";
-            title = item.title;
-            trailer = `${object(item.user)} filed issue ${object(item.url)}`;
-          } else if (item.type === "pull_request") {
-            category = "message";
-            title = item.title;
-            trailer = `${object(item.user)} created pull request ${object(
-              item.url
-            )}`;
-          } else if (item.type === "repository") {
-            category = "activity";
-            title = "Repository Created";
-            trailer = object(item.url);
-          } else {
-            return undefined;
-          }
-
-          return {
-            file: file.path,
-            category,
-            ...getSlugAndDayTime(
-              DateTime.fromISO(item.created_at).toSeconds(),
-              item
-            ),
-            context: [title, trailer],
-            value: item,
-          };
-        })
-        .filter((x?: TimelineEntry<CategoryKey>) => x);
+  obj = (url: string) => {
+    const parts = url.split("/");
+    const repo = parts[4];
+    if (repo === undefined) return parts[3]; // user
+    switch (parts[5]) {
+      case undefined:
+        return repo;
+      case "commit":
+        return `${repo}@${parts[6].slice(0, 8)}`;
+      case "issues":
+      case "pull":
+        return `${repo}#${parts[6].split("#")[0]}`;
+      default:
+        throw new Error("Can't parse object: " + url);
     }
-    return [];
+  };
+
+  body = (body: string) => {
+    const parts = body.split("\n");
+    return parts.length > 1 ? parts[0] + " [...]" : parts[0];
+  };
+
+  timelineParsers: ReadonlyArray<TimelineParser<CategoryKey>> = [
+    {
+      glob: new Minimatch("commit_comments_*.json"),
+      parse: (item) => [
+        "message",
+        DateTime.fromISO(item.created_at),
+        [
+          this.body(item.body),
+          `${this.obj(item.user)} commented on ${this.obj(item.url)}`,
+        ],
+      ],
+    },
+    {
+      glob: new Minimatch("issue_comments_*.json"),
+      parse: (item) => [
+        "message",
+        DateTime.fromISO(item.created_at),
+        [
+          this.body(item.body),
+          `${this.obj(item.user)} commented on ${this.obj(item.url)}`,
+        ],
+      ],
+    },
+    {
+      glob: new Minimatch("issue_events_*.json"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromISO(item.created_at),
+        [
+          "Issue " +
+            (item.event as string)
+              .replace(/_/g, " ")
+              .replace(/\w\S*/g, (w) => " " + w[0].toUpperCase() + w.slice(1)),
+          `by ${this.obj(item.actor)} on ${this.obj(item.url)}`,
+        ],
+      ],
+    },
+    {
+      glob: new Minimatch("issue_events_*.json"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromISO(item.created_at),
+        [
+          "Issue " +
+            (item.event as string)
+              .replace(/_/g, " ")
+              .replace(/\w\S*/g, (w) => " " + w[0].toUpperCase() + w.slice(1)),
+          `by ${this.obj(item.actor)} on ${this.obj(item.url)}`,
+        ],
+      ],
+    },
+    {
+      glob: new Minimatch("issues_*.json"),
+      parse: (item) => [
+        "message",
+        DateTime.fromISO(item.created_at),
+        [
+          item.title,
+          `${this.obj(item.user)} filed issue ${this.obj(item.url)}`,
+        ],
+      ],
+    },
+    {
+      glob: new Minimatch("pull_requests_*.json"),
+      parse: (item) => [
+        "message",
+        DateTime.fromISO(item.created_at),
+        [
+          item.title,
+          `${this.obj(item.user)} created pull request ${this.obj(item.url)}`,
+        ],
+      ],
+    },
+    {
+      glob: new Minimatch("repositories_*.json"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromISO(item.created_at),
+        ["Repository Created", this.obj(item.url)],
+      ],
+    },
+  ];
+
+  async parse(
+    file: DataFile,
+    metadata: Map<string, any>
+  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
+    return await parseByStages(file, metadata, this.timelineParsers, []);
   }
 }
 
