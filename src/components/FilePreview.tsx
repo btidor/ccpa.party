@@ -100,7 +100,7 @@ function displayFile(data: ArrayBufferLike, filename: string): JSX.Element {
       const url = URL.createObjectURL(new Blob([data]));
       return (
         <div className={styles.container}>
-          <img src={url} alt={filename} className={styles.media} />
+          <img src={url} alt={filename} />
         </div>
       );
     }

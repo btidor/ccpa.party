@@ -18,7 +18,9 @@ function Logo(params: Params): JSX.Element {
   return (
     <Link
       to="/"
-      className={[styles.logo, styles[block]].join(" ")}
+      className={[styles.logo, block === "home" && styles.home]
+        .filter((x) => x)
+        .join(" ")}
       state={picker}
       tabIndex={block === "home" ? -1 : undefined}
     >
