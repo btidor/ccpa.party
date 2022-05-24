@@ -77,7 +77,9 @@
   "prettier": {
     "importOrder": [
       "^@src/([^.]*)$",
-      "^@src/(.*)\\.css$"
+      "^@src/(.*)\\.css$",
+      "^@src/fonts/(.*)$",
+      "^@src/img/(.*)$"
     ],
     "importOrderSeparation": true,
     "importOrderSortSpecifiers": true

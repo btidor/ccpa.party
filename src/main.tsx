@@ -1,5 +1,3 @@
-import faviconDarkSvg from "@src/img/favicon-dark.svg";
-import faviconSvg from "@src/img/favicon.svg";
 import React from "react";
 import ReactDOMClient from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -9,6 +7,13 @@ import plausible from "@src/common/plausible";
 
 import "@src/index.css";
 
+import notoProvider from "@src/fonts/noto-emoji-provider-subset.woff2";
+import plexMono from "@src/fonts/plex-mono-subset.woff2";
+import plexSans from "@src/fonts/plex-sans.woff2";
+
+import faviconDarkSvg from "@src/img/favicon-dark.svg";
+import faviconSvg from "@src/img/favicon.svg";
+
 const root = ReactDOMClient.createRoot(document.getElementById("root")!);
 root.render(
   <React.StrictMode>
@@ -17,6 +22,16 @@ root.render(
     </BrowserRouter>
   </React.StrictMode>
 );
+
+const addLink = (rel: string, href: string, opts: { [key: string]: any }) => {
+  const link = document.createElement("link");
+  link.rel = rel;
+  link.href = href;
+  for (const [k, v] of Object.entries(opts)) {
+    (link as any)[k] = v;
+  }
+  document.head.appendChild(link);
+};
 
 const dark = window.matchMedia("(prefers-color-scheme: dark)");
 const swapIcons = () => {
@@ -36,21 +51,24 @@ const swapIcons = () => {
   const links = Array.from(head.getElementsByTagName("link"));
   links.find((x) => x.rel === "icon")?.remove();
 
-  if (dark.matches) {
-    const icon = document.createElement("link");
-    icon.rel = "icon";
-    icon.href = faviconDarkSvg;
-    icon.type = "image/svg+xml";
-    head.appendChild(icon);
-  } else {
-    const icon = document.createElement("link");
-    icon.rel = "icon";
-    icon.href = faviconSvg;
-    icon.type = "image/svg+xml";
-    head.appendChild(icon);
-  }
+  addLink("icon", dark.matches ? faviconDarkSvg : faviconSvg, {
+    type: "image/svg+xml",
+  });
 };
 dark.addListener(swapIcons);
 swapIcons();
 
 plausible();
+
+// Preload remaining assets used by the app, but only after the page loads, to
+// avoid blocking critical resources.
+window.addEventListener("load", () => {
+  const opts = {
+    as: "font",
+    type: "font/woff2",
+    crossOrigin: "",
+  };
+  addLink("preload", notoProvider, opts);
+  addLink("preload", plexMono, opts);
+  addLink("preload", plexSans, opts);
+});
