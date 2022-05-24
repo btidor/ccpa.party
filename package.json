@@ -21,6 +21,7 @@
     "unzipit": "^1.4.0"
   },
   "devDependencies": {
+    "@happy-dom/global-registrator": "^4.0.1",
     "@testing-library/react": "^13.2.0",
     "@trivago/prettier-plugin-sort-imports": "^3.2.0",
     "@types/imurmurhash": "^0.1.1",
@@ -43,6 +44,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "postbuild": "vite build --ssr src/main-static.tsx --outDir dist/.server && node prerender",
     "preview": "vite preview",
     "test": "vitest"
   },
