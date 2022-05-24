@@ -7,7 +7,7 @@ COPY *.list /etc/apt/sources.list.d/
 RUN apt update -q && apt upgrade -yq
 
 RUN apt install -yq nodejs libatomic1 && \
-    npm install -g npm@latest
+    npm install -g npm@latest vercel@latest
 
 RUN apt install -yq python3-pip brotli && \
     pip3 install fonttools brotli uharfbuzz

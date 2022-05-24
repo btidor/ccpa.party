@@ -46,7 +46,8 @@
     "build": "tsc && vite build",
     "postbuild": "./prerender",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "deploy": "vercel deploy --prod"
   },
   "browserslist": {
     "production": [

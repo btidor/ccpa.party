@@ -1,6 +1,7 @@
 dist
 dist-ssr
 node_modules
+.vercel
 
 logs
 *.log
