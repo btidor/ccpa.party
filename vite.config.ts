@@ -7,6 +7,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   build: {
     chunkSizeWarningLimit: 4 * 1024,
+    sourcemap: true,
   },
   plugins: [react()],
   resolve: {
