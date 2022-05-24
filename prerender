@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const fs = require("fs");
 const prettier = require("prettier");
 
@@ -19,21 +21,18 @@ const HappyDOM = require("@happy-dom/global-registrator");
 HappyDOM.GlobalRegistrator.register();
 window.URL = { createObjectURL: () => "" };
 
-// Monkeypatch code bundle
-let code = fs.readFileSync("dist/.server/main-static.js", "utf-8");
-code = code.replace(`require("react-markdown")`, `import("react-markdown")`);
-code = code.replace(`require("remark-gfm")`, `import("remark-gfm")`);
-fs.writeFileSync("dist/.server/main-static.js", code);
-
-// Then load code bundle
-const { render } = require("./dist/.server/main-static.js");
-
-// Pre-render routes
 (async () => {
+  const { createServer } = require("vite");
+  const vite = await createServer({
+    server: { middlewareMode: "ssr" },
+  });
+  const { render } = await vite.ssrLoadModule("/src/main-static.tsx");
   const template = fs.readFileSync("dist/index.html", "utf-8");
 
   if (!template.includes(tag))
-    throw new Error(`Can't find ${tag} in dist/index.html`);
+    throw new Error(
+      `Can't find ${tag} in dist/index.html. Was it already processed?`
+    );
 
   for (const url of routes) {
     const content = await render(url);
@@ -48,5 +47,6 @@ const { render } = require("./dist/.server/main-static.js");
 
   const html = prettier.format(template.replace(tag, ""), { parser: "html" });
   fs.writeFileSync("dist/200.html", html);
-  fs.rmSync("dist/.server/", { recursive: true });
+
+  vite.close();
 })();

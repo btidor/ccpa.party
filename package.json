@@ -44,7 +44,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "postbuild": "vite build --ssr src/main-static.tsx --outDir dist/.server && node prerender",
+    "postbuild": "./prerender",
     "preview": "vite preview",
     "test": "vitest"
   },
