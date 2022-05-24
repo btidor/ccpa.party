@@ -16,6 +16,9 @@ const routes = [
   "/slack",
 ];
 
+const headEnd = "</head>";
+const noindex = `<meta name="robots" content="noindex" />`;
+
 // Monkeypatch browser APIs
 const HappyDOM = require("@happy-dom/global-registrator");
 HappyDOM.GlobalRegistrator.register();
@@ -45,7 +48,12 @@ window.URL = { createObjectURL: () => "" };
     console.log("Pre-rendered:", path);
   }
 
-  const html = prettier.format(template.replace(tag, ""), { parser: "html" });
+  const html = prettier.format(
+    // Non-prerendered pages won't have search-friendly content and might be
+    // soft 404s. Don't index.
+    template.replace(tag, "").replace(headEnd, "\n" + noindex + headEnd),
+    { parser: "html" }
+  );
   fs.writeFileSync("dist/200.html", html);
 
   vite.close();
