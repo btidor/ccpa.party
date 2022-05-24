@@ -280,7 +280,7 @@ class Facebook implements Provider<CategoryKey> {
         "message",
         DateTime.fromMillis(item.timestamp_ms),
         [
-          item.content,
+          smartDecodeText(item.content || ""),
           item.thread.title === item.sender_name
             ? undefined
             : smartDecodeText(item.thread.title),
@@ -423,7 +423,7 @@ class Facebook implements Provider<CategoryKey> {
             .split(" ")
             .map((w) => w[0].toUpperCase() + w.slice(1))
             .join(" "),
-          item.session?.ip_address,
+          Object.values(item.extra_info || {}).find((x) => x),
         ],
       ],
     },

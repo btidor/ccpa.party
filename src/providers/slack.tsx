@@ -105,7 +105,6 @@ class Slack implements Provider<CategoryKey> {
     string | void,
     { display: string; color?: string } | void
   ] => {
-    console.warn(metadata);
     const message = entry.value;
     const channelName =
       entry.category === "message"

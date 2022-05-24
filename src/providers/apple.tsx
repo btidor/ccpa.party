@@ -1,14 +1,9 @@
 import { DateTime } from "luxon";
 import { Minimatch } from "minimatch";
 
-import type {
-  DataFile,
-  TimelineContext,
-  TimelineEntry,
-} from "@src/common/database";
+import type { DataFile, TimelineEntry } from "@src/common/database";
 import {
   TimelineParser,
-  getSlugAndDayTime,
   parseByStages,
   parseCSV,
   parseJSON,
@@ -17,6 +12,8 @@ import {
 import type { Provider, TimelineCategory } from "@src/common/provider";
 
 type CategoryKey = "account" | "activity" | "icloud" | "media";
+
+const domParser = new DOMParser();
 
 class Apple implements Provider<CategoryKey> {
   slug: string = "apple";
@@ -480,19 +477,13 @@ class Apple implements Provider<CategoryKey> {
     {
       glob: new Minimatch("**/Apple Features Using iCloud/Mail/Recents.xml"),
       tokenize: (data) => {
-        const dom = new DOMParser().parseFromString(
-          smartDecode(data),
-          "text/xml"
-        );
+        const dom = domParser.parseFromString(smartDecode(data), "text/xml");
         const entries = dom.getElementsByTagName("dict");
-        return Array.from(entries).filter((d) =>
-          Array.from(d.children).some(
-            (c) => c.nodeName === "key" && c.innerHTML === "t"
-          )
-        );
+        return Array.from(entries).map((entry) => entry.outerHTML);
       },
       parse: (item) => {
-        const children: HTMLCollection = item.children;
+        const children = domParser.parseFromString(item, "text/xml").children[0]
+          .children;
         const dates =
           Array.from(children)
             .find((c) => c.nodeName === "key" && c.innerHTML === "t")
@@ -512,15 +503,14 @@ class Apple implements Provider<CategoryKey> {
         "**/Apple Features Using iCloud/Wi-Fi/KnownNetworks.xml"
       ),
       tokenize: (data) => {
-        const dom = new DOMParser().parseFromString(
-          smartDecode(data),
-          "text/xml"
-        );
+        const dom = domParser.parseFromString(smartDecode(data), "text/xml");
         const root = dom.getElementsByTagName("array")[0];
-        return Array.from(root.children);
+        return Array.from(root.children).map((entry) => entry.outerHTML);
       },
       parse: (item) => {
-        const keys: HTMLCollection = item.getElementsByTagName("key");
+        const keys = domParser
+          .parseFromString(item, "text/xml")
+          .getElementsByTagName("key");
         const name = keys[0]?.innerHTML;
         const added = Array.from(keys).find((k) => k.innerHTML === "added_at")
           ?.nextElementSibling?.innerHTML!;
