@@ -1,12 +1,15 @@
+import { DateTime } from "luxon";
+import { Minimatch } from "minimatch";
+
 import type { DataFile, TimelineEntry } from "@src/common/database";
 import {
-  getSlugAndDayTime,
+  TimelineParser,
+  parseByStages,
   parseCSV,
   parseJSON,
   smartDecode,
 } from "@src/common/parse";
 import type { Provider, TimelineCategory } from "@src/common/provider";
-import { DateTime } from "luxon";
 
 type CategoryKey = "activity" | "billing" | "notification" | "order";
 
@@ -68,713 +71,528 @@ class Amazon implements Provider<CategoryKey> {
     ],
   ]);
 
-  async parse(
-    file: DataFile
-  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
-    if (
-      file.path[1] === "Location" &&
-      file.path[2]?.startsWith("Country of Residence")
-    ) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(
-          DateTime.fromISO(row["Timestamp"]).toSeconds(),
-          row
-        ),
-        context: ["Set Alexa country of residence", row["Country"]],
-        value: row,
-      }));
-    } else if (file.path[1] === "account.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(
-          DateTime.fromSQL(row["Account_Creation_Time"]).toSeconds(),
-          row
-        ),
-        context: ["Created Music Account", row["Music_Territory"]],
-        value: row,
-      }));
-    } else if (file.path[1] === "library.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "order",
-        ...getSlugAndDayTime(
-          DateTime.fromISO(row["creationDate"]).toSeconds(),
-          row
-        ),
-        context: [
-          "Added to Music Library",
-          `${row["title"]} (${row["albumName"]})`,
-        ],
-        value: row,
-      }));
-    } else if (
-      file.path[1] === "AmazonSmile.AggregateCustomerDonation.Data.csv"
-    ) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(row["LastUpdatedTimeInUTC"], "MM/dd/yyyy HH:mm", {
-            zone: "UTC",
-          }).toSeconds(),
-          row
-        ),
-        context: ["AmazonSmile Summary"],
-        value: row,
-      }));
-    } else if (
-      file.path[1] === "AmazonSmile.CharitySelectionHistory.Data.csv"
-    ) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(row["SelectionTimeInUTC"], "MM/dd/yyyy HH:mm", {
-            zone: "UTC",
-          }).toSeconds(),
-          row
-        ),
-        context: ["Selected AmazonSmile Charity", row["CharityName"]],
-        value: row,
-      }));
-    } else if (
-      file.path[1] === "Appstore" &&
-      file.path[4] === "subscription-transaction.csv"
-    ) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "billing",
-        ...getSlugAndDayTime(
-          DateTime.fromSQL(row["transaction_creation_date"], {
-            zone: "UTC",
-          }).toSeconds(),
-          row
-        ),
-        context: ["App Store Subscription", row["transaction_item_id"]],
-        value: row,
-      }));
-    } else if (file.path[1] === "Audible.CartHistory.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(DateTime.fromSQL(row["AddDate"]).toSeconds(), row),
-        context: ["Added to Audible Cart", row["Title"]],
-        value: row,
-      }));
-    } else if (file.path[1] === "Audible.Credits.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "billing",
-        ...getSlugAndDayTime(
-          DateTime.fromSQL(row["IssueDate"]).toSeconds(),
-          row
-        ),
-        context: ["Received Audible Credit"],
-        value: row,
-      }));
-    } else if (file.path[1] === "Audible.DevicesActivations.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(
-          DateTime.fromSQL(row["StartDate"]).toSeconds(),
-          row
-        ),
-        context: ["Activated Audible", row["DeviceCategory"]],
-        value: row,
-      }));
-    } else if (file.path[1] === "Audible.Library.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "order",
-        ...getSlugAndDayTime(
-          DateTime.fromSQL(row["DateAdded"]).toSeconds(),
-          row
-        ),
-        context: ["Added to Audible Library", row["Title"]],
-        value: row,
-      }));
-    } else if (file.path[1] === "Audible.MembershipBillings.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "billing",
-        ...getSlugAndDayTime(
-          DateTime.fromSQL(row["TaxCreateDate"]).toSeconds(),
-          row
-        ),
-        context: ["Audible Billing Event", row["OfferName"]],
-        value: row,
-      }));
-    } else if (file.path[1] === "Audible.MembershipEvent.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(
-          DateTime.fromSQL(row["EventDate"]).toSeconds(),
-          row
-        ),
-        context: ["Audible Membership Event", row["BusinessEventTypeName"]],
-        value: row,
-      }));
-    } else if (file.path[1] === "Audible.PurchaseHistory.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "order",
-        ...getSlugAndDayTime(
-          DateTime.fromSQL(row["OrderPlaceDate"]).toSeconds(),
-          row
-        ),
-        context: ["Audible Purchase", row["Title"]],
-        value: row,
-      }));
-    } else if (
-      file.path[4] === "CustomerCommunicationExperience.Preferences.csv" ||
-      file.path[4] ===
-        "CustomerCommunicationExperience.PreferencesEmailHistory.csv"
-    ) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "notification",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(
-            row["ActionTimestamp"],
-            "M/d/yy h:mm:ss a z"
-          ).toSeconds(),
-          row
-        ),
-        context: ["Notification Event", row["NotificationTopic"]],
-        value: row,
-      }));
-    } else if (file.path[1] === "registration.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(
-          DateTime.fromISO(row["FirstTimeRegistered"]).toSeconds(),
-          row
-        ),
-        context: ["Registered Device", row["AccountName"]],
-        value: row,
-      }));
-    } else if (file.path[1] === "Digital Items.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "order",
-        ...getSlugAndDayTime(
-          DateTime.fromSQL(row["OrderDate"]).toSeconds(),
-          row
-        ),
-        context: ["Digital Order", row["Title"]],
-        value: row,
-      }));
-    } else if (file.path[1] === "Digital Orders.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "order",
-        ...getSlugAndDayTime(
-          DateTime.fromSQL(row["OrderDate"]).toSeconds(),
-          row
-        ),
-        context: ["Digital Order", row["OrderId"]],
-        value: row,
-      }));
-    } else if (file.path[1].startsWith("Digital.ActionBenefit.")) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "notification",
-        ...getSlugAndDayTime(
-          DateTime.fromSQL(row["BenefitDate"]).toSeconds(),
-          row
-        ),
-        context: ["Qualified for Promotion"],
-        value: row,
-      }));
-    } else if (file.path[1] === "whispersync.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(
-          DateTime.fromISO(row["Customer modified date on device"]).toSeconds(),
-          row
-        ),
-        context: [
-          `Whispersync ${row["Annotation Type"]
+  timelineParsers: ReadonlyArray<TimelineParser<CategoryKey>> = [
+    {
+      glob: new Minimatch("Location/Country of Residence-*.csv"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromISO(item["Timestamp"]),
+        ["Set Alexa country of residence", item["Country"]],
+      ],
+    },
+    {
+      glob: new Minimatch("account.csv"), // Amazon-Music.zip
+      parse: (item) => [
+        "activity",
+        DateTime.fromSQL(item["Account_Creation_Time"]),
+        ["Created Music Account", item["Music_Territory"]],
+      ],
+    },
+    {
+      glob: new Minimatch("library.csv"), // Amazon-Music.zip
+      parse: (item) => [
+        "order",
+        DateTime.fromISO(item["creationDate"]),
+        ["Added to Music Library", `${item["title"]} (${item["albumName"]})`],
+      ],
+    },
+    {
+      glob: new Minimatch("AmazonSmile.AggregateCustomerDonation.Data.csv"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromFormat(item["LastUpdatedTimeInUTC"], "MM/dd/yyyy HH:mm", {
+          zone: "UTC",
+        }),
+        ["AmazonSmile Summary"],
+      ],
+    },
+    {
+      glob: new Minimatch("AmazonSmile.CharitySelectionHistory.Data.csv"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromFormat(item["SelectionTimeInUTC"], "MM/dd/yyyy HH:mm", {
+          zone: "UTC",
+        }),
+        ["Selected AmazonSmile Charity", item["CharityName"]],
+      ],
+    },
+    {
+      glob: new Minimatch("Appstore/**/subscription-transaction.csv"),
+      parse: (item) => [
+        "billing",
+        DateTime.fromSQL(item["transaction_creation_date"], {
+          zone: "UTC",
+        }),
+        ["App Store Subscription", item["transaction_item_id"]],
+      ],
+    },
+    {
+      glob: new Minimatch("Audible.CartHistory.csv"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromSQL(item["AddDate"]),
+        ["Added to Audible Cart", item["Title"]],
+      ],
+    },
+    {
+      glob: new Minimatch("Audible.Credits.csv"),
+      parse: (item) => [
+        "billing",
+        DateTime.fromSQL(item["IssueDate"]),
+        ["Received Audible Credit"],
+      ],
+    },
+    {
+      glob: new Minimatch("Audible.DevicesActivations.csv"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromSQL(item["StartDate"]),
+        ["Activated Audible", item["DeviceCategory"]],
+      ],
+    },
+    {
+      glob: new Minimatch("Audible.Library.csv"),
+      parse: (item) => [
+        "order",
+        DateTime.fromSQL(item["DateAdded"]),
+        ["Added to Audible Library", item["Title"]],
+      ],
+    },
+    {
+      glob: new Minimatch("Audible.MembershipBillings.csv"),
+      parse: (item) => [
+        "billing",
+        DateTime.fromSQL(item["TaxCreateDate"]),
+        ["Audible Billing Event", item["OfferName"]],
+      ],
+    },
+    {
+      glob: new Minimatch("Audible.MembershipEvent.csv"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromSQL(item["EventDate"]),
+        ["Audible Membership Event", item["BusinessEventTypeName"]],
+      ],
+    },
+    {
+      glob: new Minimatch("Audible.PurchaseHistory.csv"),
+      parse: (item) => [
+        "order",
+        DateTime.fromSQL(item["OrderPlaceDate"]),
+        ["Audible Purchase", item["Title"]],
+      ],
+    },
+    {
+      glob: new Minimatch("**/CustomerCommunicationExperience.Preferences.csv"),
+      parse: (item) => [
+        "notification",
+        DateTime.fromFormat(item["ActionTimestamp"], "M/d/yy h:mm:ss a z"),
+        ["Notification Event", item["NotificationTopic"]],
+      ],
+    },
+    {
+      glob: new Minimatch("registration.csv"), // Devices.Registration.zip
+      parse: (item) => [
+        "activity",
+        DateTime.fromISO(item["FirstTimeRegistered"]),
+        ["Registered Device", item["AccountName"]],
+      ],
+    },
+    {
+      glob: new Minimatch("Digital Items.csv"),
+      parse: (item) => [
+        "order",
+        DateTime.fromSQL(item["OrderDate"]),
+        ["Digital Order", item["Title"]],
+      ],
+    },
+    {
+      glob: new Minimatch("Digital Orders.csv"),
+      parse: (item) => [
+        "order",
+        DateTime.fromSQL(item["OrderDate"]),
+        ["Digital Order", item["OrderId"]],
+      ],
+    },
+    {
+      glob: new Minimatch("Digital.ActionBenefit.*.csv"),
+      parse: (item) => [
+        "notification",
+        DateTime.fromSQL(item["BenefitDate"]),
+        ["Qualified for Promotion"],
+      ],
+    },
+    {
+      glob: new Minimatch("whispersync.csv"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromISO(item["Customer modified date on device"]),
+        [
+          `Whispersync ${item["Annotation Type"]
             .split(".")[1]
             .split("_")
-            .map((w) => w[0].toUpperCase() + w.slice(1))
+            .map((w: any) => w[0].toUpperCase() + w.slice(1))
             .join(" ")}`,
         ],
-        value: row,
-      }));
-    } else if (file.path[1] === "Digital.PrimeVideo.LocationData.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(row["last_updated_at"], "MM/dd/yyyy").toSeconds(),
-          row
+      ],
+    },
+    {
+      glob: new Minimatch("Digital.PrimeVideo.LocationData.csv"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromFormat(item["last_updated_at"], "MM/dd/yyyy"),
+        ["Prime Video Location", item["last_seen_territory"]],
+      ],
+    },
+    {
+      glob: new Minimatch("Digital.Redemption.*.csv"),
+      parse: (item) => [
+        "billing",
+        DateTime.fromISO(item["ClaimDate"]),
+        ["Recipient Redeemed Gift", item["Title"]],
+      ],
+    },
+    {
+      glob: new Minimatch("Beneficiaries.csv"),
+      parse: (item) => [
+        "billing",
+        DateTime.fromISO(item["StartDate"]),
+        ["Received Benefits", item["ServiceProvider"]],
+      ],
+    },
+    {
+      glob: new Minimatch("Subscriptions.csv"),
+      parse: (item) => [
+        "billing",
+        DateTime.fromISO(item["SubscriptionStartDate"]),
+        ["Started Subscription", item["Marketplace"]],
+      ],
+    },
+    {
+      glob: new Minimatch(
+        "**/Kindle.BooksPromotions.RewardOfferRepository.csv"
+      ),
+      parse: (item) => [
+        "notification",
+        DateTime.fromSQL(item["promotion_start_datetime"]),
+        ["Offered Kindle Promotion"],
+      ],
+    },
+    {
+      glob: new Minimatch("Kindle.Devices.ReadingSession.csv"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromISO(item["end_timestamp"]),
+        ["Read Kindle Book", item["ASIN"]],
+      ],
+    },
+    {
+      glob: new Minimatch(
+        "**/Kindle.Reach.KindleNotifications.InappNotificationEvents.csv"
+      ),
+      parse: (item) => [
+        "notification",
+        DateTime.fromFormat(item["Timestamp"], "MM/dd/yyyy HH:mm", {
+          zone: "UTC",
+        }),
+        ["Kindle Notification"],
+      ],
+    },
+    {
+      glob: new Minimatch(
+        "OutboundNotifications.AmazonApplicationUpdateHistory.csv"
+      ),
+      parse: (item) => [
+        "activity",
+        DateTime.fromFormat(item["App Last Updated Time"], "MM/dd/yyyy HH:mm", {
+          zone: "UTC",
+        }),
+        ["Updated App", `${item["Application"]} on ${item["Device"]}`],
+      ],
+    },
+    {
+      glob: new Minimatch(
+        "OutboundNotifications.EmailDeliveryStatusFeedback.csv"
+      ),
+      parse: (item) => [
+        "notification",
+        DateTime.fromFormat(item["Email Delivered Time"], "MM/dd/yyyy HH:mm", {
+          zone: "UTC",
+        }),
+        [`Email ${item["Email Delivery Status"]}`],
+      ],
+    },
+    {
+      glob: new Minimatch(
+        "OutboundNotifications.NotificationEngagementEvents.csv"
+      ),
+      parse: (item) => [
+        "notification",
+        DateTime.fromFormat(item["Record Creation Date"], "MM/dd/yyyy HH:mm", {
+          zone: "UTC",
+        }),
+        [`Email ${item["Event Type"]}`],
+      ],
+    },
+    {
+      glob: new Minimatch("OutboundNotifications.PushSentData.csv"),
+      parse: (item) => [
+        "notification",
+        DateTime.fromFormat(item["Recorded Time"], "MM/dd/yyyy HH:mm", {
+          zone: "UTC",
+        }),
+        ["Push Notification"],
+      ],
+    },
+    {
+      glob: new Minimatch("OutboundNotifications.SentNotifications.csv"),
+      parse: (item) => [
+        "notification",
+        DateTime.fromFormat(item["Message Sent Time"], "MM/dd/yyyy HH:mm", {
+          zone: "UTC",
+        }),
+        ["Sent Notification"],
+      ],
+    },
+    {
+      glob: new Minimatch("PaymentOptions.PaymentInstruments.csv"),
+      tokenize: async (data) =>
+        (await parseCSV(data)).filter(
+          (row) => row["RegistrationDate"] !== "N/A"
         ),
-        context: ["Prime Video Location", row["last_seen_territory"]],
-        value: row,
-      }));
-    } else if (file.path[1].startsWith("Digital.Redemption.")) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "billing",
-        ...getSlugAndDayTime(
-          DateTime.fromISO(row["ClaimDate"]).toSeconds(),
-          row
+      parse: (item) => [
+        "billing",
+        DateTime.fromFormat(item["RegistrationDate"], "MM/dd/yyyy HH:mm:ss z"),
+        ["Added Card", `****${item["LastDigits"]}`],
+      ],
+    },
+    {
+      glob: new Minimatch("**/WholeFoodsMarket.Orders.csv"),
+      parse: (item) => [
+        "order",
+        DateTime.fromFormat(item["order_datetime"], "MM/dd/yyyy HH:mm"),
+        ["Whole Foods Order", item["product_name_purchased"]],
+      ],
+    },
+    {
+      glob: new Minimatch("**/PhysicalStores.WholeFoods.KeyRegistration.csv"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromFormat(item["Created"], "MM/dd/yyyy HH:mm"),
+        ["Whole Foods Key Registered"],
+      ],
+    },
+    {
+      glob: new Minimatch("Retail.AuthenticationTokens.json"),
+      tokenize: (data) => parseJSON(data).authenticationSessionRecords,
+      parse: (item) => [
+        "activity",
+        DateTime.fromISO(item.creationTime),
+        ["Logged In"],
+      ],
+    },
+    {
+      glob: new Minimatch("**/BuyerSellerMessaging.csv"),
+      parse: (item) => [
+        "notification",
+        DateTime.fromSQL(item["Timestamp"]),
+        ["Seller Message", item["MessageSubject"]],
+      ],
+    },
+    {
+      glob: new Minimatch("**/Retail.CustomerProfile.Misc.csv"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromFormat(
+          item["profileLastOnboardingTime"],
+          "MM/dd/yyyy HH:mm:ss",
+          { zone: "UTC" }
         ),
-        context: ["Recipient Redeemed Gift", row["Title"]],
-        value: row,
-      }));
-    } else if (file.path[1] === "Beneficiaries.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "billing",
-        ...getSlugAndDayTime(
-          DateTime.fromISO(row["StartDate"]).toSeconds(),
-          row
-        ),
-        context: ["Received Benefits", row["ServiceProvider"]],
-        value: row,
-      }));
-    } else if (file.path[1] === "Subscriptions.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "billing",
-        ...getSlugAndDayTime(
-          DateTime.fromISO(row["SubscriptionStartDate"]).toSeconds(),
-          row
-        ),
-        context: ["Started Subscription", row["Marketplace"]],
-        value: row,
-      }));
-    } else if (
-      file.path[4] === "Kindle.BooksPromotions.RewardOfferRepository.csv"
-    ) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "notification",
-        ...getSlugAndDayTime(
-          DateTime.fromSQL(row["promotion_start_datetime"]).toSeconds(),
-          row
-        ),
-        context: ["Offered Kindle Promotion"],
-        value: row,
-      }));
-    } else if (file.path[1] === "Kindle.Devices.ReadingSession.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(
-          DateTime.fromISO(row["end_timestamp"]).toSeconds(),
-          row
-        ),
-        context: ["Read Kindle Book", row["ASIN"]],
-        value: row,
-      }));
-    } else if (
-      file.path[4] ===
-      "Kindle.Reach.KindleNotifications.InappNotificationEvents.csv"
-    ) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "notification",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(row["Timestamp"], "MM/dd/yyyy HH:mm", {
-            zone: "UTC",
-          }).toSeconds(),
-          row
-        ),
-        context: ["Kindle Notification"],
-        value: row,
-      }));
-    } else if (
-      file.path[1] ===
-      "OutboundNotifications.AmazonApplicationUpdateHistory.csv"
-    ) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(
-            row["App Last Updated Time"],
-            "MM/dd/yyyy HH:mm",
-            {
+        ["Updated Customer Profile"],
+      ],
+    },
+    {
+      glob: new Minimatch("**/Retail.CustomerProfile.PrivacySettings.csv"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromFormat(item["lastModified"], "MM/dd/yyyy HH:mm:ss", {
+          zone: "UTC",
+        }),
+        ["Updated Privacy Settings"],
+      ],
+    },
+    {
+      glob: new Minimatch("Retail.CustomerReturns.*.csv"),
+      parse: (item) => [
+        "billing",
+        item["DateOfReturn"][0].match(/[0-9]/)
+          ? DateTime.fromSQL(item["DateOfReturn"], {
               zone: "UTC",
-            }
-          ).toSeconds(),
-          row
-        ),
-        context: ["Updated App", `${row["Application"]} on ${row["Device"]}`],
-        value: row,
-      }));
-    } else if (
-      file.path[1] === "OutboundNotifications.EmailDeliveryStatusFeedback.csv"
-    ) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "notification",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(row["Email Delivered Time"], "MM/dd/yyyy HH:mm", {
-            zone: "UTC",
-          }).toSeconds(),
-          row
-        ),
-        context: [`Email ${row["Email Delivery Status"]}`],
-        value: row,
-      }));
-    } else if (
-      file.path[1] === "OutboundNotifications.NotificationEngagementEvents.csv"
-    ) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "notification",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(row["Record Creation Date"], "MM/dd/yyyy HH:mm", {
-            zone: "UTC",
-          }).toSeconds(),
-          row
-        ),
-        context: [`Email ${row["Event Type"]}`],
-        value: row,
-      }));
-    } else if (file.path[1] === "OutboundNotifications.PushSentData.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "notification",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(row["Recorded Time"], "MM/dd/yyyy HH:mm", {
-            zone: "UTC",
-          }).toSeconds(),
-          row
-        ),
-        context: ["Push Notification"],
-        value: row,
-      }));
-    } else if (file.path[1] === "OutboundNotifications.SentNotifications.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "notification",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(row["Message Sent Time"], "MM/dd/yyyy HH:mm", {
-            zone: "UTC",
-          }).toSeconds(),
-          row
-        ),
-        context: ["Sent Notification"],
-        value: row,
-      }));
-    } else if (file.path[1] === "PaymentOptions.PaymentInstruments.csv") {
-      return (await parseCSV(file.data))
-        .filter((row) => row["RegistrationDate"] !== "N/A")
-        .map((row) => ({
-          file: file.path,
-          category: "billing",
-          ...getSlugAndDayTime(
-            DateTime.fromFormat(
-              row["RegistrationDate"],
-              "MM/dd/yyyy HH:mm:ss z"
-            ).toSeconds(),
-            row
-          ),
-          context: ["Added Card", `****${row["LastDigits"]}`],
-          value: row,
-        }));
-    } else if (file.path[4] === "WholeFoodsMarket.Orders.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "order",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(
-            row["order_datetime"],
-            "MM/dd/yyyy HH:mm"
-          ).toSeconds(),
-          row
-        ),
-        context: ["Whole Foods Order", row["product_name_purchased"]],
-        value: row,
-      }));
-    } else if (
-      file.path[4] === "PhysicalStores.WholeFoods.KeyRegistration.csv"
-    ) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(row["Created"], "MM/dd/yyyy HH:mm").toSeconds(),
-          row
-        ),
-        context: ["Whole Foods Key Registered"],
-        value: row,
-      }));
-    } else if (file.path[1] === "Retail.AuthenticationTokens.json") {
-      const parsed = parseJSON(file.data);
-      return parsed.authenticationSessionRecords.map((row: any) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(
-          DateTime.fromISO(row.creationTime).toSeconds(),
-          row
-        ),
-        context: ["Logged In"],
-        value: row,
-      }));
-    } else if (file.path[4] === "BuyerSellerMessaging.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "notification",
-        ...getSlugAndDayTime(
-          DateTime.fromSQL(row["Timestamp"]).toSeconds(),
-          row
-        ),
-        context: ["Seller Message", row["MessageSubject"]],
-        value: row,
-      }));
-    } else if (file.path[4] === "Retail.CustomerProfile.Misc.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(
-            row["profileLastOnboardingTime"],
-            "MM/dd/yyyy HH:mm:ss",
-            { zone: "UTC" }
-          ).toSeconds(),
-          row
-        ),
-        context: ["Updated Customer Profile"],
-        value: row,
-      }));
-    } else if (file.path[4] === "Retail.CustomerProfile.PrivacySettings.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(row["lastModified"], "MM/dd/yyyy HH:mm:ss", {
-            zone: "UTC",
-          }).toSeconds(),
-          row
-        ),
-        context: ["Updated Privacy Settings"],
-        value: row,
-      }));
-    } else if (file.path[1].startsWith("Retail.CustomerReturns.")) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "billing",
-        ...getSlugAndDayTime(
-          row["DateOfReturn"][0].match(/[0-9]/)
-            ? DateTime.fromSQL(row["DateOfReturn"], {
-                zone: "UTC",
-              }).toSeconds()
-            : DateTime.fromFormat(
-                row["DateOfReturn"],
-                "EEE, dd MMM yyyy HH:mm:ss z"
-              ).toSeconds(),
-          row
-        ),
-        context: [
-          `${row["Resolution"] || "Refund/Return"}`,
-          row["ReturnReason"]
+            })
+          : DateTime.fromFormat(
+              item["DateOfReturn"],
+              "EEE, dd MMM yyyy HH:mm:ss z"
+            ),
+        [
+          `${item["Resolution"] || "Refund/Return"}`,
+          item["ReturnReason"]
             .split(" ")
-            .map((w) => w[0].toUpperCase() + w.slice(1))
+            .map((w: any) => w[0].toUpperCase() + w.slice(1))
             .join(" "),
         ],
-        value: row,
-      }));
-    } else if (file.path[1].startsWith("Retail.OrderHistory.")) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "order",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(row["Order Date"], "MM/dd/yyyy HH:mm:ss z", {
-            zone: "UTC",
-          }).toSeconds(),
-          row
+      ],
+    },
+    {
+      glob: new Minimatch("Retail.OrderHistory.*.csv"),
+      parse: (item) => [
+        "order",
+        DateTime.fromFormat(item["Order Date"], "MM/dd/yyyy HH:mm:ss z", {
+          zone: "UTC",
+        }),
+        ["Order", item["Product Name"]],
+      ],
+    },
+    {
+      glob: new Minimatch("Retail.OrdersReturned.Payments.*.csv"),
+      tokenize: async (data) =>
+        (await parseCSV(data)).filter(
+          (row) => row["RefundCompletionDate"] !== "N/A"
         ),
-        context: ["Order", row["Product Name"]],
-        value: row,
-      }));
-    } else if (file.path[1].startsWith("Retail.OrdersReturned.Payments.")) {
-      return (await parseCSV(file.data))
-        .filter((row) => row["RefundCompletionDate"] !== "N/A")
-        .map((row) => ({
-          file: file.path,
-          category: "billing",
-          ...getSlugAndDayTime(
-            DateTime.fromFormat(
-              row["RefundCompletionDate"],
-              "MM/dd/yyyy HH:mm:ss z",
-              {
-                zone: "UTC",
-              }
-            ).toSeconds(),
-            row
-          ),
-          context: [`Payment ${row["DisbursementType"]}`],
-          value: row,
-        }));
-    } else if (file.path[1].startsWith("Retail.OrdersReturned.")) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "billing",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(row["CreationDate"], "MM/dd/yyyy HH:mm:ss z", {
+      parse: (item) => [
+        "billing",
+        DateTime.fromFormat(
+          item["RefundCompletionDate"],
+          "MM/dd/yyyy HH:mm:ss z",
+          {
             zone: "UTC",
-          }).toSeconds(),
-          row
+          }
         ),
-        context: [
+        [`Payment ${item["DisbursementType"]}`],
+      ],
+    },
+    {
+      glob: new Minimatch("Retail.OrdersReturned.*.csv"),
+      parse: (item) => [
+        "billing",
+        DateTime.fromFormat(item["CreationDate"], "MM/dd/yyyy HH:mm:ss z", {
+          zone: "UTC",
+        }),
+        [
           `Return ${
-            row["ReversalAmountState"] === "Final"
+            item["ReversalAmountState"] === "Final"
               ? "Finalized"
-              : row["ReversalAmountState"]
+              : item["ReversalAmountState"]
           }`,
         ],
-        value: row,
-      }));
-    } else if (
-      file.path[4] === "Retail.OutboundNotifications.MobileApplications.csv"
-    ) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(
-            row["App Registration Time"],
-            "MM/dd/yyyy HH:mm",
-            {
-              zone: "UTC",
-            }
-          ).toSeconds(),
-          row
-        ),
-        context: ["Registered App", row["Device"]],
-        value: row,
-      }));
-    } else if (
-      file.path[4]?.startsWith(
-        "Retail.OutboundNotifications.notificationMetadata"
-      )
-    ) {
-      // Strip out footer
-      const raw = smartDecode(file.data).replace(/\nFile Summary:[\s\S]*/g, "");
-      return (await parseCSV(raw)).map((row) => ({
-        file: file.path,
-        category: "notification",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(
-            row["Sent Time"],
-            "EEE MMM dd HH:mm:ss z yyyy"
-          ).toSeconds(),
-          row
-        ),
-        context: ["Notification"],
-        value: row,
-      }));
-    } else if (file.path[1] === "Retail.Promotions.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "billing",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(row["creationTime"], "MM/dd/yyyy HH:mm", {
+      ],
+    },
+    {
+      glob: new Minimatch(
+        "**/Retail.OutboundNotifications.MobileApplications.csv"
+      ),
+      parse: (item) => [
+        "activity",
+        DateTime.fromFormat(item["App Registration Time"], "MM/dd/yyyy HH:mm", {
+          zone: "UTC",
+        }),
+        ["Registered App", item["Device"]],
+      ],
+    },
+    {
+      glob: new Minimatch(
+        "**/Retail.OutboundNotifications.notificationMetadata*.csv"
+      ),
+      tokenize: (data) =>
+        parseCSV(smartDecode(data).replace(/\nFile Summary:[\s\S]*/g, "")),
+      parse: (item) => [
+        "notification",
+        DateTime.fromFormat(item["Sent Time"], "EEE MMM dd HH:mm:ss z yyyy"),
+        ["Notification"],
+      ],
+    },
+    {
+      glob: new Minimatch("Retail.Promotions.csv"),
+      parse: (item) => [
+        "billing",
+        DateTime.fromFormat(item["creationTime"], "MM/dd/yyyy HH:mm", {
+          zone: "UTC",
+        }),
+        ["Used Promotion", item["promotionDescription"]],
+      ],
+    },
+    {
+      glob: new Minimatch("Retail.RegionAuthority.*.csv"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromISO(item["Timestamp"]),
+        ["Detected Region", item["City"]],
+      ],
+    },
+    {
+      glob: new Minimatch("**/Retail.Reorder.DigitalDashButton.csv"),
+      tokenize: async (data) =>
+        (await parseCSV(data))
+          .slice(1) // skip documentation row
+          .filter((row) => row["buttonCreationTime (GMT)"]),
+      parse: (item) => [
+        "activity",
+        DateTime.fromFormat(
+          item["buttonCreationTime (GMT)"],
+          "MM/dd/yyyy HH:mm",
+          {
             zone: "UTC",
-          }).toSeconds(),
-          row
+          }
         ),
-        context: ["Used Promotion", row["promotionDescription"]],
-        value: row,
-      }));
-    } else if (file.path[1].startsWith("Retail.RegionAuthority.")) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(
-          DateTime.fromISO(row["Timestamp"]).toSeconds(),
-          row
-        ),
-        context: ["Detected Region", row["City"]],
-        value: row,
-      }));
-    } else if (file.path[2] === "Retail.Reorder.DigitalDashButton.csv") {
-      return (await parseCSV(file.data))
-        .slice(1) // skip documentation row
-        .filter((row) => row["buttonCreationTime (GMT)"])
-        .map((row) => ({
-          file: file.path,
-          category: "activity",
-          ...getSlugAndDayTime(
-            DateTime.fromFormat(
-              row["buttonCreationTime (GMT)"],
-              "MM/dd/yyyy HH:mm",
-              {
-                zone: "UTC",
-              }
-            ).toSeconds(),
-            row
-          ),
-          context: ["Created Dash Button", row["productTitle"].slice(1, -1)],
-          value: row,
-        }));
-    } else if (
-      file.path[1] === "Retail.Search-Data.Retail.Customer-Engagement.csv"
-    ) {
-      return (await parseCSV(file.data)).map((row) => {
+        ["Created Dash Button", item["productTitle"].slice(1, -1)],
+      ],
+    },
+    {
+      glob: new Minimatch("Retail.Search-Data.Retail.Customer-Engagement.csv"),
+      parse: (item) => {
         let query;
         try {
-          const params = new URLSearchParams(row["First Search Query String"]);
+          const params = new URLSearchParams(item["First Search Query String"]);
           if (params.has("field-keywords")) {
             query = params.get("field-keywords");
           } else if (params.has("k")) {
             query = params.get("k");
           }
         } catch {}
-
-        return {
-          file: file.path,
-          category: "activity",
-          ...getSlugAndDayTime(
-            DateTime.fromISO(row["Last search Time (GMT)"]).toSeconds(),
-            row
-          ),
-          context: ["Search", query ? query : undefined],
-          value: row,
-        };
-      });
-    } else if (file.path[1].startsWith("Retail.ShoppingProfile.")) {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "activity",
-        ...getSlugAndDayTime(
-          DateTime.fromFormat(row["Date"], "MM/dd/yyyy HH:mm", {
-            zone: "UTC",
-          }).toSeconds(),
-          row
-        ),
-        context: ["Profile Attribute"],
-        value: row,
-      }));
-    } else if (file.path[1] === "Billing and Refunds Data.csv") {
-      return (await parseCSV(file.data)).map((row) => ({
-        file: file.path,
-        category: "billing",
-        ...getSlugAndDayTime(
-          DateTime.fromSQL(row["TransactionCreationDate"]).toSeconds(),
-          row
-        ),
-        context: [
+        return [
+          "activity",
+          DateTime.fromISO(item["Last search Time (GMT)"]),
+          ["Search", query ? query : undefined],
+        ];
+      },
+    },
+    {
+      glob: new Minimatch("Retail.ShoppingProfile.*.csv"),
+      parse: (item) => [
+        "activity",
+        DateTime.fromFormat(item["Date"], "MM/dd/yyyy HH:mm", {
+          zone: "UTC",
+        }),
+        ["Profile Attribute"],
+      ],
+    },
+    {
+      glob: new Minimatch("Billing and Refunds Data.csv"),
+      parse: (item) => [
+        "billing",
+        DateTime.fromSQL(item["TransactionCreationDate"]),
+        [
           "Transaction",
-          row["TransactionReason"].replace(/(.)([A-Z])/g, "$1 $2"),
+          item["TransactionReason"].replace(/(.)([A-Z])/g, "$1 $2"),
         ],
-        value: row,
-      }));
-    }
-    return [];
+      ],
+    },
+  ];
+
+  async parse(
+    file: DataFile,
+    metadata: Map<string, any>
+  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
+    return await parseByStages(file, metadata, this.timelineParsers, []);
   }
 }
 
