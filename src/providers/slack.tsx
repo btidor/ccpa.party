@@ -3,7 +3,7 @@ import { DateTime } from "luxon";
 import { Minimatch } from "minimatch";
 import React from "react";
 
-import type { DataFile, TimelineEntry } from "@src/common/database";
+import type { TimelineEntry } from "@src/common/database";
 import {
   MetadataParser,
   TimelineParser,
@@ -84,18 +84,6 @@ class Slack implements Provider<CategoryKey> {
       ],
     },
   ];
-
-  async parse(
-    file: DataFile,
-    metadata: Map<string, any>
-  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
-    return await parseByStages(
-      file,
-      metadata,
-      this.timelineParsers,
-      this.metadataParsers
-    );
-  }
 
   render = (
     entry: TimelineEntry<CategoryKey>,

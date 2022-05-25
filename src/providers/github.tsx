@@ -1,8 +1,7 @@
 import { DateTime } from "luxon";
 import { Minimatch } from "minimatch";
 
-import type { DataFile, TimelineEntry } from "@src/common/database";
-import { TimelineParser, parseByStages } from "@src/common/parse";
+import { TimelineParser } from "@src/common/parse";
 import type { Provider, TimelineCategory } from "@src/common/provider";
 
 type CategoryKey = "activity" | "message";
@@ -151,13 +150,6 @@ class GitHub implements Provider<CategoryKey> {
       ],
     },
   ];
-
-  async parse(
-    file: DataFile,
-    metadata: Map<string, any>
-  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
-    return await parseByStages(file, metadata, this.timelineParsers, []);
-  }
 }
 
 export default GitHub;

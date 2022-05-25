@@ -1,3 +1,4 @@
+import { parseByStages } from "./parse";
 import untar from "js-untar";
 import pako from "pako";
 import { unzip } from "unzipit";
@@ -30,7 +31,6 @@ export async function importFiles<T>(
   }
 
   const metadata = new Map();
-  let errors = 0;
   const processEntry = async (
     path: ReadonlyArray<string>,
     data: ArrayBufferLike
@@ -57,14 +57,14 @@ export async function importFiles<T>(
         skipped: undefined,
       };
       db.putFile(dataFile);
-      try {
-        (await provider.parse(dataFile, metadata)).forEach((entry) =>
-          db.putTimelineEntry(entry)
-        );
-      } catch (e) {
-        console.error("Error parsing " + dataFile.path.join("/"), e);
-        errors++;
-      }
+      (
+        await parseByStages(
+          dataFile,
+          metadata,
+          provider.timelineParsers,
+          provider.metadataParsers || []
+        )
+      ).forEach((entry) => db.putTimelineEntry(entry));
       return;
     }
   };
@@ -101,7 +101,7 @@ export async function importFiles<T>(
   const middle = new Date().getTime();
   console.warn(`Parse Time: ${(new Date().getTime() - start) / 1000}s`);
 
-  await db.commit(errors);
+  await db.commit();
   console.warn(`Database Time: ${(new Date().getTime() - middle) / 1000}s`);
   console.warn(`Total Time: ${(new Date().getTime() - start) / 1000}s`);
 }

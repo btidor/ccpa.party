@@ -1,4 +1,5 @@
-import type { DataFile, TimelineEntry } from "@src/common/database";
+import type { TimelineEntry } from "@src/common/database";
+import { MetadataParser, TimelineParser } from "@src/common/parse";
 import Amazon from "@src/providers/amazon";
 import Apple from "@src/providers/apple";
 import Discord from "@src/providers/discord";
@@ -32,11 +33,8 @@ export interface Provider<T> {
   privacyPolicy: string;
 
   timelineCategories: ReadonlyMap<T, TimelineCategory>;
-
-  parse(
-    file: DataFile,
-    metadata: Map<string, any>
-  ): Promise<ReadonlyArray<TimelineEntry<T>>>;
+  timelineParsers: ReadonlyArray<TimelineParser<T>>;
+  metadataParsers?: ReadonlyArray<MetadataParser>;
 
   render?: (
     entry: TimelineEntry<T>,

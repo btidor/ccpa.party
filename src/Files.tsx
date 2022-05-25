@@ -5,6 +5,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { ProviderScopedDatabase } from "@src/common/database";
 import type { DataFile, DataFileKey } from "@src/common/database";
 import { fileSizeLimitMB } from "@src/common/importer";
+import { parseByStages } from "@src/common/parse";
 import type { Provider } from "@src/common/provider";
 import FilePreview from "@src/components/FilePreview";
 import FileTree from "@src/components/FileTree";
@@ -26,9 +27,14 @@ const FileParseAction = (props: {
     <div
       className={styles.action}
       onClick={() => {
-        props.provider
-          .parse(props.file, new Map())
-          .then((e) => console.warn(e))
+        const metadata = new Map<string, any>();
+        parseByStages(
+          props.file,
+          metadata,
+          props.provider.timelineParsers,
+          props.provider.metadataParsers || []
+        )
+          .then((e) => console.warn(e, metadata))
           .catch((e) => console.error(e));
       }}
     >

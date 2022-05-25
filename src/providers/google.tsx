@@ -1,8 +1,7 @@
 import { DateTime } from "luxon";
 import { Minimatch } from "minimatch";
 
-import type { DataFile, TimelineEntry } from "@src/common/database";
-import { parseByStages, parseJSON } from "@src/common/parse";
+import { parseJSON } from "@src/common/parse";
 import type { TimelineParser } from "@src/common/parse";
 import type { Provider, TimelineCategory } from "@src/common/provider";
 
@@ -95,13 +94,6 @@ class Google implements Provider<CategoryKey> {
           : undefined,
     },
   ];
-
-  async parse(
-    file: DataFile,
-    metadata: Map<string, any>
-  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
-    return await parseByStages(file, metadata, this.timelineParsers, []);
-  }
 }
 
 export default Google;

@@ -4,8 +4,8 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import type { DataFile, TimelineEntry } from "@src/common/database";
-import { parseByStages, parseJSON, parseJSONND } from "@src/common/parse";
+import type { TimelineEntry } from "@src/common/database";
+import { parseJSON, parseJSONND } from "@src/common/parse";
 import type { MetadataParser, TimelineParser } from "@src/common/parse";
 import type { Provider, TimelineCategory } from "@src/common/provider";
 import { Pill } from "@src/components/Record";
@@ -93,18 +93,6 @@ class Discord implements Provider<CategoryKey> {
       ],
     },
   ];
-
-  async parse(
-    file: DataFile,
-    metadata: Map<string, any>
-  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
-    return await parseByStages(
-      file,
-      metadata,
-      this.timelineParsers,
-      this.metadataParsers
-    );
-  }
 
   render = (
     entry: TimelineEntry<CategoryKey>,

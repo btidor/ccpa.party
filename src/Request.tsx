@@ -21,7 +21,6 @@ function Request<T>(props: Props<T>): JSX.Element {
   const [db, setDb] = React.useState<ProviderScopedDatabase<T>>();
   const [display, setDisplay] = React.useState<Display>();
   const [epoch, setEpoch] = React.useState(0);
-  const [errors, setErrors] = React.useState(0);
   React.useEffect(
     () =>
       setDb(
@@ -39,7 +38,6 @@ function Request<T>(props: Props<T>): JSX.Element {
       if (db) {
         const imported = (await db.getProviders()).has(provider.slug);
         setDisplay(imported ? "explore" : "import");
-        setErrors(await db.getErrors());
       }
     })();
   }, [db, provider]);
@@ -118,11 +116,6 @@ function Request<T>(props: Props<T>): JSX.Element {
                     </button>
                   </div>
                 </div>
-                {errors ? (
-                  <div className={styles.errors}>
-                    (imported with {errors} {errors > 1 ? "errors" : "error"})
-                  </div>
-                ) : undefined}
               </React.Fragment>
             ) : display === "import" ? (
               <label

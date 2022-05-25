@@ -64,7 +64,6 @@ type ProviderIndex = {
   files: Array<DataFileKey>;
   metadata: Array<[string, any]>;
   timeline: Array<[string, number, string, number, string, string]>;
-  errors?: number;
 };
 
 type AsyncState = { db: IDBDatabase; key: any };
@@ -248,10 +247,6 @@ export class ProviderScopedDatabase<T> extends Database {
     })();
   }
 
-  async getErrors(): Promise<number> {
-    return (await this._providerIndex).errors || 0;
-  }
-
   async getFiles(): Promise<ReadonlyArray<DataFileKey>> {
     return (await this._providerIndex).files;
   }
@@ -355,7 +350,7 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
   }
 
   // You MUST call `commit` in order to flush data and indexes.
-  async commit(errors: number): Promise<void> {
+  async commit(): Promise<void> {
     // Write files and compute index
     const fileIvs = await this._puts(
       this._additions.files.map(({ data }) => data),
@@ -403,7 +398,6 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
       files: fileIndex,
       metadata: metadataIndex,
       timeline: timelineIndex,
-      errors,
     });
 
     // Update root index

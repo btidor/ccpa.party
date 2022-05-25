@@ -1,10 +1,8 @@
 import { DateTime } from "luxon";
 import { Minimatch } from "minimatch";
 
-import type { DataFile, TimelineEntry } from "@src/common/database";
 import {
   TimelineParser,
-  parseByStages,
   parseCSV,
   parseJSON,
   smartDecode,
@@ -566,13 +564,6 @@ class Apple implements Provider<CategoryKey> {
       ],
     },
   ];
-
-  async parse(
-    file: DataFile,
-    metadata: Map<string, any>
-  ): Promise<ReadonlyArray<TimelineEntry<CategoryKey>>> {
-    return await parseByStages(file, metadata, this.timelineParsers, []);
-  }
 }
 
 export default Apple;
