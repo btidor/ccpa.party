@@ -1,10 +1,10 @@
-import { parseByStages } from "./parse";
 import untar from "js-untar";
 import pako from "pako";
 import { unzip } from "unzipit";
 
 import { WritableDatabase } from "@src/common/database";
 import type { DataFile } from "@src/common/database";
+import { parseByStages } from "@src/common/parse";
 import type { Provider } from "@src/common/provider";
 
 export const fileSizeLimitMB = 16;
