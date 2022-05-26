@@ -16,7 +16,7 @@ import styles from "@src/Drilldown.module.css";
 
 type Props<T> = {
   provider: Provider<T>;
-  selected: number | undefined;
+  selected?: string;
 };
 
 const FileParseAction = <T,>(props: {
@@ -80,11 +80,8 @@ function Files<T>(props: Props<T>): JSX.Element {
     // ghost in the drilldown pane for a few moments while the next item is
     // loaded.
     (async () => {
-      setItem(
-        selected !== undefined && items?.[selected]
-          ? await db.hydrateFile(items[selected])
-          : undefined
-      );
+      const key = items?.find((item) => item.slug === selected);
+      setItem(key && (await db.hydrateFile(key)));
     })();
   }, [db, items, selected]);
 
@@ -116,11 +113,11 @@ function Files<T>(props: Props<T>): JSX.Element {
               ) : (
                 <FileTree
                   items={items}
-                  selected={selected}
-                  onSelect={(index) =>
+                  selected={item}
+                  onSelect={(slug) =>
                     navigate(
                       `/${provider.slug}/files` +
-                        (selected === index ? "" : `@${index}`)
+                        (selected === slug ? "" : `@${slug}`)
                     )
                   }
                 />
@@ -129,10 +126,7 @@ function Files<T>(props: Props<T>): JSX.Element {
           </div>
           <div className={styles.right}>
             <div className={styles.bar}>
-              <span>
-                {selected !== undefined &&
-                  items?.[selected]?.path.slice(1).join("/")}
-              </span>
+              <span>{item && item.path.slice(1).join("/")}</span>
               <div className={styles.grow}></div>
               {item && <FileParseAction<T> file={item} provider={provider} />}
               {item && <FileDownloadAction file={item} />}

@@ -11,6 +11,7 @@ import {
 export type DataFileKey = {
   provider: string;
   path: ReadonlyArray<string>;
+  slug: string; // hash of path
   skipped: "tooLarge" | void;
   iv?: string;
 };

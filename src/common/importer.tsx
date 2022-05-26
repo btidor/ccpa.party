@@ -6,6 +6,7 @@ import { WritableDatabase } from "@src/common/database";
 import type { DataFile } from "@src/common/database";
 import { parseByStages } from "@src/common/parse";
 import type { Provider } from "@src/common/provider";
+import { serialize } from "@src/common/util";
 
 export const fileSizeLimitMB = 16;
 
@@ -50,9 +51,15 @@ export async function importFiles<T>(
       db.putFile(dataFile);
       return;
     } else {
+      const hash = new Uint32Array(
+        await crypto.subtle.digest("SHA-1", serialize(path.join("/")))
+      );
       const dataFile = {
         provider: provider.slug,
         path,
+        slug: Array.from(hash.slice(0, 2))
+          .map((c) => c.toString(16).padStart(8, "0"))
+          .join(""),
         data,
         skipped: undefined,
       };

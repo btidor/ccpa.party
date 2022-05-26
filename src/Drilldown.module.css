@@ -90,9 +90,11 @@
 }
 
 .box {
+  --box-padding: 0.25rem;
   flex-grow: 1;
   border: 1px solid var(--neon);
-  padding: 0.25rem;
+  padding: var(--box-padding);
+  position: relative;
 }
 
 /* chrome's scroll bars don't show up well on dark backgrounds;

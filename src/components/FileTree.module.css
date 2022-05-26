@@ -1,11 +1,10 @@
 .tree {
-  width: 100%;
-  height: 100%;
-}
-
-.tree > div div {
-  /* stop react-arborist's horizontal scroll */
-  overflow-x: hidden !important;
+  position: absolute;
+  top: var(--box-padding);
+  left: var(--box-padding);
+  right: var(--box-padding);
+  bottom: var(--box-padding);
+  overflow: scroll;
 }
 
 .item {
@@ -15,7 +14,6 @@
   line-height: 1.5;
 
   white-space: nowrap;
-  padding: 0;
 }
 
 .item:hover,
@@ -26,5 +24,6 @@
 
 .item svg {
   width: auto;
-  padding: 0 4px;
+  padding-left: 2px;
+  padding-right: 6px;
 }

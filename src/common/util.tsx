@@ -3,12 +3,17 @@ export function b64enc(buf: ArrayBufferLike): string {
     Array.from(new Uint8Array(buf))
       .map((c) => String.fromCharCode(c))
       .join("")
-  );
+  )
+    .replaceAll("/", "_")
+    .replaceAll("+", "-");
 }
 
 export function b64dec(str: string): ArrayBufferLike {
-  return new Uint8Array(Array.from(atob(str)).map((c) => c.charCodeAt(0)))
-    .buffer;
+  return new Uint8Array(
+    Array.from(atob(str.replaceAll("_", "/").replaceAll("-", "+"))).map((c) =>
+      c.charCodeAt(0)
+    )
+  ).buffer;
 }
 
 const encoder = new TextEncoder();
