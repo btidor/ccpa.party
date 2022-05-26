@@ -166,7 +166,7 @@ async function tokenize<T>(
   path: string,
   data: ArrayBufferLike
 ): Promise<unknown[]> {
-  const ext = path.split(".").slice(-1)[0];
+  const ext = path.split(".").at(-1) || "";
 
   const tokenizer = parser.tokenize || defaultTokenizers.get(ext);
   if (!tokenizer) {

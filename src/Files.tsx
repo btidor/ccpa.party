@@ -45,7 +45,7 @@ const FileParseAction = <T,>(props: {
 const FileDownloadAction = (props: { file: DataFile }): JSX.Element => (
   <a
     className={styles.action}
-    download={props.file.path.slice(-1)[0]}
+    download={props.file.path.at(-1)}
     href={URL.createObjectURL(new Blob([props.file.data]))}
   >
     <DesktopDownloadIcon />
@@ -137,7 +137,7 @@ function Files<T>(props: Props<T>): JSX.Element {
                   {`🐘 Not imported due to ${fileSizeLimitMB}MB size limit`}
                 </FilePreview>
               ) : (
-                <FilePreview filename={item?.path.slice(-1)[0]}>
+                <FilePreview filename={item?.path.at(-1)}>
                   {item?.data}
                 </FilePreview>
               )}

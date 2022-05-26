@@ -27,9 +27,7 @@ function displayText(data: ArrayBufferLike): JSX.Element {
 }
 
 function displayFile(data: ArrayBufferLike, filename: string): JSX.Element {
-  const ext = filename.includes(".")
-    ? filename.split(".").slice(-1)[0]
-    : undefined;
+  const ext = filename.includes(".") ? filename.split(".").at(-1) : undefined;
   switch (ext) {
     case "json": {
       try {

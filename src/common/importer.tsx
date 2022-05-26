@@ -36,10 +36,7 @@ export async function importFiles<T>(
     path: ReadonlyArray<string>,
     data: ArrayBufferLike
   ): Promise<ImportFile | void> => {
-    if (
-      path.slice(-1)[0].endsWith(".zip") ||
-      path.slice(-1)[0].endsWith(".tar.gz")
-    ) {
+    if (path.at(-1)?.endsWith(".zip") || path.at(-1)?.endsWith(".tar.gz")) {
       return { path, data: () => Promise.resolve(data) };
     } else if (data.byteLength > (2 << 20) * fileSizeLimitMB) {
       const dataFile = {
@@ -77,7 +74,7 @@ export async function importFiles<T>(
   };
 
   for (const { path, data } of work) {
-    if (path.slice(-1)[0].endsWith(".zip")) {
+    if (path.at(-1)?.endsWith(".zip")) {
       const zip = await unzip(await data());
       for (const entry of Object.values(zip.entries || [])) {
         if (entry.isDirectory) continue;
@@ -88,7 +85,7 @@ export async function importFiles<T>(
         const next = await processEntry(subpath, await entry.arrayBuffer());
         if (next) work.push(next);
       }
-    } else if (path.slice(-1)[0].endsWith(".tar.gz")) {
+    } else if (path.at(-1)?.endsWith(".tar.gz")) {
       const inflated = pako.inflate(await data());
       const entries = await untar(inflated.buffer);
       for (const entry of entries) {
@@ -101,7 +98,7 @@ export async function importFiles<T>(
         if (next) work.push(next);
       }
     } else {
-      throw new Error("Unknown file: " + path.slice(-1)[0]);
+      throw new Error("Unknown file: " + path.at(-1));
     }
   }
   db.putMetadata(metadata);
