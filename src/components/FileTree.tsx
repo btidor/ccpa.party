@@ -20,7 +20,7 @@ type Props = {
 type TreeNode = {
   id: string;
   name: string;
-  children: Array<TreeNode>;
+  children: TreeNode[];
   _childmap: Map<string, TreeNode>;
   item?: DataFileKey;
   index?: number;

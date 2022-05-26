@@ -109,8 +109,12 @@ class Slack implements Provider<CategoryKey> {
       channel_id?: string;
       url?: string;
     };
+    type Message = {
+      text?: string;
+      [key: string]: unknown;
+    };
 
-    const message = entry.value;
+    const message = entry.value as Message;
     const channelName =
       entry.category === "message"
         ? entry.file[1]
@@ -121,12 +125,12 @@ class Slack implements Provider<CategoryKey> {
       `user.${message.user || message.user_id}`
     ) as User;
     const username = {
-      display: user
+      display: (user
         ? user.profile.display_name || user.profile.real_name
-        : message.user_name || message.bot_id || "unknown",
+        : message.user_name || message.bot_id || "unknown") as string,
       color: user?.color && `#${user.color}`,
     };
-    let text = message.text ? <span>{message.text as any}</span> : undefined;
+    let text = message.text ? <span>{message.text}</span> : undefined;
     if (message.files || message.attachments) {
       text = (
         <React.Fragment>
@@ -223,7 +227,7 @@ class Slack implements Provider<CategoryKey> {
       );
     }
 
-    return [text, trailer, username as any];
+    return [text, trailer, username];
   };
 }
 

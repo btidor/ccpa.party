@@ -26,11 +26,9 @@ export type TimelineEntryKey<T> = {
   offset?: number;
 };
 
-export type TimelineContext =
-  | null
-  | [string]
-  | [string, string | void]
-  | [string, string | void, { display: string; color?: string } | void];
+export type TimelineUser = { display: string; color?: string };
+
+export type TimelineContext = null | [string, string?, TimelineUser?];
 
 export type TimelineEntry<T> = TimelineEntryKey<T> & {
   file: ReadonlyArray<string>;
@@ -61,9 +59,9 @@ const batchSize = 250;
 type RootIndex = { [key: string]: string }; // provider slug -> iv
 
 type ProviderIndex = {
-  files: Array<DataFileKey>;
-  metadata: Array<[string, unknown]>;
-  timeline: Array<[string, number, string, number, string, string]>;
+  files: DataFileKey[];
+  metadata: [string, unknown][];
+  timeline: [string, number, string, number, string, string][];
 };
 
 type AsyncState = { db: IDBDatabase; key: CryptoKey };
@@ -99,7 +97,7 @@ export class Database {
     });
 
     this._rootIndex = (async () =>
-      (await this._get(rootIndexKey, { named: true })) || {})();
+      ((await this._get(rootIndexKey, { named: true })) as RootIndex) || {})();
   }
 
   async _initializeState(): Promise<AsyncState | "error" | void> {
@@ -185,7 +183,6 @@ export class Database {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async _generateAndSaveKey(_db: IDBDatabase): Promise<boolean> {
     return false;
   }
@@ -198,17 +195,16 @@ export class Database {
   async _get(
     k: string,
     opts?: { binary?: boolean; named?: boolean }
-  ): Promise<any> {
+  ): Promise<unknown> {
     const state = await this._state;
     if (!state) return; // failed to initialize, treat as empty database
     const { db, key } = state;
 
-    const result: [ArrayBufferLike, ArrayBufferLike] | ArrayBufferLike | void =
-      await new Promise((resolve, reject) => {
-        const op = db.transaction(dbStore).objectStore(dbStore).get(k);
-        op.onsuccess = () => resolve(op.result);
-        op.onerror = (e) => reject(e);
-      });
+    const result = await new Promise((resolve, reject) => {
+      const op = db.transaction(dbStore).objectStore(dbStore).get(k);
+      op.onsuccess = () => resolve(op.result);
+      op.onerror = (e) => reject(e);
+    });
     if (result === undefined) return;
 
     const [iv, ciphertext] = opts?.named
@@ -267,13 +263,13 @@ export class ProviderScopedDatabase<T> extends Database {
     return new Map((await this._providerIndex).metadata);
   }
 
-  async getTimelineEntries(): Promise<Array<TimelineEntryKey<T>>> {
+  async getTimelineEntries(): Promise<TimelineEntryKey<T>[]> {
     return (await this._providerIndex).timeline.map(
       ([iv, offset, day, timestamp, slug, category]) => ({
         day,
         timestamp,
         slug,
-        category: category as any,
+        category: category as unknown as T,
         iv,
         offset,
       })
@@ -311,7 +307,7 @@ export class ProviderScopedDatabase<T> extends Database {
       day,
       timestamp,
       slug: s,
-      category: category as any,
+      category: category as unknown as T,
       iv,
       offset,
     });
@@ -320,9 +316,9 @@ export class ProviderScopedDatabase<T> extends Database {
 
 export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
   _additions: {
-    files: Array<DataFile>;
+    files: DataFile[];
     metadata: Map<string, unknown>;
-    timeline: Array<TimelineEntry<T>>;
+    timeline: TimelineEntry<T>[];
     timelineDedup: Set<string>;
   };
 
@@ -436,7 +432,7 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
 
     // Close database and block future writes
     const isEmpty = !Object.keys(
-      (await this._get(rootIndexKey, { named: true })) || {}
+      ((await this._get(rootIndexKey, { named: true })) as RootIndex) || {}
     ).length;
     const state = await this._state;
     if (isEmpty && state) {
@@ -455,7 +451,7 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
     this._terminate();
   }
 
-  async _put(v: any, k?: string): Promise<string> {
+  async _put(v: unknown, k?: string): Promise<string> {
     const state = await this._state;
     if (!state) throw new Error("Writing to closed database");
     const { db, key } = state;
@@ -482,22 +478,31 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
 
   async _puts(
     data: ReadonlyArray<unknown>,
+    opts?: { binary: false }
+  ): Promise<string[]>;
+  async _puts(
+    data: ReadonlyArray<ArrayBufferLike>,
+    opts: { binary: true }
+  ): Promise<string[]>;
+  async _puts(
+    data: ReadonlyArray<unknown>,
     opts?: { binary?: boolean }
-  ): Promise<Array<string>> {
+  ): Promise<string[]> {
     const state = await this._state;
     if (!state) throw new Error("Writing to closed database");
     const { db, key } = state;
 
     if (!opts?.binary) data = data.map((v) => serialize(v));
 
-    const [ciphertexts, ivs]: [ArrayBufferLike[], string[]] = [[], []];
+    const ciphertexts: ArrayBufferLike[] = [];
+    const ivs: string[] = [];
     for (let i = 0; i < data.length; i++) {
       const iv = await window.crypto.getRandomValues(new Uint8Array(12));
       ciphertexts.push(
         await window.crypto.subtle.encrypt(
           { name: "AES-GCM", iv },
           key,
-          data[i] as any
+          data[i] as ArrayBufferLike
         )
       );
       ivs.push(b64enc(iv));

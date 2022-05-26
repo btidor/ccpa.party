@@ -1,5 +1,6 @@
 import csv from "csvtojson";
 import MurmurHash3 from "imurmurhash";
+import { DateTime } from "luxon";
 import type { IMinimatch } from "minimatch";
 
 import type {
@@ -8,26 +9,40 @@ import type {
   TimelineEntry,
 } from "@src/common/database";
 
-export type TimelineTuple<T> = [T, unknown, TimelineContext];
+export type Tokenizer<U> = (data: ArrayBufferLike) => U[] | Promise<U[]>;
+
+export type TokenizedItem = { [key: string]: unknown };
+export type TimelineTuple<T> = [T, DateTime, TimelineContext];
+export type ParsedItem<T> = TimelineTuple<T> | TimelineTuple<T>[] | void;
 
 export type MetadataParser = {
   glob: IMinimatch;
-  tokenize?: (data: ArrayBufferLike) => any[] | Promise<any[]>;
+  tokenize?: Tokenizer<unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parse: (item: any) => [string, unknown];
 };
 
-export type TimelineParser<T> = {
+export type TimelineParser<T> = (
+  | {
+      tokenize?: Tokenizer<TokenizedItem>;
+      parse: (item: TokenizedItem) => ParsedItem<T>;
+    }
+  | {
+      tokenize: Tokenizer<string>;
+      parse: (item: string) => ParsedItem<T>;
+    }
+) & {
   glob: IMinimatch;
-  tokenize?: (data: ArrayBufferLike) => any[] | Promise<any[]>;
-  parse: (item: any) => TimelineTuple<T> | TimelineTuple<T>[] | void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  parse: (item: any) => ParsedItem<T>;
 };
 
 type Parser<T> = MetadataParser | TimelineParser<T>;
 
-const defaultTokenizers = {
-  csv: parseCSV,
-  json: parseJSON,
-};
+const defaultTokenizers = new Map<string, Tokenizer<TokenizedItem>>([
+  ["csv", parseCSV],
+  ["json", parseJSON],
+]);
 
 const printableRegExp =
   // U+F8FF is the Apple logo on macOS
@@ -49,6 +64,7 @@ export function parseJSON(
   // Use `smart: true` to try UTF-8 double-decoding everything. (Incurs a ~5x
   // slowdown).
   opts?: { smart?: boolean }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): any {
   let text;
   if (typeof data === "string") text = data;
@@ -70,7 +86,8 @@ export function parseJSON(
 export function parseJSONND(
   data: ArrayBufferLike | string,
   opts?: { smart?: boolean }
-): Array<any> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): any[] {
   let text;
   if (typeof data === "string") text = data;
   else text = utf8Decoder.decode(data);
@@ -146,7 +163,7 @@ export function smartDecodeText(text: string): string {
 
 export function getSlugAndDayTime(
   timestamp: number,
-  value: any
+  value: unknown
 ): {
   slug: string;
   day: string;
@@ -172,10 +189,10 @@ async function tokenize<T>(
   parser: Parser<T>,
   path: string,
   data: ArrayBufferLike
-): Promise<any[]> {
+): Promise<unknown[]> {
   const ext = path.split(".").slice(-1)[0];
 
-  const tokenizer = parser.tokenize || (defaultTokenizers as any)[ext];
+  const tokenizer = parser.tokenize || defaultTokenizers.get(ext);
   if (!tokenizer) {
     console.error(`No default tokenizer for .${ext}`);
     return [];
@@ -198,7 +215,7 @@ async function tokenize<T>(
 
 export async function parseByStages<T>(
   file: DataFile,
-  metadata: Map<string, any>,
+  metadata: Map<string, unknown>,
   timelineParsers: ReadonlyArray<TimelineParser<T>>,
   metadataParsers: ReadonlyArray<MetadataParser>
 ): Promise<TimelineEntry<T>[]> {
@@ -217,12 +234,12 @@ export async function parseByStages<T>(
         console.error("Parse Error", path, tok, e);
         return [];
       }
-      return (parsed || []).map(
+      return (parsed as TimelineTuple<T>[]).map(
         ([category, datetime, context]) =>
           ({
             file: file.path,
             category,
-            ...getSlugAndDayTime(datetime.toSeconds(), tok as any),
+            ...getSlugAndDayTime(datetime.toSeconds(), tok),
             context,
             value: tok,
           } as TimelineEntry<T>)

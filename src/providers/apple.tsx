@@ -4,6 +4,7 @@ import { Minimatch } from "minimatch";
 import {
   TimelineParser,
   TimelineTuple,
+  TokenizedItem,
   parseCSV,
   parseJSON,
   smartDecode,
@@ -309,27 +310,24 @@ class Apple implements Provider<CategoryKey> {
             ...game
           }: {
             leaderboard: { leaderboard_score: { [key: string]: unknown }[] }[];
-            achievements: { [key: string]: unknown }[];
-          }) =>
-            (leaderboard || [])
-              .flatMap(({ leaderboard_score, ...leaderboard }) =>
+            achievements: { a: number; [key: string]: unknown }[];
+          }) => {
+            const x = (leaderboard || []).flatMap(
+              ({ leaderboard_score, ...leaderboard }) =>
                 leaderboard_score.map((score) => ({
                   type: "leaderboard",
                   game,
                   leaderboard,
                   ...score,
                 }))
-              )
-              .concat(
-                (achievements || []).map(
-                  (item) =>
-                    ({
-                      type: "achievement",
-                      game,
-                      ...item,
-                    } as any)
-                )
-              )
+            ) as TokenizedItem[];
+            const y = (achievements || []).map((item) => ({
+              type: "achievement",
+              game,
+              ...item,
+            }));
+            return x.concat(y);
+          }
         ),
       parse: (item) =>
         item.type === "leaderboard"

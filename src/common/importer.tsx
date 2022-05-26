@@ -21,7 +21,7 @@ export async function importFiles<T>(
 ) {
   const start = new Date().getTime();
   const db = new WritableDatabase(provider, terminated);
-  const work: Array<ImportFile> = [];
+  const work: ImportFile[] = [];
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     work.push({ path: [file.name], data: () => file.arrayBuffer() });

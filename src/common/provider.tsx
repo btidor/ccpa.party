@@ -48,15 +48,15 @@ export interface Provider<T> {
       ];
 }
 
-export const ProviderRegistry: ReadonlyArray<Provider<any>> = [
+export const ProviderRegistry: ReadonlyArray<Provider<unknown>> = [
   new Amazon(),
   new Apple(),
-  new Discord(),
+  new Discord() as Provider<unknown>,
   new Facebook(),
   new GitHub(),
   new Google(),
   new Netflix(),
-  new Slack(),
+  new Slack() as Provider<unknown>,
 ];
 
 export const ProviderLookup: ReadonlyMap<string, Provider<unknown>> = new Map<

@@ -43,7 +43,10 @@ function FilterBar<T>(props: Props<T>): JSX.Element {
           ([slug, category]) => {
             const checked = filter.includes(category.char);
             return (
-              <label className={styles.filter} key={slug as any}>
+              <label
+                className={styles.filter}
+                key={slug as unknown as React.Key}
+              >
                 <input
                   type="checkbox"
                   checked={checked}
@@ -54,7 +57,7 @@ function FilterBar<T>(props: Props<T>): JSX.Element {
                       .filter(([islug, icat]) =>
                         islug === slug ? !checked : filter.includes(icat.char)
                       )
-                      .map(([, icat]) => icat.char)
+                      .map(([_islug, icat]) => icat.char)
                       .join("");
                     navigate(filterPath(newFilter));
                   }}

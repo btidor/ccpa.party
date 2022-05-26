@@ -110,12 +110,11 @@ class Discord implements Provider<CategoryKey> {
       body = (entry.value.event_type as string)
         .replace(/_/g, " ")
         .replace(/\w\S*/g, (w) => " " + w[0].toUpperCase() + w.slice(1));
-      trailer =
-        entry.value.type ||
+      trailer = (entry.value.type ||
         entry.value.name ||
         (channel?.name && `#${channel?.name} ${server ? `(${server})` : ""}`) ||
         (server && `in ${server}`) ||
-        (entry.value.ip && `from ${entry.value.ip}`);
+        (entry.value.ip && `from ${entry.value.ip}`)) as string | void;
     } else if (entry.category === "message") {
       body = (entry.value.Contents as string).replaceAll(
         /<(@!?|@&|#)([0-9]+)>/g,
@@ -167,7 +166,7 @@ class Discord implements Provider<CategoryKey> {
     } else {
       throw new Error("Unknown category: " + entry.category);
     }
-    return [body as JSX.Element, trailer as any];
+    return [body as JSX.Element, trailer];
   };
 }
 

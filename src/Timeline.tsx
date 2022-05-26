@@ -39,7 +39,7 @@ function Timeline<T>(props: Props<T>): JSX.Element {
         Array.from(filter || []).map(
           (ch) =>
             Array.from(provider.timelineCategories.entries()).find(
-              ([, category]) => category.char === ch
+              ([_, category]) => category.char === ch
             )?.[0]
         )
       ),
@@ -88,7 +88,7 @@ function Timeline<T>(props: Props<T>): JSX.Element {
       const filtered = entries.filter((entry) =>
         selectedCategories.has(entry.category)
       );
-      const rows = [] as Array<Entry<T> | Group>;
+      const rows = [] as (Entry<T> | Group)[];
       let lastGroup;
       let lastTime;
       for (const entry of filtered) {

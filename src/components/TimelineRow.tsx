@@ -36,7 +36,6 @@ function TimelineRow<T>(props: Props<T>): JSX.Element {
   React.useEffect(() => {
     (async () => {
       if (row.isGroup) return;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { isGroup, time, ...key } = row;
       setHydrated(await db.hydrateTimelineEntry(key));
     })();
@@ -71,9 +70,8 @@ function TimelineRow<T>(props: Props<T>): JSX.Element {
           {hydrated ? (
             (() => {
               const [body, trailer, username] =
-                provider.render?.(hydrated, metadata) ||
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (hydrated.context as any);
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                provider.render?.(hydrated, metadata) || hydrated.context!;
               return (
                 <Record
                   time={row.time}

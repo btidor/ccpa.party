@@ -40,8 +40,7 @@ export default function plausible(): void {
   )
     return warn("localhost");
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const w = window as any;
+  const w = window as Window & typeof globalThis & { [key: string]: unknown };
   if (w._phantom || w.__nightmare || w.navigator.webdriver || w.Cypress) return;
 
   const request = new XMLHttpRequest();

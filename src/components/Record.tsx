@@ -3,11 +3,11 @@ import React from "react";
 import styles from "@src/components/Record.module.css";
 
 type Props = {
-  time?: string;
-  icon?: string;
-  username?: { display: string; color?: string };
-  body?: JSX.Element;
-  trailer?: string;
+  time: string | void;
+  icon: string | void;
+  username: { display: string; color?: string } | void;
+  body: JSX.Element | string | void;
+  trailer: string | void;
 };
 
 export const Highlight = (props: {
@@ -22,10 +22,10 @@ function Record(props: Props): JSX.Element {
   const { time, icon, username, body, trailer } = props;
   return (
     <React.Fragment>
-      <span className={styles.time}>{time}</span>
-      {icon && <span className={styles.icon}>{icon}</span>}
+      <span className={styles.time}>{time || undefined}</span>
+      {icon ? <span className={styles.icon}>{icon}</span> : undefined}
       <div className={styles.content}>
-        {username && (
+        {username ? (
           <span
             className={styles.username}
             style={
@@ -34,9 +34,11 @@ function Record(props: Props): JSX.Element {
           >
             {username.display}
           </span>
-        )}
-        {typeof body === "string" ? <span>{body}</span> : body}
-        {trailer && <span className={styles.trailer}>{trailer}</span>}
+        ) : undefined}
+        {typeof body === "string" ? <span>{body}</span> : body || undefined}
+        {trailer ? (
+          <span className={styles.trailer}>{trailer}</span>
+        ) : undefined}
       </div>
     </React.Fragment>
   );
