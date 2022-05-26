@@ -1,5 +1,4 @@
 import csv from "csvtojson";
-import MurmurHash3 from "imurmurhash";
 import { DateTime } from "luxon";
 import type { IMinimatch } from "minimatch";
 
@@ -8,6 +7,7 @@ import type {
   TimelineContext,
   TimelineEntry,
 } from "@src/common/database";
+import { serialize } from "@src/common/util";
 
 export type Tokenizer<U> = (data: ArrayBufferLike) => U[] | Promise<U[]>;
 
@@ -223,10 +223,11 @@ export async function parseByStages<T>(
           try {
             const timestamp = datetime.toSeconds();
             if (isNaN(timestamp)) throw new Error("Received NaN for timestamp");
-            const hash = MurmurHash3(JSON.stringify(line));
+
+            const hash = await crypto.subtle.digest("SHA-1", serialize(line));
             const slug =
               timestamp.toString(16).padStart(8, "0") +
-              hash.result().toString(16).padStart(8, "0");
+              new Uint32Array(hash)[0].toString(16).padStart(8, "0");
 
             entries.push({
               file: file.path,
