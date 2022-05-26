@@ -110,7 +110,8 @@ function App(): JSX.Element {
             if (pageSlug === "files") {
               // URL: `/:provider/files(@selected)?`
               if (matches[2]) return do404();
-              const selected = parseInt(matches[3]?.slice(1)) || undefined;
+              let selected: number | undefined = parseInt(matches[3]?.slice(1));
+              if (isNaN(selected)) selected = undefined;
               return <Files provider={provider} selected={selected} />;
             } else if (pageSlug === "timeline") {
               // URL: `/:provider/timeline(:filter)?(@selected)?`

@@ -216,7 +216,7 @@ export class Database {
       ciphertext
     );
     if (!opts?.binary) return deserialize(plaintext);
-    return result;
+    return plaintext;
   }
 
   async getProviders(): Promise<Set<string>> {
