@@ -1,20 +1,11 @@
 #!/usr/bin/env node
 
+/* eslint-disable @typescript-eslint/no-var-requires */
+
 const fs = require("fs");
 const prettier = require("prettier");
 
 const tag = "<!-- PRERENDER -->";
-const routes = [
-  "/",
-  "/amazon",
-  "/apple",
-  "/discord",
-  "/facebook",
-  "/github",
-  "/google",
-  "/netflix",
-  "/slack",
-];
 
 const headEnd = "</head>";
 const noindex = `<meta name="robots" content="noindex" />`;
@@ -29,7 +20,7 @@ window.URL = { createObjectURL: () => "" };
   const vite = await createServer({
     server: { middlewareMode: "ssr" },
   });
-  const { render } = await vite.ssrLoadModule("/src/main-static.tsx");
+  const { render, routes } = await vite.ssrLoadModule("/src/main-static.tsx");
   const template = fs.readFileSync("dist/index.html", "utf-8");
 
   if (!template.includes(tag))
