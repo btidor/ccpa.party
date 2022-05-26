@@ -33,7 +33,8 @@ export type TimelineContext = null | [string, string?, TimelineUser?];
 export type TimelineEntry<T> = TimelineEntryKey<T> & {
   file: ReadonlyArray<string>;
   context: TimelineContext;
-  value: { [key: string]: unknown };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  value: any;
 };
 
 const dbName = "ccpa.party";

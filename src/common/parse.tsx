@@ -161,30 +161,6 @@ export function smartDecodeText(text: string): string {
   throw new Error("Could not decode text to a printable Unicode string");
 }
 
-export function getSlugAndDayTime(
-  timestamp: number,
-  value: unknown
-): {
-  slug: string;
-  day: string;
-  timestamp: number;
-} {
-  if (isNaN(timestamp)) throw new Error("Received NaN for timestamp");
-  const hash = MurmurHash3(JSON.stringify(value));
-  const slug =
-    timestamp.toString(16).padStart(8, "0") +
-    hash.result().toString(16).padStart(8, "0");
-
-  const date = new Date(timestamp * 1000);
-  const day =
-    date.getFullYear().toString() +
-    "-" +
-    (date.getMonth() + 1).toString().padStart(2, "0") +
-    "-" +
-    date.getDate().toString().padStart(2, "0");
-  return { slug, day, timestamp };
-}
-
 async function tokenize<T>(
   parser: Parser<T>,
   path: string,
@@ -222,43 +198,56 @@ export async function parseByStages<T>(
   const path = file.path.slice(1).join("/");
   const timelineParser = timelineParsers.find((c) => c.glob.match(path));
   const metadataParser = metadataParsers.find((c) => c.glob.match(path));
-  if (timelineParser) {
-    return (await tokenize(timelineParser, path, file.data)).flatMap((tok) => {
-      let parsed;
-      try {
-        parsed = timelineParser.parse(tok);
-        if (typeof parsed?.[0] === "string") {
-          parsed = [parsed];
-        }
-      } catch (e) {
-        console.error("Parse Error", path, tok, e);
-        return [];
-      }
-      return (parsed as TimelineTuple<T>[]).map(
-        ([category, datetime, context]) =>
-          ({
-            file: file.path,
-            category,
-            ...getSlugAndDayTime(datetime.toSeconds(), tok),
-            context,
-            value: tok,
-          } as TimelineEntry<T>)
-      );
-    });
-  } else if (metadataParser) {
-    (await tokenize(metadataParser, path, file.data)).forEach((tok) => {
-      let parsed;
-      try {
-        parsed = metadataParser.parse(tok);
-      } catch (e) {
-        console.error("Parse Error", path, tok, e);
-        return undefined;
-      }
-      const [key, value] = parsed;
-      metadata.set(key, value);
-    });
-    return [];
-  } else {
+
+  const parser = timelineParser || metadataParser;
+  if (!parser) return [];
+
+  let tokenized;
+  try {
+    tokenized = await tokenize(parser, path, file.data);
+  } catch (e) {
+    console.error("Tokenization Error", path, e);
     return [];
   }
+
+  const entries: TimelineEntry<T>[] = [];
+  for (const line of tokenized) {
+    try {
+      if (timelineParser) {
+        let parsed = timelineParser.parse(line) || [];
+        parsed = (
+          Array.isArray(parsed[0]) ? parsed : [parsed]
+        ) as TimelineTuple<T>[];
+
+        for (const [category, datetime, context] of parsed) {
+          try {
+            const timestamp = datetime.toSeconds();
+            if (isNaN(timestamp)) throw new Error("Received NaN for timestamp");
+            const hash = MurmurHash3(JSON.stringify(line));
+            const slug =
+              timestamp.toString(16).padStart(8, "0") +
+              hash.result().toString(16).padStart(8, "0");
+
+            entries.push({
+              file: file.path,
+              category,
+              slug,
+              day: datetime.toISODate(),
+              timestamp,
+              context,
+              value: line,
+            });
+          } catch (e) {
+            console.error("Transform Error", path, line, e);
+          }
+        }
+      } else if (metadataParser) {
+        const [key, value] = metadataParser.parse(line);
+        metadata.set(key, value);
+      }
+    } catch (e) {
+      console.error("Parse Error", path, line, e);
+    }
+  }
+  return entries;
 }
