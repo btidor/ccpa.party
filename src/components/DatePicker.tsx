@@ -29,7 +29,7 @@ function DatePicker<T>(props: Props<T>): JSX.Element {
     const date = new Date(parts[0], parts[1] - 1, parts[2]);
     inner = (
       <React.Fragment>
-        <label onClick={() => ref.current?.showPicker?.()}>
+        <label onClick={() => ref.current?.showPicker()}>
           {VerboseDateFormat.format(date)}
           <input
             type="date"

@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react";
-import { BrowserRouter } from "react-router-dom";
 import { test } from "vitest";
 
 import App from "@src/App";
+import { BrowserRouter } from "@src/common/router";
 
 test("renders learn react link", () => {
   render(

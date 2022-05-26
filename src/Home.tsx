@@ -1,18 +1,17 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
 
 import { Database } from "@src/common/database";
 import { ProviderRegistry } from "@src/common/provider";
+import { Link } from "@src/common/router";
 import Logo from "@src/components/Logo";
 
 import styles from "@src/Home.module.css";
 
-function Home(): JSX.Element {
-  const location = useLocation();
+function Home(props: { scrolled: boolean }): JSX.Element {
   const ref = React.useRef<HTMLElement>(null);
   React.useEffect(
-    () => ref.current?.scrollTo?.(location.state ? 9999 : 0, 0),
-    [location, ref]
+    () => ref.current?.scrollTo(props.scrolled ? 9999 : 0, 0),
+    [props.scrolled, ref]
   );
 
   const [epoch, setEpoch] = React.useState(0);

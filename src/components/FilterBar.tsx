@@ -1,7 +1,7 @@
 import React from "react";
-import { Navigate, useNavigate } from "react-router-dom";
 
 import type { Provider } from "@src/common/provider";
+import { Navigate, useNavigate } from "@src/common/router";
 
 import styles from "@src/components/FilterBar.module.css";
 

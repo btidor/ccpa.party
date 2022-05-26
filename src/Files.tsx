@@ -1,12 +1,12 @@
 import { BeakerIcon, DesktopDownloadIcon } from "@primer/octicons-react";
 import React from "react";
-import { Navigate, useNavigate } from "react-router-dom";
 
 import { ProviderScopedDatabase } from "@src/common/database";
 import type { DataFile, DataFileKey } from "@src/common/database";
 import { fileSizeLimitMB } from "@src/common/importer";
 import { parseByStages } from "@src/common/parse";
 import type { Provider } from "@src/common/provider";
+import { Navigate, useNavigate } from "@src/common/router";
 import FilePreview from "@src/components/FilePreview";
 import FileTree from "@src/components/FileTree";
 import Navigation from "@src/components/Navigation";

@@ -1,6 +1,5 @@
 import React from "react";
 import ReactDOMClient from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
 
 import App from "@src/App";
 import plausible from "@src/common/plausible";
@@ -19,9 +18,7 @@ if (!elem) throw new Error("Could not find root element in DOM");
 const root = ReactDOMClient.createRoot(elem);
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <App />
   </React.StrictMode>
 );
 

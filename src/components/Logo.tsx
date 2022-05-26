@@ -1,5 +1,4 @@
-import { Link } from "react-router-dom";
-
+import { Link } from "@src/common/router";
 import Party from "@src/components/Party";
 
 import styles from "@src/components/Logo.module.css";

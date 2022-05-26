@@ -1,10 +1,10 @@
 import { TrashIcon } from "@primer/octicons-react";
 import React from "react";
-import { Link } from "react-router-dom";
 
 import { ProviderScopedDatabase } from "@src/common/database";
 import { importFiles, resetProvider } from "@src/common/importer";
 import type { Provider } from "@src/common/provider";
+import { Link } from "@src/common/router";
 import Logo from "@src/components/Logo";
 
 import styles from "@src/Request.module.css";

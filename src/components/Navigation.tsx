@@ -1,9 +1,9 @@
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { Database } from "@src/common/database";
 import { ProviderRegistry } from "@src/common/provider";
 import type { Provider } from "@src/common/provider";
+import { Link, LocationContext, useNavigate } from "@src/common/router";
 import Logo from "@src/components/Logo";
 
 import styles from "@src/components/Navigation.module.css";
@@ -20,7 +20,7 @@ type Props<T> = {
 
 function Navigation<T>(props: Props<T>): JSX.Element {
   const navigate = useNavigate();
-  const location = useLocation();
+  const location = React.useContext(LocationContext);
   const { provider, pageSlug } = props;
   const [providers, setProviders] =
     React.useState<ReadonlyArray<Provider<unknown>>>();
@@ -74,7 +74,7 @@ function Navigation<T>(props: Props<T>): JSX.Element {
             key={link.label}
             to={`/${provider.slug}/${link.to}`}
             aria-current={
-              location.pathname.startsWith(`/${provider.slug}/${link.to}`)
+              location?.pathname.startsWith(`/${provider.slug}/${link.to}`)
                 ? "page"
                 : undefined
             }

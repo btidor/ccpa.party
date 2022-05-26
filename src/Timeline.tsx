@@ -1,11 +1,11 @@
 import { DateTime } from "luxon";
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { Virtuoso, VirtuosoHandle } from "react-virtuoso";
 
 import { ProviderScopedDatabase } from "@src/common/database";
 import type { TimelineEntry, TimelineEntryKey } from "@src/common/database";
 import type { Provider } from "@src/common/provider";
+import { useNavigate } from "@src/common/router";
 import DatePicker from "@src/components/DatePicker";
 import FilePreview from "@src/components/FilePreview";
 import FilterBar from "@src/components/FilterBar";
