@@ -14,11 +14,11 @@ export function b64dec(str: string): ArrayBufferLike {
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-export function serialize(obj: any): ArrayBufferLike {
+export function serialize(obj: unknown): ArrayBufferLike {
   return encoder.encode(JSON.stringify(obj));
 }
 
-export function deserialize(buf: ArrayBufferLike): any {
+export function deserialize(buf: ArrayBufferLike): unknown {
   return JSON.parse(decoder.decode(buf));
 }
 

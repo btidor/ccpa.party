@@ -54,7 +54,7 @@ function FilterBar<T>(props: Props<T>): JSX.Element {
                       .filter(([islug, icat]) =>
                         islug === slug ? !checked : filter.includes(icat.char)
                       )
-                      .map(([_, icat]) => icat.char)
+                      .map(([, icat]) => icat.char)
                       .join("");
                     navigate(filterPath(newFilter));
                   }}

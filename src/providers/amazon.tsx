@@ -12,22 +12,22 @@ import type { Provider, TimelineCategory } from "@src/common/provider";
 type CategoryKey = "activity" | "billing" | "notification" | "order";
 
 class Amazon implements Provider<CategoryKey> {
-  slug: string = "amazon";
-  displayName: string = "Amazon";
+  slug = "amazon";
+  displayName = "Amazon";
 
-  brandColor: string = "#ff9900";
-  neonColor: string = "#ff7100";
-  neonColorHDR: string = "color(rec2020 0.84192 0.48607 -0.05713)";
+  brandColor = "#ff9900";
+  neonColor = "#ff7100";
+  neonColorHDR = "color(rec2020 0.84192 0.48607 -0.05713)";
 
-  requestLink: { href: string; text: string } = {
+  requestLink = {
     text: "Request My Data",
     href: "https://amazon.com/gp/privacycentral/dsar/preview.html",
   };
-  waitTime: string = "1-2 days";
+  waitTime = "1-2 days";
   instructions: ReadonlyArray<string> = [];
-  singleFile: boolean = false;
-  fileName: string = "zip files";
-  privacyPolicy: string =
+  singleFile = false;
+  fileName = "zip files";
+  privacyPolicy =
     "https://www.amazon.com/gp/help/customer/display.html?nodeId=GC5HB5DVMU5Y8CJ2";
 
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
@@ -229,7 +229,7 @@ class Amazon implements Provider<CategoryKey> {
           `Whispersync ${item["Annotation Type"]
             .split(".")[1]
             .split("_")
-            .map((w: any) => w[0].toUpperCase() + w.slice(1))
+            .map((w: string) => w[0].toUpperCase() + w.slice(1))
             .join(" ")}`,
         ],
       ],
@@ -435,7 +435,7 @@ class Amazon implements Provider<CategoryKey> {
           `${item["Resolution"] || "Refund/Return"}`,
           item["ReturnReason"]
             .split(" ")
-            .map((w: any) => w[0].toUpperCase() + w.slice(1))
+            .map((w: string) => w[0].toUpperCase() + w.slice(1))
             .join(" "),
         ],
       ],
@@ -555,11 +555,13 @@ class Amazon implements Provider<CategoryKey> {
           } else if (params.has("k")) {
             query = params.get("k");
           }
-        } catch {}
+        } catch {
+          // If URLSearchParams fails to parse, don't display any query
+        }
         return [
           "activity",
           DateTime.fromISO(item["Last search Time (GMT)"]),
-          ["Search", query ? query : undefined],
+          ["Search", query || undefined],
         ];
       },
     },

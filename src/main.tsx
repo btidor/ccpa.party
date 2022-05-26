@@ -14,7 +14,9 @@ import plexSans from "@src/fonts/plex-sans.woff2";
 import faviconDarkSvg from "@src/img/favicon-dark.svg";
 import faviconSvg from "@src/img/favicon.svg";
 
-const root = ReactDOMClient.createRoot(document.getElementById("root")!);
+const elem = document.getElementById("root");
+if (!elem) throw new Error("Could not find root element in DOM");
+const root = ReactDOMClient.createRoot(elem);
 root.render(
   <React.StrictMode>
     <BrowserRouter>
@@ -23,12 +25,14 @@ root.render(
   </React.StrictMode>
 );
 
-const addLink = (rel: string, href: string, opts: { [key: string]: any }) => {
-  const link = document.createElement("link");
+type LinkKey = "as" | "crossOrigin" | "href" | "type";
+
+const addLink = (rel: string, href: string, opts: Map<LinkKey, string>) => {
+  const link: HTMLLinkElement = document.createElement("link");
   link.rel = rel;
   link.href = href;
-  for (const [k, v] of Object.entries(opts)) {
-    (link as any)[k] = v;
+  for (const [k, v] of opts.entries()) {
+    link[k as LinkKey] = v;
   }
   document.head.appendChild(link);
 };
@@ -51,9 +55,11 @@ const swapIcons = () => {
   const links = Array.from(head.getElementsByTagName("link"));
   links.find((x) => x.rel === "icon")?.remove();
 
-  addLink("icon", dark.matches ? faviconDarkSvg : faviconSvg, {
-    type: "image/svg+xml",
-  });
+  addLink(
+    "icon",
+    dark.matches ? faviconDarkSvg : faviconSvg,
+    new Map([["type", "image/svg+xml"]])
+  );
 };
 dark.addListener(swapIcons);
 swapIcons();
@@ -63,11 +69,11 @@ plausible();
 // Preload remaining assets used by the app, but only after the page loads, to
 // avoid blocking critical resources.
 window.addEventListener("load", () => {
-  const opts = {
-    as: "font",
-    type: "font/woff2",
-    crossOrigin: "",
-  };
+  const opts = new Map<LinkKey, string>([
+    ["as", "font"],
+    ["type", "font/woff2"],
+    ["crossOrigin", ""],
+  ]);
   addLink("preload", notoProvider, opts);
   addLink("preload", plexMono, opts);
   addLink("preload", plexSans, opts);

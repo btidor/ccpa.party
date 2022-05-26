@@ -1,7 +1,7 @@
 import { DateTime } from "luxon";
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Virtuoso } from "react-virtuoso";
+import { Virtuoso, VirtuosoHandle } from "react-virtuoso";
 
 import { ProviderScopedDatabase } from "@src/common/database";
 import type { TimelineEntry, TimelineEntryKey } from "@src/common/database";
@@ -39,7 +39,7 @@ function Timeline<T>(props: Props<T>): JSX.Element {
         Array.from(filter || []).map(
           (ch) =>
             Array.from(provider.timelineCategories.entries()).find(
-              ([slug, category]) => category.char === ch
+              ([, category]) => category.char === ch
             )?.[0]
         )
       ),
@@ -49,7 +49,8 @@ function Timeline<T>(props: Props<T>): JSX.Element {
   // Load *all* timeline entries from the database (unhydrated: these are just
   // the keys), as well as the provider-specific metadata.
   const [entries, setEntries] = React.useState<TimelineEntryKey<T>[]>();
-  const [metadata, setMetadata] = React.useState<ReadonlyMap<string, any>>();
+  const [metadata, setMetadata] =
+    React.useState<ReadonlyMap<string, unknown>>();
   React.useEffect(() => {
     // When `provider` changes, immediately unset `entries` and `metadata`. This
     // prevents downstream components from performing their initialization with
@@ -137,7 +138,7 @@ function Timeline<T>(props: Props<T>): JSX.Element {
 
   // On first load, if an entry is selected, scroll the list to its approximate
   // position.
-  const virtuoso = React.useRef<any>();
+  const virtuoso = React.useRef<VirtuosoHandle>(null);
   const [loaded, setLoaded] = React.useState(false);
   React.useEffect(() => {
     if (!loaded && virtuoso.current && rows) {
@@ -183,7 +184,7 @@ function Timeline<T>(props: Props<T>): JSX.Element {
               <DatePicker
                 index={rangeStart}
                 rows={rows}
-                scrollToIndex={virtuoso.current?.scrollToIndex}
+                scrollToIndex={(i) => virtuoso.current?.scrollToIndex(i)}
               />
             </div>
             <div className={styles.box}>

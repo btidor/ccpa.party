@@ -35,7 +35,7 @@ export type TimelineContext =
 export type TimelineEntry<T> = TimelineEntryKey<T> & {
   file: ReadonlyArray<string>;
   context: TimelineContext;
-  value: { [key: string]: any };
+  value: { [key: string]: unknown };
 };
 
 const dbName = "ccpa.party";
@@ -62,11 +62,11 @@ type RootIndex = { [key: string]: string }; // provider slug -> iv
 
 type ProviderIndex = {
   files: Array<DataFileKey>;
-  metadata: Array<[string, any]>;
+  metadata: Array<[string, unknown]>;
   timeline: Array<[string, number, string, number, string, string]>;
 };
 
-type AsyncState = { db: IDBDatabase; key: any };
+type AsyncState = { db: IDBDatabase; key: CryptoKey };
 
 export class Database {
   _terminated: () => void;
@@ -154,7 +154,7 @@ export class Database {
       op.onsuccess = () => resolve(op.result);
       op.onerror = (e) => reject(e);
     });
-    if (storedHash && storedHash === cookieHash) {
+    if (storedHash && storedHash === cookieHash && key) {
       // Success! Database was created with the current encryption key.
       return { db, key };
     } else if (storedHash !== undefined) {
@@ -185,7 +185,8 @@ export class Database {
     }
   }
 
-  async _generateAndSaveKey(db: IDBDatabase): Promise<boolean> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async _generateAndSaveKey(_db: IDBDatabase): Promise<boolean> {
     return false;
   }
 
@@ -202,20 +203,23 @@ export class Database {
     if (!state) return; // failed to initialize, treat as empty database
     const { db, key } = state;
 
-    let result: any = await new Promise((resolve, reject) => {
-      const op = db.transaction(dbStore).objectStore(dbStore).get(k);
-      op.onsuccess = () => resolve(op.result);
-      op.onerror = (e) => reject(e);
-    });
+    const result: [ArrayBufferLike, ArrayBufferLike] | ArrayBufferLike | void =
+      await new Promise((resolve, reject) => {
+        const op = db.transaction(dbStore).objectStore(dbStore).get(k);
+        op.onsuccess = () => resolve(op.result);
+        op.onerror = (e) => reject(e);
+      });
     if (result === undefined) return;
 
-    const [iv, ciphertext] = opts?.named ? result : [b64dec(k), result];
-    result = await window.crypto.subtle.decrypt(
+    const [iv, ciphertext] = opts?.named
+      ? (result as [ArrayBufferLike, ArrayBufferLike])
+      : [b64dec(k), result as ArrayBufferLike];
+    const plaintext = await window.crypto.subtle.decrypt(
       { name: "AES-GCM", iv },
       key,
       ciphertext
     );
-    if (!opts?.binary) result = deserialize(result);
+    if (!opts?.binary) return deserialize(plaintext);
     return result;
   }
 
@@ -237,13 +241,11 @@ export class ProviderScopedDatabase<T> extends Database {
     this._provider = provider;
     this._providerIndex = (async () => {
       const iv = (await this._rootIndex)[provider.slug];
-      return (
-        (iv && (await this._get(iv))) || {
-          files: [],
-          metadata: [],
-          timeline: [],
-        }
-      );
+      return ((iv && (await this._get(iv))) || {
+        files: [],
+        metadata: [],
+        timeline: [],
+      }) as ProviderIndex;
     })();
   }
 
@@ -254,12 +256,14 @@ export class ProviderScopedDatabase<T> extends Database {
   async hydrateFile(file: DataFileKey): Promise<DataFile | undefined> {
     if (!file.iv) throw new Error("DataFileKey is missing IV");
     if (file.skipped) return { ...file, data: new ArrayBuffer(0) };
-    const data = await this._get(file.iv, { binary: true });
+    const data = (await this._get(file.iv, {
+      binary: true,
+    })) as ArrayBufferLike | void;
     if (!data) return;
     return { ...file, data };
   }
 
-  async getMetadata(): Promise<ReadonlyMap<string, any>> {
+  async getMetadata(): Promise<ReadonlyMap<string, unknown>> {
     return new Map((await this._providerIndex).metadata);
   }
 
@@ -282,7 +286,11 @@ export class ProviderScopedDatabase<T> extends Database {
     if (!entry.iv || entry.offset === undefined) {
       throw new Error("TimelineEntryKey is missing IV or offset");
     }
-    const data = await this._get(entry.iv);
+    const data = (await this._get(entry.iv)) as [
+      string[],
+      TimelineContext,
+      { [key: string]: unknown }
+    ][];
     if (!data) return;
     const [file, context, value] = data[entry.offset];
     return {
@@ -313,7 +321,7 @@ export class ProviderScopedDatabase<T> extends Database {
 export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
   _additions: {
     files: Array<DataFile>;
-    metadata: Map<string, any>;
+    metadata: Map<string, unknown>;
     timeline: Array<TimelineEntry<T>>;
     timelineDedup: Set<string>;
   };
@@ -473,7 +481,7 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
   }
 
   async _puts(
-    data: ReadonlyArray<any>,
+    data: ReadonlyArray<unknown>,
     opts?: { binary?: boolean }
   ): Promise<Array<string>> {
     const state = await this._state;
@@ -489,7 +497,7 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
         await window.crypto.subtle.encrypt(
           { name: "AES-GCM", iv },
           key,
-          data[i]
+          data[i] as any
         )
       );
       ivs.push(b64enc(iv));
@@ -525,7 +533,7 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
     this._additions.files.push(file);
   }
 
-  putMetadata(metadata: Map<string, any>): void {
+  putMetadata(metadata: Map<string, unknown>): void {
     metadata.forEach((v, k) => this._additions.metadata.set(k, v));
   }
 

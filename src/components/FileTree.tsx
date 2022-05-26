@@ -104,6 +104,7 @@ function FileTree(props: Props): JSX.Element {
     <div className={styles.tree} ref={ref}>
       <Tree
         data={tree}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         width={"100%" as any}
         height={height}
         indent={12}

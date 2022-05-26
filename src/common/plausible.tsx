@@ -22,14 +22,14 @@
 // SOFTWARE.
 
 export default function plausible(): void {
-  var location = window.location;
-  var document = window.document;
+  const location = window.location;
+  const document = window.document;
 
   function warn(reason: string) {
     console.warn("Ignoring Event: " + reason);
   }
 
-  var endpoint = import.meta.env.VITE_PLAUSIBLE_ORIGIN;
+  const endpoint = import.meta.env.VITE_PLAUSIBLE_ORIGIN;
   if (!endpoint) return;
 
   if (
@@ -40,10 +40,11 @@ export default function plausible(): void {
   )
     return warn("localhost");
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const w = window as any;
   if (w._phantom || w.__nightmare || w.navigator.webdriver || w.Cypress) return;
 
-  var request = new XMLHttpRequest();
+  const request = new XMLHttpRequest();
   request.open("POST", endpoint, true);
   request.setRequestHeader("Content-Type", "text/plain");
   request.send(

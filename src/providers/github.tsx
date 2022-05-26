@@ -7,22 +7,22 @@ import type { Provider, TimelineCategory } from "@src/common/provider";
 type CategoryKey = "activity" | "message";
 
 class GitHub implements Provider<CategoryKey> {
-  slug: string = "github";
-  displayName: string = "GitHub";
+  slug = "github";
+  displayName = "GitHub";
 
-  brandColor: string = "#6e5494";
-  neonColor: string = "#bd65ff";
-  neonColorHDR: string = "color(rec2020 0.69493 0.4398 1.36255)";
+  brandColor = "#6e5494";
+  neonColor = "#bd65ff";
+  neonColorHDR = "color(rec2020 0.69493 0.4398 1.36255)";
 
-  requestLink: { href: string; text: string } = {
+  requestLink = {
     text: "Account Settings",
     href: "https://github.com/settings/admin",
   };
-  waitTime: string = "15 minutes";
+  waitTime = "15 minutes";
   instructions: ReadonlyArray<string> = [];
-  singleFile: boolean = true;
-  fileName: string = "tar.gz file";
-  privacyPolicy: string =
+  singleFile = true;
+  fileName = "tar.gz file";
+  privacyPolicy =
     "https://docs.github.com/en/site-policy/privacy-policies/githubs-notice-about-the-california-consumer-privacy-act";
 
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([

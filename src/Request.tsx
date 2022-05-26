@@ -46,7 +46,7 @@ function Request<T>(props: Props<T>): JSX.Element {
     event.target.files &&
     (setDisplay("pending"),
     importFiles(provider, event.target.files, () => setEpoch(epoch + 1)));
-  const resetHandler: React.ChangeEventHandler<any> = () => (
+  const resetHandler: React.ChangeEventHandler<unknown> = () => (
     setDisplay("pending"), resetProvider(provider, () => setEpoch(epoch + 1))
   );
 

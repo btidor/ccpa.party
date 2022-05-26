@@ -8,12 +8,12 @@ import type {
   TimelineEntry,
 } from "@src/common/database";
 
-export type TimelineTuple<T> = [T, any, TimelineContext];
+export type TimelineTuple<T> = [T, unknown, TimelineContext];
 
 export type MetadataParser = {
   glob: IMinimatch;
   tokenize?: (data: ArrayBufferLike) => any[] | Promise<any[]>;
-  parse: (item: any) => [string, any];
+  parse: (item: any) => [string, unknown];
 };
 
 export type TimelineParser<T> = {
@@ -34,7 +34,7 @@ const printableRegExp =
   /^(\p{L}|\p{M}|\p{N}|\p{S}|\p{P}|\p{Z}|\p{Cf}|\n|\r|\t|\u{f8ff})*$/u;
 const utf8Decoder = new TextDecoder("utf-8");
 const utf16beDecoder = new TextDecoder("utf-16be");
-const jsonReviver = (key: any, value: any): any =>
+const jsonReviver = (_key: unknown, value: unknown): unknown =>
   typeof value === "string" ? smartDecodeText(value) : value;
 const isPrintableUnicode = (str: string): boolean => {
   const batchSize = 1024;

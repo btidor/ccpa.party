@@ -8,18 +8,18 @@ import type { Provider, TimelineCategory } from "@src/common/provider";
 type CategoryKey = "activity" | "security";
 
 class Google implements Provider<CategoryKey> {
-  slug: string = "google";
-  displayName: string = "Google";
+  slug = "google";
+  displayName = "Google";
 
-  brandColor: string = "#34a853";
-  neonColor: string = "#00c300";
-  neonColorHDR: string = "color(rec2020 0.1856 0.71527 0.06415)";
+  brandColor = "#34a853";
+  neonColor = "#00c300";
+  neonColorHDR = "color(rec2020 0.1856 0.71527 0.06415)";
 
-  requestLink: { href: string; text: string } = {
+  requestLink = {
     text: "Google Takeout",
     href: "https://takeout.google.com/",
   };
-  waitTime: string = "1-2 days";
+  waitTime = "1-2 days";
   instructions: ReadonlyArray<string> = [
     `check Access Log Activity`,
     ``,
@@ -27,10 +27,9 @@ class Google implements Provider<CategoryKey> {
     ` click Multiple Formats`,
     `  change HTML to JSON`,
   ];
-  singleFile: boolean = true;
-  fileName: string = "takeout.zip";
-  privacyPolicy: string =
-    "https://policies.google.com/privacy?hl=en#california";
+  singleFile = true;
+  fileName = "takeout.zip";
+  privacyPolicy = "https://policies.google.com/privacy?hl=en#california";
 
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
@@ -58,7 +57,11 @@ class Google implements Provider<CategoryKey> {
       glob: new Minimatch("Takeout/My Activity/*/MyActivity.json"),
       parse: (item) => {
         let { title, header } = item;
-        if (item.details?.some((x: any) => x.name === "From Google Ads"))
+        if (
+          item.details?.some(
+            (x: { name: string }) => x.name === "From Google Ads"
+          )
+        )
           header = "Google Ads";
         if (
           header === "Maps" &&

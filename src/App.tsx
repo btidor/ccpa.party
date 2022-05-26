@@ -110,14 +110,12 @@ function App(): JSX.Element {
             if (pageSlug === "files") {
               // URL: `/:provider/files(@selected)?`
               if (matches[2]) return do404();
-              let selected = !!matches[3]
-                ? parseInt(matches[3].slice(1))
-                : undefined;
+              const selected = parseInt(matches[3]?.slice(1)) || undefined;
               return <Files provider={provider} selected={selected} />;
             } else if (pageSlug === "timeline") {
               // URL: `/:provider/timeline(:filter)?(@selected)?`
-              let filter = !!matches[2] ? matches[2].slice(1) : undefined;
-              let selected = !!matches[3] ? matches[3].slice(1) : undefined;
+              const filter = matches[2]?.slice(1) || undefined;
+              const selected = matches[3]?.slice(1) || undefined;
               return (
                 <Timeline
                   provider={provider}

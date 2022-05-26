@@ -23,7 +23,7 @@ function Navigation<T>(props: Props<T>): JSX.Element {
   const location = useLocation();
   const { provider, pageSlug } = props;
   const [providers, setProviders] =
-    React.useState<ReadonlyArray<Provider<T>>>();
+    React.useState<ReadonlyArray<Provider<unknown>>>();
   const [epoch, setEpoch] = React.useState(0);
 
   React.useEffect(() => {

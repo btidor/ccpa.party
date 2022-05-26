@@ -19,15 +19,15 @@ type Props<T> = {
   selected: number | undefined;
 };
 
-const FileParseAction = (props: {
+const FileParseAction = <T,>(props: {
   file: DataFile;
-  provider: Provider<any>;
+  provider: Provider<T>;
 }): JSX.Element | null =>
   import.meta.env.DEV ? (
     <div
       className={styles.action}
       onClick={() => {
-        const metadata = new Map<string, any>();
+        const metadata = new Map<string, unknown>();
         parseByStages(
           props.file,
           metadata,
@@ -134,7 +134,7 @@ function Files<T>(props: Props<T>): JSX.Element {
                   items?.[selected]?.path.slice(1).join("/")}
               </span>
               <div className={styles.grow}></div>
-              {item && <FileParseAction file={item} provider={provider} />}
+              {item && <FileParseAction<T> file={item} provider={provider} />}
               {item && <FileDownloadAction file={item} />}
             </div>
             <div className={styles.box}>

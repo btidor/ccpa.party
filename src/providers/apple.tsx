@@ -3,6 +3,7 @@ import { Minimatch } from "minimatch";
 
 import {
   TimelineParser,
+  TimelineTuple,
   parseCSV,
   parseJSON,
   smartDecode,
@@ -14,22 +15,22 @@ type CategoryKey = "account" | "activity" | "icloud" | "media";
 const domParser = new DOMParser();
 
 class Apple implements Provider<CategoryKey> {
-  slug: string = "apple";
-  displayName: string = "Apple";
+  slug = "apple";
+  displayName = "Apple";
 
-  brandColor: string = "#ffb900";
-  neonColor: string = "#e08800";
-  neonColorHDR: string = "color(rec2020 0.75646 0.54656 -0.09204)";
+  brandColor = "#ffb900";
+  neonColor = "#e08800";
+  neonColorHDR = "color(rec2020 0.75646 0.54656 -0.09204)";
 
-  requestLink: { href: string; text: string } = {
+  requestLink = {
     text: "Data and Privacy",
     href: "https://privacy.apple.com/",
   };
-  waitTime: string = "about a week";
+  waitTime = "about a week";
   instructions: ReadonlyArray<string> = [];
-  singleFile: boolean = false;
-  fileName: string = "zip files";
-  privacyPolicy: string = "https://www.apple.com/legal/privacy/california/";
+  singleFile = false;
+  fileName = "zip files";
+  privacyPolicy = "https://www.apple.com/legal/privacy/california/";
 
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
@@ -302,10 +303,17 @@ class Apple implements Provider<CategoryKey> {
       glob: new Minimatch("**/Game Center Data.json"),
       tokenize: async (data) =>
         (await parseJSON(data)).games_state.flatMap(
-          ({ leaderboard, achievements, ...game }: any) =>
+          ({
+            leaderboard,
+            achievements,
+            ...game
+          }: {
+            leaderboard: { leaderboard_score: { [key: string]: unknown }[] }[];
+            achievements: { [key: string]: unknown }[];
+          }) =>
             (leaderboard || [])
-              .flatMap(({ leaderboard_score, ...leaderboard }: any) =>
-                leaderboard_score.map((score: any) => ({
+              .flatMap(({ leaderboard_score, ...leaderboard }) =>
+                leaderboard_score.map((score) => ({
                   type: "leaderboard",
                   game,
                   leaderboard,
@@ -313,11 +321,14 @@ class Apple implements Provider<CategoryKey> {
                 }))
               )
               .concat(
-                (achievements || []).map((item: any) => ({
-                  type: "achievement",
-                  game,
-                  ...item,
-                }))
+                (achievements || []).map(
+                  (item) =>
+                    ({
+                      type: "achievement",
+                      game,
+                      ...item,
+                    } as any)
+                )
               )
         ),
       parse: (item) =>
@@ -486,14 +497,14 @@ class Apple implements Provider<CategoryKey> {
           Array.from(children)
             .find((c) => c.nodeName === "key" && c.innerHTML === "t")
             ?.nextElementSibling?.getElementsByTagName("date") || [];
-        const address: any = Array.from(children).find(
+        const address: unknown = Array.from(children).find(
           (c) => c.nodeName === "key" && c.innerHTML === "address"
         )?.nextElementSibling?.innerHTML;
-        return Array.from(dates).map((date: any) => [
+        return Array.from(dates).map((date: Element) => [
           "icloud",
           DateTime.fromISO(date.innerHTML),
           ["Mail Message", address],
-        ]) as any;
+        ]) as TimelineTuple<CategoryKey>[];
       },
     },
     {
@@ -511,14 +522,16 @@ class Apple implements Provider<CategoryKey> {
           .getElementsByTagName("key");
         const name = keys[0]?.innerHTML;
         const added = Array.from(keys).find((k) => k.innerHTML === "added_at")
-          ?.nextElementSibling?.innerHTML!;
-        return [
-          "icloud",
-          DateTime.fromFormat(added, "LLL dd yyyy HH:mm:ss", {
-            zone: "UTC",
-          }),
-          ["Added  Wi-Fi Network", name],
-        ];
+          ?.nextElementSibling?.innerHTML;
+        return added
+          ? [
+              "icloud",
+              DateTime.fromFormat(added, "LLL dd yyyy HH:mm:ss", {
+                zone: "UTC",
+              }),
+              ["Added  Wi-Fi Network", name],
+            ]
+          : undefined;
       },
     },
     {

@@ -4,33 +4,29 @@ import { Minimatch } from "minimatch";
 import React from "react";
 
 import type { TimelineEntry } from "@src/common/database";
-import {
-  MetadataParser,
-  TimelineParser,
-  parseByStages,
-} from "@src/common/parse";
+import { MetadataParser, TimelineParser } from "@src/common/parse";
 import type { Provider, TimelineCategory } from "@src/common/provider";
 import { Highlight, Pill } from "@src/components/Record";
 
 type CategoryKey = "message" | "integration";
 
 class Slack implements Provider<CategoryKey> {
-  slug: string = "slack";
-  displayName: string = "Slack";
+  slug = "slack";
+  displayName = "Slack";
 
-  brandColor: string = "#4a154b";
-  neonColor: string = "#f0f";
-  neonColorHDR: string = "color(rec2020 0.92827 0.25757 1.11361)";
+  brandColor = "#4a154b";
+  neonColor = "#f0f";
+  neonColorHDR = "color(rec2020 0.92827 0.25757 1.11361)";
 
-  requestLink: { href: string; text: string } = {
+  requestLink = {
     text: "Export Workspace Data",
     href: "https://slack.com/help/articles/201658943-Export-your-workspace-data",
   };
-  waitTime: string = "a few days";
+  waitTime = "a few days";
   instructions: ReadonlyArray<string> = [];
-  singleFile: boolean = true;
-  fileName: string = "zip file";
-  privacyPolicy: string =
+  singleFile = true;
+  fileName = "zip file";
+  privacyPolicy =
     "https://slack.com/trust/privacy/privacy-policy#california-rights";
   // Also: https://slack.com/trust/compliance/ccpa-faq
 
@@ -87,27 +83,50 @@ class Slack implements Provider<CategoryKey> {
 
   render = (
     entry: TimelineEntry<CategoryKey>,
-    metadata: ReadonlyMap<string, any>
+    metadata: ReadonlyMap<string, unknown>
   ): [
     JSX.Element | void,
     string | void,
     { display: string; color?: string } | void
   ] => {
+    type User = {
+      profile: { display_name?: string; real_name?: string };
+      color: string;
+    } | void;
+    type Channel = { name: string } | void;
+    type Element = {
+      type: string;
+      text?: string;
+      elements?: Element[];
+      style?: {
+        bold: boolean;
+        italic: boolean;
+        strike: boolean;
+        code: boolean;
+      };
+      name?: string;
+      user_id?: string;
+      channel_id?: string;
+      url?: string;
+    };
+
     const message = entry.value;
     const channelName =
       entry.category === "message"
         ? entry.file[1]
-        : metadata.get(`channel.${message.channel}`)?.name;
+        : (metadata.get(`channel.${message.channel}`) as Channel)?.name;
     let trailer = channelName && `#${channelName}`;
 
-    const user = metadata.get(`user.${message.user || message.user_id}`);
+    const user = metadata.get(
+      `user.${message.user || message.user_id}`
+    ) as User;
     const username = {
       display: user
         ? user.profile.display_name || user.profile.real_name
         : message.user_name || message.bot_id || "unknown",
       color: user?.color && `#${user.color}`,
     };
-    let text = message.text ? <span>{message.text}</span> : undefined;
+    let text = message.text ? <span>{message.text as any}</span> : undefined;
     if (message.files || message.attachments) {
       text = (
         <React.Fragment>
@@ -129,14 +148,14 @@ class Slack implements Provider<CategoryKey> {
       if (channelName) trailer += ` in #${channelName}`;
     }
     let key = 0;
-    const handleElement = (element: any) => {
+    const handleElement = (element: Element): JSX.Element | JSX.Element[] => {
       key++;
       if (element.type === "rich_text_section") {
-        return element.elements.flatMap(handleElement);
+        return (element.elements || []).flatMap(handleElement);
       } else if (element.type === "rich_text_list") {
         return (
           <ul key={key}>
-            {element.elements.map((subelement: any) => (
+            {(element.elements || []).map((subelement) => (
               <li key={key++}>{handleElement(subelement)}</li>
             ))}
           </ul>
@@ -144,11 +163,13 @@ class Slack implements Provider<CategoryKey> {
       } else if (element.type === "rich_text_quote") {
         return (
           <blockquote key={key}>
-            {element.elements.flatMap(handleElement)}
+            {(element.elements || []).flatMap(handleElement)}
           </blockquote>
         );
       } else if (element.type === "rich_text_preformatted") {
-        return <pre key={key}>{element.elements.flatMap(handleElement)}</pre>;
+        return (
+          <pre key={key}>{(element.elements || []).flatMap(handleElement)}</pre>
+        );
       } else if (element.type === "text") {
         let node = <span>{element.text}</span>;
         if (element.style) {
@@ -165,7 +186,7 @@ class Slack implements Provider<CategoryKey> {
           </span>,
         ];
       } else if (element.type === "user") {
-        const user = metadata.get(`user.${element.user_id}`);
+        const user = metadata.get(`user.${element.user_id}`) as User;
         return [
           <Highlight key={key}>
             @
@@ -173,7 +194,9 @@ class Slack implements Provider<CategoryKey> {
           </Highlight>,
         ];
       } else if (element.type === "channel") {
-        const channel = metadata.get(`channel.${element.channel_id}`);
+        const channel = metadata.get(
+          `channel.${element.channel_id}`
+        ) as Channel;
         return [<Highlight key={key}>#{channel?.name || "unknown"}</Highlight>];
       } else if (element.type === "link") {
         return [
@@ -186,17 +209,21 @@ class Slack implements Provider<CategoryKey> {
       }
     };
     if (message.blocks) {
-      text = message.blocks.flatMap((block: any) => {
-        key++;
-        if (block.type !== "rich_text") {
-          return <Pill key={key}>{block.type}</Pill>;
-        } else {
-          return block.elements.flatMap(handleElement);
-        }
-      });
+      text = (
+        <React.Fragment>
+          {(message.blocks as Element[]).flatMap((block) => {
+            key++;
+            if (block.type !== "rich_text") {
+              return <Pill key={key}>{block.type}</Pill>;
+            } else {
+              return (block.elements || []).flatMap(handleElement);
+            }
+          })}
+        </React.Fragment>
+      );
     }
 
-    return [text, trailer, username];
+    return [text, trailer, username as any];
   };
 }
 

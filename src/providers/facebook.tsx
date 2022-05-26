@@ -12,22 +12,22 @@ type CategoryKey =
   | "security";
 
 class Facebook implements Provider<CategoryKey> {
-  slug: string = "facebook";
-  displayName: string = "Facebook";
+  slug = "facebook";
+  displayName = "Facebook";
 
-  brandColor: string = "#1877f2";
-  neonColor: string = "#009eff";
-  neonColorHDR: string = "color(rec2020 0.12623 0.5874 1.52179)";
+  brandColor = "#1877f2";
+  neonColor = "#009eff";
+  neonColorHDR = "color(rec2020 0.12623 0.5874 1.52179)";
 
-  requestLink: { href: string; text: string } = {
+  requestLink = {
     text: "Download Your Information",
     href: "https://www.facebook.com/ccpa/download_your_information/",
   };
-  waitTime: string = "1-2 hours";
+  waitTime = "1-2 hours";
   instructions: ReadonlyArray<string> = ["select format JSON"];
-  singleFile: boolean = true;
-  fileName: string = "facebook.zip";
-  privacyPolicy: string = "https://www.facebook.com/legal/policy/ccpa";
+  singleFile = true;
+  fileName = "facebook.zip";
+  privacyPolicy = "https://www.facebook.com/legal/policy/ccpa";
 
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
@@ -99,8 +99,9 @@ class Facebook implements Provider<CategoryKey> {
       tokenize: (data) =>
         parseJSON(data, {
           smart: true,
-        }).off_facebook_activity_v2.flatMap(({ events, ...rest }: any) =>
-          events.map((item: any) => ({ company: rest, ...item }))
+        }).off_facebook_activity_v2.flatMap(
+          ({ events, ...rest }: { events: { [key: string]: unknown }[] }) =>
+            events.map((item) => ({ company: rest, ...item }))
         ),
       parse: (item) => [
         "activity",
@@ -138,14 +139,17 @@ class Facebook implements Provider<CategoryKey> {
     {
       glob: new Minimatch("events/your_event_responses.json"),
       tokenize: (data) => {
-        const parsed = parseJSON(data, { smart: true }).event_responses_v2;
+        const parsed = parseJSON(data, { smart: true }).event_responses_v2 as {
+          events_joined: { [key: string]: unknown }[];
+          events_declined: { [key: string]: unknown }[];
+        };
         return parsed.events_joined
-          .map((item: any) => ({
+          .map((item) => ({
             type: "joined",
             ...item,
           }))
           .concat(
-            parsed.events_declined.map((item: any) => ({
+            parsed.events_declined.map((item) => ({
               type: "declined",
               ...item,
             }))
@@ -163,12 +167,16 @@ class Facebook implements Provider<CategoryKey> {
     {
       glob: new Minimatch("feed/feed.json"),
       tokenize: (data) =>
-        parseJSON(data, { smart: true }).people_and_friends_v2.flatMap(
-          (category: any) =>
-            category.entries.map((entry: any) => ({
-              name: category.name,
-              ...entry,
-            }))
+        (
+          parseJSON(data, { smart: true }).people_and_friends_v2 as {
+            name: string;
+            entries: { [key: string]: unknown }[];
+          }[]
+        ).flatMap((category) =>
+          category.entries.map((entry) => ({
+            name: category.name,
+            ...entry,
+          }))
         ),
       parse: (item) => [
         "activity",
@@ -264,8 +272,10 @@ class Facebook implements Provider<CategoryKey> {
     {
       glob: new Minimatch("messages/**/message_*.json"),
       tokenize: (data) => {
-        const { messages, ...rest } = parseJSON(data, { smart: false });
-        return messages.map((item: any) => ({
+        const { messages, ...rest } = parseJSON(data, { smart: false }) as {
+          messages: { [key: string]: unknown }[];
+        };
+        return messages.map((item) => ({
           ...item,
           thread: rest,
         }));
@@ -424,12 +434,16 @@ class Facebook implements Provider<CategoryKey> {
     {
       glob: new Minimatch("your_interactions_on_facebook/recently_viewed.json"),
       tokenize: (data) =>
-        parseJSON(data, {
-          smart: true,
-        }).recently_viewed.flatMap(({ entries, ...rest }: any) =>
+        (
+          parseJSON(data, {
+            smart: true,
+          }).recently_viewed as {
+            entries: { timestamp: unknown; [key: string]: unknown }[];
+          }[]
+        ).flatMap(({ entries, ...rest }) =>
           (entries || [])
-            .map((item: any) => ({ category: rest, ...item }))
-            .filter((item: any) => item.timestamp)
+            .map((item) => ({ category: rest, ...item }))
+            .filter((item) => item.timestamp)
         ),
       parse: (item) => [
         "activity",
@@ -442,12 +456,16 @@ class Facebook implements Provider<CategoryKey> {
         "your_interactions_on_facebook/recently_visited.json"
       ),
       tokenize: (data) =>
-        parseJSON(data, {
-          smart: true,
-        }).visited_things_v2.flatMap(({ entries, ...rest }: any) =>
+        (
+          parseJSON(data, {
+            smart: true,
+          }).visited_things_v2 as {
+            entries: { timestamp: unknown; [key: string]: unknown }[];
+          }[]
+        ).flatMap(({ entries, ...rest }) =>
           (entries || [])
-            .map((item: any) => ({ category: rest, ...item }))
-            .filter((item: any) => item.timestamp)
+            .map((item) => ({ category: rest, ...item }))
+            .filter((item) => item.timestamp)
         ),
       parse: (item) => [
         "activity",

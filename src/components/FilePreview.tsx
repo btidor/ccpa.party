@@ -8,7 +8,7 @@ type Props = {
     | void // show standard loading message
     | string // show custom placeholder message
     | ArrayBufferLike // display file (please also pass filename)
-    | { [key: string]: any }; // display JSON object
+    | { [key: string]: unknown }; // display JSON object
   filename?: string;
 };
 

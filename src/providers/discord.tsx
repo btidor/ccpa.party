@@ -13,26 +13,26 @@ import { Pill } from "@src/components/Record";
 type CategoryKey = "activity" | "message";
 
 class Discord implements Provider<CategoryKey> {
-  slug: string = "discord";
-  displayName: string = "Discord";
+  slug = "discord";
+  displayName = "Discord";
 
-  brandColor: string = "#5865f2";
-  neonColor: string = "#4087ff";
-  neonColorHDR: string = "color(rec2020 0.4889 0.52224 1.46496)";
+  brandColor = "#5865f2";
+  neonColor = "#4087ff";
+  neonColorHDR = "color(rec2020 0.4889 0.52224 1.46496)";
 
-  requestLink: { href: string; text: string } = {
+  requestLink = {
     text: "Discord",
     href: "https://discord.com/app",
   };
-  waitTime: string = "about a week";
+  waitTime = "about a week";
   instructions: ReadonlyArray<string> = [
     "open User Settings",
     "Privacy & Safety tab",
     "scroll down",
   ];
-  singleFile: boolean = true;
-  fileName: string = "package.zip";
-  privacyPolicy: string =
+  singleFile = true;
+  fileName = "package.zip";
+  privacyPolicy =
     "https://discord.com/privacy#information-for-california-users";
 
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
@@ -96,13 +96,13 @@ class Discord implements Provider<CategoryKey> {
 
   render = (
     entry: TimelineEntry<CategoryKey>,
-    metadata: ReadonlyMap<string, any>
+    metadata: ReadonlyMap<string, unknown>
   ): [JSX.Element, string | void] => {
     let body, trailer;
     if (entry.category === "activity") {
       const channel = metadata.get(
         `channel_meta.${entry.value.channel_id || entry.value.channel}`
-      );
+      ) as { name: string };
       const server = metadata.get(
         `server.${entry.value.guild_id || entry.value.server}`
       );
@@ -127,7 +127,7 @@ class Discord implements Provider<CategoryKey> {
             // The roles list isn't part of the export
             return "`&unknown`";
           } else if (type === "#") {
-            const channel = metadata.get(`channel.${snowflake}`);
+            const channel = metadata.get(`channel.${snowflake}`) as string;
             return `\`${
               channel === undefined
                 ? "#unknown"
@@ -152,8 +152,12 @@ class Discord implements Provider<CategoryKey> {
           </React.Fragment>
         );
 
-      const channel = metadata.get(`channel_meta.${entry.file[2].slice(1)}`);
-      const fallback = metadata.get(`channel.${entry.file[2].slice(1)}`);
+      const channel = metadata.get(
+        `channel_meta.${entry.file[2].slice(1)}`
+      ) as { name: string; type: number; guild: { name: string } };
+      const fallback = metadata.get(
+        `channel.${entry.file[2].slice(1)}`
+      ) as string;
       if (channel && [0, 2].includes(channel.type))
         trailer = `in #${channel.name} (${channel.guild.name})`;
       else if (channel && [10, 11, 12].includes(channel.type))
@@ -163,7 +167,7 @@ class Discord implements Provider<CategoryKey> {
     } else {
       throw new Error("Unknown category: " + entry.category);
     }
-    return [body as JSX.Element, trailer];
+    return [body as JSX.Element, trailer as any];
   };
 }
 

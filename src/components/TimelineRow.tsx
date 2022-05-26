@@ -22,11 +22,11 @@ export type Group = {
 type Props<T> = {
   db: ProviderScopedDatabase<T>;
   isLast: boolean;
-  metadata: ReadonlyMap<string, any>;
+  metadata: ReadonlyMap<string, unknown>;
   provider: Provider<T>;
   row: Entry<T> | Group;
   selected?: string;
-  setSelected: (selected: string) => any;
+  setSelected: (selected: string) => unknown;
 };
 
 function TimelineRow<T>(props: Props<T>): JSX.Element {
@@ -36,6 +36,7 @@ function TimelineRow<T>(props: Props<T>): JSX.Element {
   React.useEffect(() => {
     (async () => {
       if (row.isGroup) return;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { isGroup, time, ...key } = row;
       setHydrated(await db.hydrateTimelineEntry(key));
     })();
@@ -71,6 +72,7 @@ function TimelineRow<T>(props: Props<T>): JSX.Element {
             (() => {
               const [body, trailer, username] =
                 provider.render?.(hydrated, metadata) ||
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (hydrated.context as any);
               return (
                 <Record

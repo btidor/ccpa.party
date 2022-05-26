@@ -38,7 +38,7 @@ export interface Provider<T> {
 
   render?: (
     entry: TimelineEntry<T>,
-    metadata: ReadonlyMap<string, any>
+    metadata: ReadonlyMap<string, unknown>
   ) =>
     | [JSX.Element, string | void]
     | [
@@ -59,10 +59,11 @@ export const ProviderRegistry: ReadonlyArray<Provider<any>> = [
   new Slack(),
 ];
 
-export const ProviderLookup: ReadonlyMap<string, Provider<any>> = new Map<
+export const ProviderLookup: ReadonlyMap<string, Provider<unknown>> = new Map<
   string,
-  Provider<any>
+  Provider<unknown>
 >();
 ProviderRegistry.forEach((provider) =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (ProviderLookup as any).set(provider.slug, provider)
 );

@@ -7,22 +7,22 @@ import type { Provider, TimelineCategory } from "@src/common/provider";
 type CategoryKey = "account" | "activity" | "notification";
 
 class Netflix implements Provider<CategoryKey> {
-  slug: string = "netflix";
-  displayName: string = "Netflix";
+  slug = "netflix";
+  displayName = "Netflix";
 
-  brandColor: string = "#e50914";
-  neonColor: string = "#ff0006";
-  neonColorHDR: string = "color(rec2020 1.0185 0.26889 0.13682)";
+  brandColor = "#e50914";
+  neonColor = "#ff0006";
+  neonColorHDR = "color(rec2020 1.0185 0.26889 0.13682)";
 
-  requestLink: { href: string; text: string } = {
+  requestLink = {
     text: "Get My Info",
     href: "https://www.netflix.com/account/getmyinfo",
   };
-  waitTime: string = "a day";
+  waitTime = "a day";
   instructions: ReadonlyArray<string> = [];
-  singleFile: boolean = true;
-  fileName: string = "netflix.zip";
-  privacyPolicy: string = "https://help.netflix.com/legal/privacy#ccpa";
+  singleFile = true;
+  fileName = "netflix.zip";
+  privacyPolicy = "https://help.netflix.com/legal/privacy#ccpa";
 
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
@@ -94,7 +94,13 @@ class Netflix implements Provider<CategoryKey> {
     {
       glob: new Minimatch("CONTENT_INTERACTION/PlaybackRelatedEvents.csv"),
       parse: (item) =>
-        JSON.parse(item.Playtraces).map((trace: any) => {
+        (
+          JSON.parse(item.Playtraces) as {
+            eventType: string;
+            mediaOffsetMs: number;
+            sessionOffsetMs: number;
+          }[]
+        ).map((trace) => {
           let type =
             "Playback " +
             trace.eventType[0].toUpperCase() +
