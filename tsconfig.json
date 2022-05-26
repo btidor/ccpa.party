@@ -21,5 +21,6 @@
     "plugins": [{ "name": "typescript-plugin-css-modules" }]
   },
   "include": ["src"],
+  "exclude": ["**/*.test.tsx", "src/setupTests.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
