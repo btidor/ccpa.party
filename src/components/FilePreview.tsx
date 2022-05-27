@@ -20,7 +20,7 @@ function displayText(data: ArrayBufferLike): JSX.Element {
   try {
     const raw = smartDecode(data);
     if (/^\n*$/.test(raw)) return <Placeholder>{emptyMessage}</Placeholder>;
-    else return <pre>{raw}</pre>;
+    else return <pre className={styles.preview}>{raw}</pre>;
   } catch {
     return <Placeholder>{decodeFailureMessage}</Placeholder>;
   }
@@ -32,7 +32,11 @@ function displayFile(data: ArrayBufferLike, filename: string): JSX.Element {
     case "json": {
       try {
         const parsed = parseJSON(data);
-        return <pre>{JSON.stringify(parsed, undefined, 2)}</pre>;
+        return (
+          <pre className={styles.preview}>
+            {JSON.stringify(parsed, undefined, 2)}
+          </pre>
+        );
       } catch {
         return displayText(data);
       }
@@ -64,7 +68,13 @@ function displayFile(data: ArrayBufferLike, filename: string): JSX.Element {
         })
       );
       return (
-        <iframe key={filename} src={url} sandbox="" title={filename}></iframe>
+        <iframe
+          key={filename}
+          className={styles.preview}
+          src={url}
+          sandbox=""
+          title={filename}
+        ></iframe>
       );
     }
     case "pdf": {
@@ -82,7 +92,12 @@ function displayFile(data: ArrayBufferLike, filename: string): JSX.Element {
         // type set in the Blob constructor, so crafting a file with the
         // contents "<script>...</script>" and a *.pdf extension won't achieve
         // script execution.
-        <iframe key={filename} src={url} title={filename}></iframe>
+        <iframe
+          key={filename}
+          className={styles.preview}
+          src={url}
+          title={filename}
+        ></iframe>
       );
     }
     case "avif":
@@ -94,7 +109,7 @@ function displayFile(data: ArrayBufferLike, filename: string): JSX.Element {
     case "webp": {
       const url = URL.createObjectURL(new Blob([data]));
       return (
-        <div className={styles.container}>
+        <div className={styles.preview}>
           <img src={url} alt={filename} />
         </div>
       );
@@ -107,17 +122,17 @@ function displayFile(data: ArrayBufferLike, filename: string): JSX.Element {
 
 function FilePreview(props: Props): JSX.Element {
   const { children, filename } = props;
-
-  let node;
   if (children === undefined || typeof children === "string") {
-    node = <pre>{children || undefined}</pre>;
+    return <pre className={styles.preview}>{children || undefined}</pre>;
   } else if (children instanceof ArrayBuffer) {
-    node = displayFile(children, filename || "");
+    return displayFile(children, filename || "");
   } else {
-    node = <pre>{JSON.stringify(children, undefined, 2)}</pre>;
+    return (
+      <pre className={styles.preview}>
+        {JSON.stringify(children, undefined, 2)}
+      </pre>
+    );
   }
-
-  return <div className={styles.inspector}>{node}</div>;
 }
 
 export default FilePreview;
