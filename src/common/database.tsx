@@ -14,9 +14,18 @@ export type DataFileKey = {
   slug: string; // hash of path
   skipped: "tooLarge" | void;
   iv?: string;
+  errors: ParseError[];
 };
 
 export type DataFile = DataFileKey & { data: ArrayBufferLike };
+
+export type ParseStage = "tokenize" | "parse" | "transform";
+
+export type ParseError = {
+  stage: ParseStage;
+  message: string;
+  stack?: string;
+};
 
 export type TimelineEntryKey<T> = {
   day: string;

@@ -2,7 +2,7 @@ import untar from "js-untar";
 import pako from "pako";
 import { unzip } from "unzipit";
 
-import { WritableDatabase } from "@src/common/database";
+import { ParseError, WritableDatabase } from "@src/common/database";
 import type { DataFile } from "@src/common/database";
 import { parseByStages } from "@src/common/parse";
 import type { Provider } from "@src/common/provider";
@@ -59,16 +59,17 @@ export async function importFiles<T>(
           .join(""),
         data,
         skipped: undefined,
+        errors: [] as ParseError[],
       };
+      const result = await parseByStages(
+        dataFile,
+        provider.timelineParsers,
+        provider.metadataParsers || []
+      );
+      result.timeline?.forEach((entry) => db.putTimelineEntry(entry));
+      result.metadata?.forEach(([key, value]) => metadata.set(key, value));
+      result.errors?.forEach((entry) => dataFile.errors.push(entry));
       db.putFile(dataFile);
-      (
-        await parseByStages(
-          dataFile,
-          metadata,
-          provider.timelineParsers,
-          provider.metadataParsers || []
-        )
-      ).forEach((entry) => db.putTimelineEntry(entry));
       return;
     }
   };

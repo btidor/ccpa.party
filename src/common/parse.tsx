@@ -4,6 +4,8 @@ import type { IMinimatch } from "minimatch";
 
 import type {
   DataFile,
+  ParseError,
+  ParseStage,
   TimelineContext,
   TimelineEntry,
 } from "@src/common/database";
@@ -170,47 +172,44 @@ async function tokenize<T>(
 
   const tokenizer = parser.tokenize || defaultTokenizers.get(ext);
   if (!tokenizer) {
-    console.error(`No default tokenizer for .${ext}`);
-    return [];
+    throw new Error(`No default tokenizer for .${ext || "unknown"}`);
   }
 
-  let tokens;
-  try {
-    tokens = await tokenizer(data);
-  } catch (e) {
-    console.error("Tokenization Error", path, e);
-    return [];
-  }
-
-  if (!Array.isArray(tokens)) {
-    console.error("Non-Array Tokenization", path, tokens);
-    return [];
-  }
+  const tokens = await tokenizer(data);
+  if (!Array.isArray(tokens)) throw new Error("Non-Array Tokenization");
   return tokens;
 }
 
+export type ParseResponse<T> = {
+  timeline?: TimelineEntry<T>[];
+  metadata?: [string, unknown][];
+  errors?: ParseError[];
+};
+
 export async function parseByStages<T>(
   file: DataFile,
-  metadata: Map<string, unknown>,
   timelineParsers: ReadonlyArray<TimelineParser<T>>,
   metadataParsers: ReadonlyArray<MetadataParser>
-): Promise<TimelineEntry<T>[]> {
+): Promise<ParseResponse<T>> {
   const path = file.path.slice(1).join("/");
   const timelineParser = timelineParsers.find((c) => c.glob.match(path));
   const metadataParser = metadataParsers.find((c) => c.glob.match(path));
 
   const parser = timelineParser || metadataParser;
-  if (!parser) return [];
+  if (!parser) return {};
 
   let tokenized;
   try {
     tokenized = await tokenize(parser, path, file.data);
-  } catch (e) {
-    console.error("Tokenization Error", path, e);
-    return [];
+  } catch (error) {
+    return { errors: [handleError(error, "tokenize")] };
   }
 
-  const entries: TimelineEntry<T>[] = [];
+  const response = {
+    timeline: [] as TimelineEntry<T>[],
+    metadata: [] as [string, unknown][],
+    errors: [] as ParseError[],
+  };
   for (const line of tokenized) {
     try {
       if (timelineParser) {
@@ -229,7 +228,7 @@ export async function parseByStages<T>(
               timestamp.toString(16).padStart(8, "0") +
               new Uint32Array(hash)[0].toString(16).padStart(8, "0");
 
-            entries.push({
+            response.timeline.push({
               file: file.path,
               category,
               slug,
@@ -238,17 +237,25 @@ export async function parseByStages<T>(
               context,
               value: line,
             });
-          } catch (e) {
-            console.error("Transform Error", path, line, e);
+          } catch (error) {
+            return { errors: [handleError(error, "transform")] };
           }
         }
       } else if (metadataParser) {
         const [key, value] = metadataParser.parse(line);
-        metadata.set(key, value);
+        response.metadata.push([key, value]);
       }
-    } catch (e) {
-      console.error("Parse Error", path, line, e);
+    } catch (error) {
+      return { errors: [handleError(error, "parse")] };
     }
   }
-  return entries;
+  return response;
+}
+
+function handleError(error: unknown, stage: ParseStage): ParseError {
+  if (error instanceof Error) {
+    return { stage, message: error.message, stack: error.stack };
+  } else {
+    return { stage, message: `Unknown Error: ${error}` };
+  }
 }
