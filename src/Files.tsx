@@ -127,16 +127,37 @@ function Files<T>(props: Props<T>): JSX.Element {
               {item && <FileParseAction<T> file={item} provider={provider} />}
               {item && <FileDownloadAction file={item} />}
             </div>
-            <div className={styles.box}>
-              {selected === undefined ? undefined : item?.skipped ? (
-                <FilePreview>
-                  {`🐘 Not imported due to ${fileSizeLimitMB}MB size limit`}
-                </FilePreview>
-              ) : (
-                <FilePreview filename={item?.path.at(-1)}>
-                  {item?.data}
-                </FilePreview>
-              )}
+            <div className={styles.splitbox}>
+              {item?.skipped ? (
+                <div className={styles.errors}>
+                  <FilePreview>
+                    {`🐘 Not imported due to ${fileSizeLimitMB}MB size limit`}
+                  </FilePreview>
+                </div>
+              ) : item?.errors.length ? (
+                <pre className={styles.errors}>
+                  {item.errors.map(
+                    (error) =>
+                      `Error ${
+                        error.stage === "tokenize"
+                          ? "Tokenizing File"
+                          : "Parsing Entry"
+                      }:\n* ${error.message}\n` +
+                      error.stack
+                        ?.split("\n")
+                        .filter((x) => x)
+                        .map((l) => `  ${l}`)
+                        .join("\n")
+                  )}
+                </pre>
+              ) : undefined}
+              <div className={styles.inner}>
+                {selected === undefined ? undefined : (
+                  <FilePreview filename={item?.path.at(-1)}>
+                    {item?.data}
+                  </FilePreview>
+                )}
+              </div>
             </div>
           </div>
         </div>
