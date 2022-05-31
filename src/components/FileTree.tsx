@@ -38,7 +38,7 @@ function treeify(items: ReadonlyArray<DataFileKey>): Tree {
     }
     const filename = item.path.at(-1) as string;
     if (node.has(filename)) {
-      throw new Error("Overwriting file at " + item.path);
+      console.warn("Overwriting file at " + item.path);
     }
     node.set(filename, item);
   }

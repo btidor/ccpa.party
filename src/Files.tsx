@@ -128,13 +128,7 @@ function Files<T>(props: Props<T>): JSX.Element {
               {item && <FileDownloadAction file={item} />}
             </div>
             <div className={styles.splitbox}>
-              {item?.skipped ? (
-                <div className={styles.errors}>
-                  <FilePreview>
-                    {`🐘 Not imported due to ${fileSizeLimitMB}MB size limit`}
-                  </FilePreview>
-                </div>
-              ) : item?.errors.length ? (
+              {item?.errors.length ? (
                 <pre className={styles.errors}>
                   {item.errors.map(
                     (error) =>
@@ -152,7 +146,11 @@ function Files<T>(props: Props<T>): JSX.Element {
                 </pre>
               ) : undefined}
               <div className={styles.inner}>
-                {selected === undefined ? undefined : (
+                {selected === undefined ? undefined : item?.skipped ? (
+                  <Placeholder>
+                    {`🐘 Not imported due to ${fileSizeLimitMB}MB size limit`}
+                  </Placeholder>
+                ) : (
                   <FilePreview filename={item?.path.at(-1)}>
                     {item?.data}
                   </FilePreview>

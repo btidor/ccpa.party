@@ -39,9 +39,15 @@ export async function importFiles<T>(
     if (path.at(-1)?.endsWith(".zip") || path.at(-1)?.endsWith(".tar.gz")) {
       return { path, data: () => Promise.resolve(data) };
     } else if (data.byteLength > (2 << 20) * fileSizeLimitMB) {
+      const hash = new Uint32Array(
+        await crypto.subtle.digest("SHA-1", serialize(path.join("/")))
+      );
       const dataFile = {
         provider: provider.slug,
         path,
+        slug: Array.from(hash.slice(0, 2))
+          .map((c) => c.toString(16).padStart(8, "0"))
+          .join(""),
         data: new ArrayBuffer(0),
         skipped: "tooLarge",
       } as DataFile;
