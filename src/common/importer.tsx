@@ -1,5 +1,5 @@
+import { gunzip } from "fflate";
 import untar from "js-untar";
-import pako from "pako";
 import { unzip } from "unzipit";
 
 import { ParseError, WritableDatabase } from "@src/common/database";
@@ -99,9 +99,13 @@ export async function importFiles<T>(
         data.stream().pipeThrough(decompressor);
         buffer = (await streamToArray(decompressor.readable)).buffer;
       } else {
-        buffer = pako.inflate(
-          data instanceof File ? await data.arrayBuffer() : data
-        ).buffer;
+        const input = data instanceof File ? await data.arrayBuffer() : data;
+        buffer = await new Promise<ArrayBuffer>((resolve, reject) =>
+          gunzip(new Uint8Array(input), { consume: true }, (err, data) => {
+            if (err) reject(err);
+            resolve(data.buffer);
+          })
+        );
       }
       const entries = await untar(buffer);
       for (const entry of entries) {
