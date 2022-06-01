@@ -35,3 +35,19 @@ export function getCookie(name: string): string | undefined {
 export function setCookie(name: string, value: string, maxAge: number): void {
   document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; secure`;
 }
+
+export async function streamToArray(
+  stream: ReadableStream<Uint8Array>
+): Promise<Uint8Array> {
+  const reader = stream.getReader();
+  const values = [];
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    values.push(value);
+  }
+  const size = values.reduce((s, b) => (s += b.length), 0);
+  const result = new Uint8Array(size);
+  values.reduce((s, b) => (result.set(b, s), (s += b.length)), 0);
+  return result;
+}

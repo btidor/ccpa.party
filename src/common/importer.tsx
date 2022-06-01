@@ -6,13 +6,13 @@ import { ParseError, WritableDatabase } from "@src/common/database";
 import type { DataFile } from "@src/common/database";
 import { parseByStages } from "@src/common/parse";
 import type { Provider } from "@src/common/provider";
-import { serialize } from "@src/common/util";
+import { serialize, streamToArray } from "@src/common/util";
 
 export const fileSizeLimitMB = 16;
 
 type ImportFile = {
   path: ReadonlyArray<string>;
-  data: () => Promise<ArrayBufferLike>;
+  data: File | ArrayBufferLike;
 };
 
 export async function importFiles<T>(
@@ -25,7 +25,7 @@ export async function importFiles<T>(
   const work: ImportFile[] = [];
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    work.push({ path: [file.name], data: () => file.arrayBuffer() });
+    work.push({ path: [file.name], data: file });
   }
   if (work.length < 1) {
     return;
@@ -37,7 +37,7 @@ export async function importFiles<T>(
     data: ArrayBufferLike
   ): Promise<ImportFile | void> => {
     if (path.at(-1)?.endsWith(".zip") || path.at(-1)?.endsWith(".tar.gz")) {
-      return { path, data: () => Promise.resolve(data) };
+      return { path, data };
     } else if (data.byteLength > (2 << 20) * fileSizeLimitMB) {
       const hash = new Uint32Array(
         await crypto.subtle.digest("SHA-1", serialize(path.join("/")))
@@ -82,7 +82,7 @@ export async function importFiles<T>(
 
   for (const { path, data } of work) {
     if (path.at(-1)?.endsWith(".zip")) {
-      const zip = await unzip(await data());
+      const zip = await unzip(data);
       for (const entry of Object.values(zip.entries || [])) {
         if (entry.isDirectory) continue;
         const subpath = [
@@ -93,8 +93,17 @@ export async function importFiles<T>(
         if (next) work.push(next);
       }
     } else if (path.at(-1)?.endsWith(".tar.gz")) {
-      const inflated = pako.inflate(await data());
-      const entries = await untar(inflated.buffer);
+      let buffer: ArrayBuffer;
+      if ("DecompressionStream" in globalThis && data instanceof File) {
+        const decompressor = new DecompressionStream("gzip");
+        data.stream().pipeThrough(decompressor);
+        buffer = (await streamToArray(decompressor.readable)).buffer;
+      } else {
+        buffer = pako.inflate(
+          data instanceof File ? await data.arrayBuffer() : data
+        ).buffer;
+      }
+      const entries = await untar(buffer);
       for (const entry of entries) {
         if (entry.type !== "0") continue;
         const subpath = [
