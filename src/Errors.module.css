@@ -1,0 +1,21 @@
+.outer {
+  --neon: var(--neon-hex);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 2vw;
+  gap: 1vw;
+}
+
+@supports (color: color(rec2020 0 0 0)) {
+  .outer {
+    --neon: var(--neon-hdr);
+  }
+}
+
+.drilldown {
+  font-family: "Plex Sans", "Noto Emoji Provider", monospace;
+  height: 100%;
+  border: 1px solid var(--neon);
+  padding: 0.6rem 0.75rem;
+}

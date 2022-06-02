@@ -73,6 +73,7 @@ type ProviderIndex = {
   files: DataFileKey[];
   metadata: [string, unknown][];
   timeline: [string, number, string, number, string, string][];
+  hasErrors: boolean;
 };
 
 type AsyncState = { db: IDBDatabase; key: CryptoKey };
@@ -256,6 +257,10 @@ export class ProviderScopedDatabase<T> extends Database {
     })();
   }
 
+  async getHasErrors(): Promise<boolean> {
+    return (await this._providerIndex).hasErrors;
+  }
+
   async getFiles(): Promise<ReadonlyArray<DataFileKey>> {
     return (await this._providerIndex).files;
   }
@@ -413,6 +418,7 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
       files: fileIndex,
       metadata: metadataIndex,
       timeline: timelineIndex,
+      hasErrors: this._additions.files.some((file) => file.errors.length),
     });
 
     // Update root index

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Database } from "@src/common/database";
+import { ProviderScopedDatabase } from "@src/common/database";
 import { ProviderRegistry } from "@src/common/provider";
 import type { Provider } from "@src/common/provider";
 import { Link, LocationContext, useNavigate } from "@src/common/router";
@@ -8,33 +8,43 @@ import Logo from "@src/components/Logo";
 
 import styles from "@src/components/Navigation.module.css";
 
-const links = [
-  { label: "Timeline", to: "timeline" },
-  { label: "Files", to: "files" },
-];
-
 type Props<T> = {
   provider: Provider<T>;
   pageSlug: string;
 };
 
+const baseLinks = [
+  { label: "Timeline", to: "timeline" },
+  { label: "Files", to: "files" },
+];
+
 function Navigation<T>(props: Props<T>): JSX.Element {
+  const { provider, pageSlug } = props;
+
   const navigate = useNavigate();
   const location = React.useContext(LocationContext);
-  const { provider, pageSlug } = props;
+
+  const [epoch, setEpoch] = React.useState(0);
+  const [links, setLinks] = React.useState(baseLinks);
   const [providers, setProviders] =
     React.useState<ReadonlyArray<Provider<unknown>>>();
-  const [epoch, setEpoch] = React.useState(0);
 
   React.useEffect(() => {
     (async () => {
-      const db = new Database(() => setEpoch(epoch + 1));
+      setLinks(baseLinks);
+      const db = new ProviderScopedDatabase(provider, () =>
+        setEpoch(epoch + 1)
+      );
       const active = await db.getProviders();
       setProviders(
         ProviderRegistry.filter((provider) => active.has(provider.slug))
       );
+      setLinks([
+        ...baseLinks,
+        { label: (await db.getHasErrors()) ? "!!" : ":)", to: "errors" },
+      ]);
     })();
-  }, [epoch]);
+  }, [epoch, provider]);
 
   return (
     <header className={styles.header}>

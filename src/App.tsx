@@ -1,5 +1,6 @@
 import React from "react";
 
+import Errors from "@src/Errors";
 import Files from "@src/Files";
 import Home from "@src/Home";
 import Request from "@src/Request";
@@ -105,17 +106,21 @@ class App extends React.Component<Props, State> {
     // URL: `/:provider/:page`
     if (parts.length) return this.error(404);
     const pageSlug = matches[1];
-    if (pageSlug === "files") {
-      // URL: `/:provider/files(@selected)?`
-      if (matches[2]) return this.error(404);
-      return <Files provider={provider} selected={matches[3]?.slice(1)} />;
-    } else if (pageSlug === "timeline") {
+    if (pageSlug === "timeline") {
       // URL: `/:provider/timeline(:filter)?(@selected)?`
       const filter = matches[2]?.slice(1) || undefined;
       const selected = matches[3]?.slice(1) || undefined;
       return (
         <Timeline provider={provider} filter={filter} selected={selected} />
       );
+    } else if (pageSlug === "files") {
+      // URL: `/:provider/files(@selected)?`
+      if (matches[2]) return this.error(404);
+      return <Files provider={provider} selected={matches[3]?.slice(1)} />;
+    } else if (pageSlug === "errors") {
+      // URL: `/:provider/errors`
+      if (matches[2]) return this.error(404);
+      return <Errors provider={provider} />;
     }
 
     return this.error(404);
