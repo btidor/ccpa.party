@@ -33,7 +33,7 @@ export function getCookie(name: string): string | undefined {
 }
 
 export function setCookie(name: string, value: string, maxAge: number): void {
-  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; secure`;
+  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; secure; samesite=strict`;
 }
 
 export async function streamToArray(
