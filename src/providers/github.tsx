@@ -27,9 +27,14 @@ class GitHub implements Provider<CategoryKey> {
 
   ignoreParsers: ReadonlyArray<IgnoreParser> = [
     { glob: new Minimatch("schema.json") },
-    { glob: new Minimatch("protected_branches_*.json") },
-    { glob: new Minimatch("users_000001.json") },
     { glob: new Minimatch("repositories/**", { dot: true }) },
+
+    // Settings
+    { glob: new Minimatch("protected_branches_*.json") },
+
+    // Metadata
+    { glob: new Minimatch("bots_*.json") },
+    { glob: new Minimatch("users_*.json") },
   ];
 
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
