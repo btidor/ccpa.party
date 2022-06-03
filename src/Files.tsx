@@ -136,12 +136,7 @@ function Files<T>(props: Props<T>): JSX.Element {
                         error.stage === "tokenize"
                           ? "Tokenizing File"
                           : "Parsing Entry"
-                      }:\n* ${error.message}\n` +
-                      error.stack
-                        ?.split("\n")
-                        .filter((x) => x)
-                        .map((l) => `  ${l}`)
-                        .join("\n")
+                      }: ${error.message}`
                   )}
                 </pre>
               ) : undefined}

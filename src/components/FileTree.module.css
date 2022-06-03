@@ -27,12 +27,3 @@
   padding-left: 2px;
   padding-right: 6px;
 }
-
-.error svg {
-  color: var(--neon);
-}
-
-.error:hover svg,
-.error[aria-selected="true"] svg {
-  color: #fff;
-}

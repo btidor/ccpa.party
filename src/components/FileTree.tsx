@@ -3,7 +3,6 @@ import {
   ChevronRightIcon,
   FileCodeIcon,
   FileZipIcon,
-  StopIcon,
 } from "@primer/octicons-react";
 import React from "react";
 
@@ -88,15 +87,13 @@ function Branch(props: BranchProps): JSX.Element | null {
         {leaves.map(([name, leaf]) => (
           <div
             key={name}
-            className={[styles.item, leaf.errors.length && styles.error]
-              .filter((x) => x)
-              .join(" ")}
+            className={styles.item}
             style={{ paddingLeft: (path?.length || 0) * indent }}
             role="row"
             aria-selected={selected?.slug === leaf.slug}
             onClick={() => onSelect(leaf.slug)}
           >
-            {leaf.errors.length ? <StopIcon /> : <FileCodeIcon />}
+            <FileCodeIcon />
             {name}
           </div>
         ))}
