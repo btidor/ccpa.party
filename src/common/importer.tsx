@@ -42,7 +42,7 @@ export async function importFiles<T>(
       const hash = new Uint32Array(
         await crypto.subtle.digest("SHA-1", serialize(path.join("/")))
       );
-      const dataFile = {
+      const dataFile: DataFile = {
         provider: provider.slug,
         path,
         slug: Array.from(hash.slice(0, 2))
@@ -50,14 +50,15 @@ export async function importFiles<T>(
           .join(""),
         data: new ArrayBuffer(0),
         skipped: "tooLarge",
-      } as DataFile;
+        errors: [],
+      };
       db.putFile(dataFile);
       return;
     } else {
       const hash = new Uint32Array(
         await crypto.subtle.digest("SHA-1", serialize(path.join("/")))
       );
-      const dataFile = {
+      const dataFile: DataFile = {
         provider: provider.slug,
         path,
         slug: Array.from(hash.slice(0, 2))
@@ -66,7 +67,7 @@ export async function importFiles<T>(
         data,
         skipped: undefined,
         errors: [] as ParseError[],
-      } as DataFile;
+      };
       const result = await parseByStages(provider, dataFile);
       result.timeline.forEach((entry) => db.putTimelineEntry(entry));
       result.metadata.forEach(([key, value]) => metadata.set(key, value));
