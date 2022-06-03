@@ -36,11 +36,52 @@ class Facebook implements Provider<CategoryKey> {
 
   ignoreParsers: ReadonlyArray<IgnoreParser> = [
     { glob: new Minimatch("**/no-data.txt") },
+
+    // Media
     { glob: new Minimatch("messages/**/files/**") },
     { glob: new Minimatch("messages/**/gifs/**") },
     { glob: new Minimatch("messages/**/photos/**") },
     { glob: new Minimatch("messages/**/videos/**") },
     { glob: new Minimatch("messages/stickers_used/**") },
+    { glob: new Minimatch("posts/album/**") },
+    { glob: new Minimatch("posts/media/**") },
+
+    // Settings
+    { glob: new Minimatch("activity_messages/events_interactions.json") },
+    { glob: new Minimatch("activity_messages/group_interactions.json") },
+    { glob: new Minimatch("activity_messages/people_and_friends.json") },
+    { glob: new Minimatch("facebook_news/your_locations.json") },
+    { glob: new Minimatch("groups/creator_badges.json") },
+    { glob: new Minimatch("location/primary_location.json") },
+    { glob: new Minimatch("location/timezone.json") },
+    { glob: new Minimatch("messages/autofill_information.json") },
+    { glob: new Minimatch("messages/secret_groups.json") },
+    { glob: new Minimatch("other_logged_information/friend_peer_group.json") },
+    { glob: new Minimatch("preferences/language_and_locale.json") },
+    { glob: new Minimatch("voting_location_and_reminders/location.json") },
+    {
+      glob: new Minimatch(
+        "voting_location_and_reminders/voting_reminders.json"
+      ),
+    },
+    { glob: new Minimatch("your_topics/your_topics.json") },
+
+    // Duplicate
+    {
+      glob: new Minimatch(
+        "security_and_login_information/browser_cookies.json"
+      ),
+    },
+    {
+      glob: new Minimatch(
+        "security_and_login_information/where_you're_logged_in.json"
+      ),
+    },
+    {
+      glob: new Minimatch(
+        "security_and_login_information/your_facebook_activity_history.json"
+      ),
+    },
   ];
 
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([

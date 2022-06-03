@@ -236,7 +236,7 @@ export async function parseByStages<T>(
       if (timelineParser) {
         let parsed = timelineParser.parse(line) || [];
         parsed = (
-          Array.isArray(parsed[0]) ? parsed : [parsed]
+          !parsed.length || Array.isArray(parsed[0]) ? parsed : [parsed]
         ) as TimelineTuple<T>[];
 
         for (const [category, datetime, context] of parsed) {

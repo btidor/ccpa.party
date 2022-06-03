@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import type { TimelineEntry } from "@src/common/database";
-import { parseJSON, parseJSONND } from "@src/common/parse";
+import { IgnoreParser, parseJSON, parseJSONND } from "@src/common/parse";
 import type { MetadataParser, TimelineParser } from "@src/common/parse";
 import type { Provider, TimelineCategory } from "@src/common/provider";
 import { Pill } from "@src/components/Record";
@@ -34,6 +34,14 @@ class Discord implements Provider<CategoryKey> {
   fileName = "package.zip";
   privacyPolicy =
     "https://discord.com/privacy#information-for-california-users";
+
+  ignoreParsers: ReadonlyArray<IgnoreParser> = [
+    { glob: new Minimatch("README.txt") },
+    { glob: new Minimatch("account/avatar.png") },
+    { glob: new Minimatch("account/user.json") },
+    { glob: new Minimatch("servers/*/audit-log.json") },
+    { glob: new Minimatch("servers/*/guild.json") },
+  ];
 
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [

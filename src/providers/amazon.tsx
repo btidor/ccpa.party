@@ -2,6 +2,7 @@ import { DateTime } from "luxon";
 import { Minimatch } from "minimatch";
 
 import {
+  IgnoreParser,
   TimelineParser,
   parseCSV,
   parseJSON,
@@ -29,6 +30,77 @@ class Amazon implements Provider<CategoryKey> {
   fileName = "zip files";
   privacyPolicy =
     "https://www.amazon.com/gp/help/customer/display.html?nodeId=GC5HB5DVMU5Y8CJ2";
+
+  ignoreParsers: ReadonlyArray<IgnoreParser> = [
+    { glob: new Minimatch("README.txt") },
+    { glob: new Minimatch("*_Instructions.txt") },
+    { glob: new Minimatch("*.Description.pdf") },
+    { glob: new Minimatch("* description.pdf") },
+    { glob: new Minimatch("description.txt") },
+
+    // Settings
+    { glob: new Minimatch("Advertising.OptOut.csv") },
+    { glob: new Minimatch("AlexaProactive/ProactiveRecommendations-*.csv") },
+    { glob: new Minimatch("Answers/AnswerGroups/User Stats.csv") },
+    { glob: new Minimatch("Devices/Mobile/*.csv") },
+    { glob: new Minimatch("Feedback/Feedback-*.csv") },
+    {
+      glob: new Minimatch(
+        "Preferences/News/Preferences/News/NewsPreferences-*.csv"
+      ),
+    },
+    {
+      glob: new Minimatch(
+        "Smart Home/Camera Smart Alerts/Camera Smart Alerts.csv"
+      ),
+    },
+    {
+      glob: new Minimatch(
+        "Smart Home/Cameras Smart Alerts/Camera Smart Alerts.csv"
+      ),
+    },
+    { glob: new Minimatch("Smart Home/Hunches.csv") },
+    { glob: new Minimatch("accountPreferences.csv") },
+    { glob: new Minimatch("Digital.Content.Ownership.*.json") },
+    { glob: new Minimatch("Digital.CustomerAttributes.1.csv") },
+    {
+      glob: new Minimatch(
+        "Digital.PrimeVideo.CustomerTitleRelevanceRecommendations.csv"
+      ),
+    },
+    { glob: new Minimatch("Kindle.AuthorFollows/**") },
+    { glob: new Minimatch("Kindle.ReadingInsights/**") },
+    { glob: new Minimatch("Retail.5MonthlyPayments/**") },
+    { glob: new Minimatch("Retail.AddressAuthorityService/**") },
+    { glob: new Minimatch("Retail.CommunityTrust/**") },
+    {
+      glob: new Minimatch(
+        "Retail.Reorder.1/Retail.Reorder.DigitalDashCustomerPreference.csv"
+      ),
+    },
+    {
+      glob: new Minimatch(
+        "Retail.Reorder.1/Retail.Reorder.DigitalDashSummary.csv"
+      ),
+    },
+    { glob: new Minimatch("Retail.Search-Data.Retail.Product-Metrics.csv") },
+    { glob: new Minimatch("Retail.ShopperPanel.Profile.csv") },
+
+    // Duplicate
+    { glob: new Minimatch("Digital Orders Monetary.csv") },
+    { glob: new Minimatch("Legacy Payment Information.csv") },
+    { glob: new Minimatch("Billing Schedule Items.csv") },
+    { glob: new Minimatch("Billing Schedules.csv") },
+    { glob: new Minimatch("Subscription Periods.csv") },
+    { glob: new Minimatch("Subscription Status History.csv") },
+    { glob: new Minimatch("Retail.Authentication.json") },
+
+    // Unparseable
+    { glob: new Minimatch("**/*.pdf") },
+
+    // Notifications
+    { glob: new Minimatch("Retail.OutboundNotifications/media/*.eml") },
+  ];
 
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [

@@ -1,7 +1,7 @@
 import { DateTime } from "luxon";
 import { Minimatch } from "minimatch";
 
-import { TimelineParser } from "@src/common/parse";
+import { IgnoreParser, TimelineParser } from "@src/common/parse";
 import type { Provider, TimelineCategory } from "@src/common/provider";
 
 type CategoryKey = "account" | "activity" | "notification";
@@ -23,6 +23,14 @@ class Netflix implements Provider<CategoryKey> {
   singleFile = true;
   fileName = "netflix.zip";
   privacyPolicy = "https://help.netflix.com/legal/privacy#ccpa";
+
+  ignoreParsers: ReadonlyArray<IgnoreParser> = [
+    { glob: new Minimatch("Additional Information.pdf") },
+    { glob: new Minimatch("Cover sheet.pdf") },
+
+    // Settings
+    { glob: new Minimatch("PROFILES/AvatarHistory.csv") },
+  ];
 
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [

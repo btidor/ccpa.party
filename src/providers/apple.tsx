@@ -2,6 +2,7 @@ import { DateTime } from "luxon";
 import { Minimatch } from "minimatch";
 
 import {
+  IgnoreParser,
   TimelineParser,
   TimelineTuple,
   TokenizedItem,
@@ -32,6 +33,36 @@ class Apple implements Provider<CategoryKey> {
   singleFile = false;
   fileName = "zip files";
   privacyPolicy = "https://www.apple.com/legal/privacy/california/";
+
+  ignoreParsers: ReadonlyArray<IgnoreParser> = [
+    // Duplicate
+    { glob: new Minimatch("**/Apple Music - Container Details.csv") },
+    { glob: new Minimatch("**/Apple Music - Container Origin.csv") },
+    { glob: new Minimatch("**/Apple Music - Play History Daily Tracks.csv") },
+    { glob: new Minimatch("**/Apple Music - Recently Played Containers.csv") },
+    { glob: new Minimatch("**/Apple Music - Recently Played Tracks.csv") },
+    { glob: new Minimatch("**/Apple Music - Top Content.csv") },
+    { glob: new Minimatch("**/Account and Transaction History/**") },
+    { glob: new Minimatch("**/iTunes Payment Stack - Activity.csv") },
+    {
+      glob: new Minimatch(
+        "iCloud Drive/System Data/shoebox/UbiquitousCards/**"
+      ),
+    },
+
+    // Settings
+    { glob: new Minimatch("**/Music - Onboarding Artists.csv") },
+    { glob: new Minimatch("**/Music - Onboarding Genres.csv") },
+    { glob: new Minimatch("**/Apple Books Collection Information.json") },
+    { glob: new Minimatch("**/Apple One Offer Information.csv") },
+    { glob: new Minimatch("vCards/**") },
+    {
+      glob: new Minimatch(
+        "iCloud Drive/System Data/TextInput/Dictionaries/**",
+        { dot: true }
+      ),
+    },
+  ];
 
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
@@ -489,16 +520,18 @@ class Apple implements Provider<CategoryKey> {
         return Array.from(entries).map((entry) => entry.outerHTML);
       },
       parse: (item) => {
-        const children = domParser.parseFromString(item, "text/xml").children[0]
-          .children;
-        const dates =
-          Array.from(children)
+        const children = Array.from(
+          domParser.parseFromString(item, "text/xml").children[0].children
+        );
+        const dates = Array.from(
+          children
             .find((c) => c.nodeName === "key" && c.innerHTML === "t")
-            ?.nextElementSibling?.getElementsByTagName("date") || [];
-        const address: unknown = Array.from(children).find(
+            ?.nextElementSibling?.getElementsByTagName("date") || []
+        );
+        const address = children.find(
           (c) => c.nodeName === "key" && c.innerHTML === "address"
         )?.nextElementSibling?.innerHTML;
-        return Array.from(dates).map((date: Element) => [
+        return dates.map((date) => [
           "icloud",
           DateTime.fromISO(date.innerHTML),
           ["Mail Message", address],

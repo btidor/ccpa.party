@@ -1,7 +1,7 @@
 import { DateTime } from "luxon";
 import { Minimatch } from "minimatch";
 
-import { TimelineParser } from "@src/common/parse";
+import { IgnoreParser, TimelineParser } from "@src/common/parse";
 import type { Provider, TimelineCategory } from "@src/common/provider";
 
 type CategoryKey = "activity" | "message";
@@ -24,6 +24,13 @@ class GitHub implements Provider<CategoryKey> {
   fileName = "tar.gz file";
   privacyPolicy =
     "https://docs.github.com/en/site-policy/privacy-policies/githubs-notice-about-the-california-consumer-privacy-act";
+
+  ignoreParsers: ReadonlyArray<IgnoreParser> = [
+    { glob: new Minimatch("schema.json") },
+    { glob: new Minimatch("protected_branches_*.json") },
+    { glob: new Minimatch("users_000001.json") },
+    { glob: new Minimatch("repositories/**", { dot: true }) },
+  ];
 
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [

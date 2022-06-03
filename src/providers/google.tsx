@@ -1,7 +1,7 @@
 import { DateTime } from "luxon";
 import { Minimatch } from "minimatch";
 
-import { parseJSON } from "@src/common/parse";
+import { IgnoreParser, parseJSON } from "@src/common/parse";
 import type { TimelineParser } from "@src/common/parse";
 import type { Provider, TimelineCategory } from "@src/common/provider";
 
@@ -30,6 +30,10 @@ class Google implements Provider<CategoryKey> {
   singleFile = true;
   fileName = "takeout.zip";
   privacyPolicy = "https://policies.google.com/privacy?hl=en#california";
+
+  ignoreParsers: ReadonlyArray<IgnoreParser> = [
+    { glob: new Minimatch("**") }, // for now
+  ];
 
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [
