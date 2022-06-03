@@ -9,6 +9,7 @@ import type {
   TimelineContext,
   TimelineEntry,
 } from "@src/common/database";
+import { Provider } from "@src/common/provider";
 import { serialize } from "@src/common/util";
 
 export type Tokenizer<U> = (data: ArrayBufferLike) => U[] | Promise<U[]>;
@@ -38,6 +39,8 @@ export type TimelineParser<T> = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parse: (item: any) => ParsedItem<T>;
 };
+
+export type IgnoreParser = { glob: IMinimatch };
 
 type Parser<T> = MetadataParser | TimelineParser<T>;
 
@@ -188,17 +191,27 @@ export type ParseResponse<T> = {
 };
 
 export async function parseByStages<T>(
-  file: DataFile,
-  timelineParsers: ReadonlyArray<TimelineParser<T>>,
-  metadataParsers: ReadonlyArray<MetadataParser>
+  provider: Provider<T>,
+  file: DataFile
 ): Promise<ParseResponse<T>> {
   const path = file.path.slice(1).join("/");
-  const timelineParser = timelineParsers.find((c) => c.glob.match(path));
-  const metadataParser = metadataParsers.find((c) => c.glob.match(path));
+  const timelineParser = provider.timelineParsers.find((c) =>
+    c.glob.match(path)
+  );
+  const metadataParser = provider.metadataParsers?.find((c) =>
+    c.glob.match(path)
+  );
+  const ignoreParser = provider.ignoreParsers?.find((c) => c.glob.match(path));
 
   const parser = timelineParser || metadataParser;
-  if (!parser)
-    return { timeline: [], metadata: [], errors: [], status: "unknown" };
+  if (!parser) {
+    return {
+      timeline: [],
+      metadata: [],
+      errors: [],
+      status: ignoreParser ? "skipped" : "unknown",
+    };
+  }
 
   let tokenized;
   try {

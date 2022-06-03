@@ -1,7 +1,12 @@
 import { DateTime } from "luxon";
 import { Minimatch } from "minimatch";
 
-import { TimelineParser, parseJSON, smartDecodeText } from "@src/common/parse";
+import {
+  IgnoreParser,
+  TimelineParser,
+  parseJSON,
+  smartDecodeText,
+} from "@src/common/parse";
 import type { Provider, TimelineCategory } from "@src/common/provider";
 
 type CategoryKey =
@@ -28,6 +33,15 @@ class Facebook implements Provider<CategoryKey> {
   singleFile = true;
   fileName = "facebook.zip";
   privacyPolicy = "https://www.facebook.com/legal/policy/ccpa";
+
+  ignoreParsers: ReadonlyArray<IgnoreParser> = [
+    { glob: new Minimatch("**/no-data.txt") },
+    { glob: new Minimatch("messages/**/files/**") },
+    { glob: new Minimatch("messages/**/gifs/**") },
+    { glob: new Minimatch("messages/**/photos/**") },
+    { glob: new Minimatch("messages/**/videos/**") },
+    { glob: new Minimatch("messages/stickers_used/**") },
+  ];
 
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
     [

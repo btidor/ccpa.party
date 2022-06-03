@@ -1,5 +1,9 @@
 import type { TimelineEntry } from "@src/common/database";
-import { MetadataParser, TimelineParser } from "@src/common/parse";
+import {
+  IgnoreParser,
+  MetadataParser,
+  TimelineParser,
+} from "@src/common/parse";
 import Amazon from "@src/providers/amazon";
 import Apple from "@src/providers/apple";
 import Discord from "@src/providers/discord";
@@ -35,6 +39,7 @@ export interface Provider<T> {
   timelineCategories: ReadonlyMap<T, TimelineCategory>;
   timelineParsers: ReadonlyArray<TimelineParser<T>>;
   metadataParsers?: ReadonlyArray<MetadataParser>;
+  ignoreParsers?: ReadonlyArray<IgnoreParser>;
 
   render?: (
     entry: TimelineEntry<T>,

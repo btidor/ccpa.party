@@ -27,11 +27,7 @@ const FileParseAction = <T,>(props: {
     <div
       className={styles.action}
       onClick={() => {
-        parseByStages(
-          props.file,
-          props.provider.timelineParsers,
-          props.provider.metadataParsers || []
-        ).then((e) => console.warn(e));
+        parseByStages(props.provider, props.file).then((e) => console.warn(e));
       }}
     >
       <BeakerIcon />

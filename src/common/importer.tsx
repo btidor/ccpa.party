@@ -67,11 +67,7 @@ export async function importFiles<T>(
         skipped: undefined,
         errors: [] as ParseError[],
       } as DataFile;
-      const result = await parseByStages(
-        dataFile,
-        provider.timelineParsers,
-        provider.metadataParsers || []
-      );
+      const result = await parseByStages(provider, dataFile);
       result.timeline.forEach((entry) => db.putTimelineEntry(entry));
       result.metadata.forEach(([key, value]) => metadata.set(key, value));
       result.errors.forEach((entry) => dataFile.errors.push(entry));
