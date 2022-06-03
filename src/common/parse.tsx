@@ -181,9 +181,10 @@ async function tokenize<T>(
 }
 
 export type ParseResponse<T> = {
-  timeline?: TimelineEntry<T>[];
-  metadata?: [string, unknown][];
-  errors?: ParseError[];
+  timeline: TimelineEntry<T>[];
+  metadata: [string, unknown][];
+  errors: ParseError[];
+  status: "parsed" | "skipped" | "unknown";
 };
 
 export async function parseByStages<T>(
@@ -196,20 +197,27 @@ export async function parseByStages<T>(
   const metadataParser = metadataParsers.find((c) => c.glob.match(path));
 
   const parser = timelineParser || metadataParser;
-  if (!parser) return {};
+  if (!parser)
+    return { timeline: [], metadata: [], errors: [], status: "unknown" };
 
   let tokenized;
   try {
     tokenized = await tokenize(parser, path, file.data);
   } catch (error) {
-    return { errors: [handleError(error, "tokenize")] };
+    return {
+      timeline: [],
+      metadata: [],
+      errors: [handleError(error, "tokenize")],
+      status: "parsed",
+    };
   }
 
   const response = {
-    timeline: [] as TimelineEntry<T>[],
-    metadata: [] as [string, unknown][],
-    errors: [] as ParseError[],
-  };
+    timeline: [],
+    metadata: [],
+    errors: [],
+    status: "parsed",
+  } as ParseResponse<T>;
   for (const line of tokenized) {
     try {
       if (timelineParser) {
@@ -238,7 +246,7 @@ export async function parseByStages<T>(
               value: line,
             });
           } catch (error) {
-            return { errors: [handleError(error, "transform")] };
+            response.errors.push(handleError(error, "transform", line));
           }
         }
       } else if (metadataParser) {
@@ -246,16 +254,28 @@ export async function parseByStages<T>(
         response.metadata.push([key, value]);
       }
     } catch (error) {
-      return { errors: [handleError(error, "parse")] };
+      response.errors.push(handleError(error, "parse", line));
     }
   }
   return response;
 }
 
-function handleError(error: unknown, stage: ParseStage): ParseError {
+function handleError(
+  error: unknown,
+  stage: ParseStage,
+  line?: unknown
+): ParseError {
   if (error instanceof Error) {
-    return { stage, message: error.message, stack: error.stack };
+    return {
+      stage,
+      message: error.message,
+      line: line === undefined ? line : JSON.stringify(line),
+    };
   } else {
-    return { stage, message: `Unknown Error: ${error}` };
+    return {
+      stage,
+      message: `Unknown Error: ${error}`,
+      line: line === undefined ? line : JSON.stringify(line),
+    };
   }
 }

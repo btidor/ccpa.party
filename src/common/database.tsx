@@ -14,6 +14,7 @@ export type DataFileKey = {
   slug: string; // hash of path
   skipped: "tooLarge" | void;
   iv?: string;
+  status?: "parsed" | "skipped" | "unknown";
   errors: ParseError[];
 };
 
@@ -24,7 +25,7 @@ export type ParseStage = "tokenize" | "parse" | "transform";
 export type ParseError = {
   stage: ParseStage;
   message: string;
-  stack?: string;
+  line?: string;
 };
 
 export type TimelineEntryKey<T> = {
@@ -253,6 +254,7 @@ export class ProviderScopedDatabase<T> extends Database {
         files: [],
         metadata: [],
         timeline: [],
+        hasErrors: false,
       }) as ProviderIndex;
     })();
   }
