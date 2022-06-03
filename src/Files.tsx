@@ -123,30 +123,16 @@ function Files<T>(props: Props<T>): JSX.Element {
               {item && <FileParseAction<T> file={item} provider={provider} />}
               {item && <FileDownloadAction file={item} />}
             </div>
-            <div className={styles.splitbox}>
-              {item?.errors.length ? (
-                <pre className={styles.errors}>
-                  {item.errors.map(
-                    (error) =>
-                      `Error ${
-                        error.stage === "tokenize"
-                          ? "Tokenizing File"
-                          : "Parsing Entry"
-                      }: ${error.message}`
-                  )}
-                </pre>
-              ) : undefined}
-              <div className={styles.inner}>
-                {selected === undefined ? undefined : item?.skipped ? (
-                  <Placeholder>
-                    {`🐘 Not imported due to ${fileSizeLimitMB}MB size limit`}
-                  </Placeholder>
-                ) : (
-                  <FilePreview filename={item?.path.at(-1)}>
-                    {item?.data}
-                  </FilePreview>
-                )}
-              </div>
+            <div className={styles.box}>
+              {selected === undefined ? undefined : item?.skipped ? (
+                <Placeholder>
+                  {`🐘 Not imported due to ${fileSizeLimitMB}MB size limit`}
+                </Placeholder>
+              ) : (
+                <FilePreview filename={item?.path.at(-1)}>
+                  {item?.data}
+                </FilePreview>
+              )}
             </div>
           </div>
         </div>

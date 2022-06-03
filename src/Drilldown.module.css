@@ -117,25 +117,3 @@
 .right ::-webkit-scrollbar {
   display: none;
 }
-
-.splitbox {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--neon);
-  --box-padding: 0.25rem;
-}
-
-.errors {
-  flex: none;
-  padding: var(--box-padding);
-  border-bottom: 1px solid var(--neon);
-  font-weight: 700;
-  max-height: calc(6 * 18.5px + 2 * var(--box-padding));
-  overflow: scroll;
-}
-
-.inner {
-  flex-grow: 1;
-  position: relative;
-}
