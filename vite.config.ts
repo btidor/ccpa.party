@@ -1,7 +1,9 @@
 /// <reference types="vitest" />
 import react from "@vitejs/plugin-react";
+import { execFileSync } from "child_process";
+import * as fs from "fs";
 import * as path from "path";
-import { defineConfig } from "vite";
+import { Plugin, defineConfig } from "vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -10,7 +12,7 @@ export default defineConfig({
     polyfillModulePreload: false,
     sourcemap: true,
   },
-  plugins: [react()],
+  plugins: [react(), go()],
   resolve: {
     alias: [{ find: "@src", replacement: path.resolve(__dirname, "src") }],
   },
@@ -32,3 +34,59 @@ export default defineConfig({
     setupFiles: ["src/setupTests.tsx"],
   },
 });
+
+// Plugin to compile our Go project to WASM, with hot reload. Uses the standard
+// runner that ships with Go, which unfortunately pollutes globalThis.
+function go(): Plugin {
+  const trailer = `export default async function Run() {
+    const data =
+      typeof atob === "function"
+        ? atob(wasm)
+        : new Buffer(wasm, "base64").toString("binary");
+
+    const bytes = new Uint8Array(data.length);
+    for (let i = 0; i < data.length; i++) {
+      bytes[i] = data.charCodeAt(i);
+    }
+    const go = new Go();
+    const result = await WebAssembly.instantiate(bytes, go.importObject);
+    go.run(result.instance);
+    return go;
+  }`;
+  return {
+    name: "custom:go",
+    configureServer(server) {
+      const fn = (f: string) =>
+        f.startsWith(path.join(server.config.root, "go/")) && server.restart();
+      server.watcher.on("add", fn);
+      server.watcher.on("change", fn);
+      server.watcher.on("unlink", fn);
+    },
+    resolveId(id: string) {
+      if (id === "@go") {
+        return id;
+      }
+    },
+    async load(id: string) {
+      if (id === "@go") {
+        const tmp = fs.mkdtempSync("/tmp/vite-go");
+        const out = path.join(tmp, "go.wasm");
+        await execFileSync("go", ["build", "-o", out, "go/main.go"], {
+          env: { ...process.env, GOOS: "js", GOARCH: "wasm" },
+        });
+        const data = fs.readFileSync(out);
+        fs.rmSync(tmp, { recursive: true, force: true });
+
+        const helper = await fs.readFileSync(
+          "/usr/local/go/misc/wasm/wasm_exec.js"
+        );
+        return (
+          `const wasm = "${data.toString("base64")}"\n\n` +
+          helper.toString() +
+          "\n\n" +
+          trailer
+        );
+      }
+    },
+  };
+}

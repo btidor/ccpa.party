@@ -21,3 +21,7 @@ namespace globalThis {
     new (format: "gzip" | "deflate"): DecompressionStream;
   };
 }
+
+declare module "@go" {
+  export default async function Run(): Promise<void>;
+}

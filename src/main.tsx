@@ -1,3 +1,4 @@
+import Go from "@go";
 import React from "react";
 import ReactDOMClient from "react-dom/client";
 
@@ -75,3 +76,5 @@ window.addEventListener("load", () => {
   addLink("preload", plexMono, opts);
   addLink("preload", plexSans, opts);
 });
+
+Go().then((v) => console.warn("Go", v));
