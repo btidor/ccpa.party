@@ -58,6 +58,31 @@ class Google implements Provider<CategoryKey> {
 
   timelineParsers: ReadonlyArray<TimelineParser<CategoryKey>> = [
     {
+      glob: new Minimatch("Takeout/Access Log Activity/Activities - *.csv"),
+      parse: (item) => [
+        "security",
+        DateTime.fromSQL(item["Activity Timestamp"]),
+        [
+          item["Product Name"] === "Other"
+            ? "Activity"
+            : `Accessed ${item["Product Name"]}`,
+          `from ${item["IP Address"]}`,
+        ],
+      ],
+    },
+    {
+      glob: new Minimatch("Takeout/Drive/**/*-info.json"),
+      tokenize: (data) => [parseJSON(data)],
+      parse: (item) =>
+        item.last_modified_by_me
+          ? [
+              "activity",
+              DateTime.fromISO(item.last_modified_by_me),
+              [`Edited "${item.title}"`, "Google Drive"],
+            ]
+          : undefined,
+    },
+    {
       glob: new Minimatch("Takeout/My Activity/*/MyActivity.json"),
       parse: (item) => {
         let { title, header } = item;
@@ -74,31 +99,6 @@ class Google implements Provider<CategoryKey> {
           title = `Viewed ${title}`;
         return ["activity", DateTime.fromISO(item.time), [title, header]];
       },
-    },
-    {
-      glob: new Minimatch("Takeout/Access Log Activity/Activities - *.csv"),
-      parse: (item) => [
-        "security",
-        DateTime.fromSQL(item["Activity Timestamp"]),
-        [
-          item["Product Name"] === "Other"
-            ? "Activity"
-            : `Accessed ${item["Product Name"]}`,
-          `from ${item["IP Address"]}`,
-        ],
-      ],
-    },
-    {
-      glob: new Minimatch("Drive/**/*-info.json"),
-      tokenize: (data) => [parseJSON(data)],
-      parse: (item) =>
-        item.last_modified_by_me
-          ? [
-              "activity",
-              DateTime.fromISO(item.last_modified_by_me),
-              [`Edited "${item.title}"`, "Google Drive"],
-            ]
-          : undefined,
     },
   ];
 }
