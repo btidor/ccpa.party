@@ -8,7 +8,7 @@ import { parseByStages } from "@src/common/parse";
 import type { Provider } from "@src/common/provider";
 import { serialize, streamToArray } from "@src/common/util";
 
-export const fileSizeLimitMB = 16;
+export const fileSizeLimitMB = 1024;
 
 type ImportFile = {
   path: ReadonlyArray<string>;
