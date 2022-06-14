@@ -2,13 +2,14 @@ import { gunzip } from "fflate";
 import untar from "js-untar";
 import { unzip } from "unzipit";
 
-import { ParseError, WritableDatabase } from "@src/common/database";
+import { WritableDatabase } from "@src/common/database";
 import type { DataFile } from "@src/common/database";
 import { parseByStages } from "@src/common/parse";
 import type { Provider } from "@src/common/provider";
 import { serialize, streamToArray } from "@src/common/util";
 
-export const fileSizeLimitMB = 1024;
+// The IndexedDB limit is ~255M, but there's a lot of overhead somewhere...
+export const fileSizeLimitMB = 128;
 
 type ImportFile = {
   path: ReadonlyArray<string>;
@@ -38,44 +39,31 @@ export async function importFiles<T>(
   ): Promise<ImportFile | void> => {
     if (path.at(-1)?.endsWith(".zip") || path.at(-1)?.endsWith(".tar.gz")) {
       return { path, data };
-    } else if (data.byteLength > (2 << 20) * fileSizeLimitMB) {
-      const hash = new Uint32Array(
-        await crypto.subtle.digest("SHA-1", serialize(path.join("/")))
-      );
-      const dataFile: DataFile = {
-        provider: provider.slug,
-        path,
-        slug: Array.from(hash.slice(0, 2))
-          .map((c) => c.toString(16).padStart(8, "0"))
-          .join(""),
-        data: new ArrayBuffer(0),
-        skipped: "tooLarge",
-        errors: [],
-      };
-      db.putFile(dataFile);
-      return;
-    } else {
-      const hash = new Uint32Array(
-        await crypto.subtle.digest("SHA-1", serialize(path.join("/")))
-      );
-      const dataFile: DataFile = {
-        provider: provider.slug,
-        path,
-        slug: Array.from(hash.slice(0, 2))
-          .map((c) => c.toString(16).padStart(8, "0"))
-          .join(""),
-        data,
-        skipped: undefined,
-        errors: [] as ParseError[],
-      };
-      const result = await parseByStages(provider, dataFile);
-      result.timeline.forEach((entry) => db.putTimelineEntry(entry));
-      result.metadata.forEach(([key, value]) => metadata.set(key, value));
-      result.errors.forEach((entry) => dataFile.errors.push(entry));
-      dataFile.status = result.status;
-      db.putFile(dataFile);
-      return;
     }
+
+    const tooLarge = data.byteLength > (2 << 20) * fileSizeLimitMB;
+    const hash = new Uint32Array(
+      await crypto.subtle.digest("SHA-1", serialize(path.join("/")))
+    );
+    const dataFile: DataFile = {
+      provider: provider.slug,
+      path,
+      slug: Array.from(hash.slice(0, 2))
+        .map((c) => c.toString(16).padStart(8, "0"))
+        .join(""),
+      data: tooLarge ? new ArrayBuffer(0) : data,
+      skipped: tooLarge ? "tooLarge" : undefined,
+      errors: [],
+    };
+    db.putFile(dataFile);
+
+    const result = await parseByStages(provider, dataFile);
+    result.timeline.forEach((entry) => db.putTimelineEntry(entry));
+    result.metadata.forEach(([key, value]) => metadata.set(key, value));
+    result.errors.forEach((entry) => dataFile.errors.push(entry));
+    dataFile.status = result.status;
+    db.putFile(dataFile);
+    return;
   };
 
   for (const { path, data } of work) {

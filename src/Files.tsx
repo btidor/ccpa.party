@@ -126,7 +126,7 @@ function Files<T>(props: Props<T>): JSX.Element {
             <div className={styles.box}>
               {selected === undefined ? undefined : item?.skipped ? (
                 <Placeholder>
-                  {`🐘 Not imported due to ${fileSizeLimitMB}MB size limit`}
+                  {`🐘 Not saved due to ${fileSizeLimitMB}MB size limit`}
                 </Placeholder>
               ) : (
                 <FilePreview filename={item?.path.at(-1)}>
