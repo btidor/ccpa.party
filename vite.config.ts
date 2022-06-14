@@ -57,7 +57,9 @@ function go(): Plugin {
     name: "custom:go",
     configureServer(server) {
       const fn = (f: string) =>
-        f.startsWith(path.join(server.config.root, "go/")) && server.restart();
+        f.startsWith(path.join(server.config.root, "go/")) ||
+        (f === path.join(server.config.root, "wasm_exec.js") &&
+          server.restart());
       server.watcher.on("add", fn);
       server.watcher.on("change", fn);
       server.watcher.on("unlink", fn);
@@ -77,9 +79,7 @@ function go(): Plugin {
         const data = fs.readFileSync(out);
         fs.rmSync(tmp, { recursive: true, force: true });
 
-        const helper = await fs.readFileSync(
-          "/usr/local/go/misc/wasm/wasm_exec.js"
-        );
+        const helper = await fs.readFileSync("./wasm_exec.js");
         return (
           `const wasm = "${data.toString("base64")}"\n\n` +
           helper.toString() +
