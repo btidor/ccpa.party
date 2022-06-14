@@ -45,6 +45,7 @@ export interface Provider<T> {
     entry: TimelineEntry<T>,
     metadata: ReadonlyMap<string, unknown>
   ) =>
+    | void
     | [JSX.Element, string | void]
     | [
         JSX.Element | void,
@@ -59,7 +60,7 @@ export const ProviderRegistry: ReadonlyArray<Provider<unknown>> = [
   new Discord() as Provider<unknown>,
   new Facebook(),
   new GitHub(),
-  new Google(),
+  new Google() as Provider<unknown>,
   new Netflix(),
   new Slack() as Provider<unknown>,
 ];
