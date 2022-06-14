@@ -203,73 +203,76 @@ export async function parseByStages<T>(
   );
   const ignoreParser = provider.ignoreParsers?.find((c) => c.glob.match(path));
 
-  const parser = timelineParser || metadataParser;
-  if (!parser) {
-    return {
-      timeline: [],
-      metadata: [],
-      errors: [],
-      status: ignoreParser ? "skipped" : "unknown",
-    };
-  }
-
-  let tokenized;
-  try {
-    tokenized = await tokenize(parser, path, file.data);
-  } catch (error) {
-    return {
-      timeline: [],
-      metadata: [],
-      errors: [handleError(error, "tokenize")],
-      status: "parsed",
-    };
-  }
-
   const response = {
     timeline: [],
     metadata: [],
     errors: [],
-    status: "parsed",
+    status: ignoreParser ? "skipped" : "unknown",
   } as ParseResponse<T>;
-  for (const line of tokenized) {
+
+  if (metadataParser) {
+    response.status = "parsed";
     try {
-      if (timelineParser) {
-        let parsed = timelineParser.parse(line) || [];
-        parsed = (
-          !parsed.length || Array.isArray(parsed[0]) ? parsed : [parsed]
-        ) as TimelineTuple<T>[];
+      const tokenized = await tokenize(metadataParser, path, file.data);
 
-        for (const [category, datetime, context] of parsed) {
-          try {
-            const timestamp = datetime.toSeconds();
-            if (isNaN(timestamp)) throw new Error("Received NaN for timestamp");
-
-            const hash = await crypto.subtle.digest("SHA-1", serialize(line));
-            const slug =
-              timestamp.toString(16).padStart(8, "0") +
-              new Uint32Array(hash)[0].toString(16).padStart(8, "0");
-
-            response.timeline.push({
-              file: file.path,
-              category,
-              slug,
-              day: datetime.toISODate(),
-              timestamp,
-              context,
-              value: line,
-            });
-          } catch (error) {
-            response.errors.push(handleError(error, "transform", line));
-          }
+      for (const line of tokenized) {
+        try {
+          const [key, value] = metadataParser.parse(line);
+          response.metadata.push([key, value]);
+        } catch (error) {
+          response.errors.push(handleError(error, "parse", line));
         }
-      } else if (metadataParser) {
-        const [key, value] = metadataParser.parse(line);
-        response.metadata.push([key, value]);
       }
     } catch (error) {
-      response.errors.push(handleError(error, "parse", line));
+      response.errors.push(handleError(error, "tokenize"));
     }
   }
+
+  if (timelineParser) {
+    response.status = "parsed";
+    try {
+      const tokenized = await tokenize(timelineParser, path, file.data);
+
+      for (const line of tokenized) {
+        try {
+          let parsed = timelineParser.parse(line) || [];
+          parsed = (
+            !parsed.length || Array.isArray(parsed[0]) ? parsed : [parsed]
+          ) as TimelineTuple<T>[];
+
+          for (const [category, datetime, context] of parsed) {
+            try {
+              const timestamp = datetime.toSeconds();
+              if (isNaN(timestamp))
+                throw new Error("Received NaN for timestamp");
+
+              const hash = await crypto.subtle.digest("SHA-1", serialize(line));
+              const slug =
+                Math.floor(timestamp).toString(16).padStart(8, "0") +
+                new Uint32Array(hash)[0].toString(16).padStart(8, "0");
+
+              response.timeline.push({
+                file: file.path,
+                category,
+                slug,
+                day: datetime.toISODate(),
+                timestamp,
+                context,
+                value: line,
+              });
+            } catch (error) {
+              response.errors.push(handleError(error, "transform", line));
+            }
+          }
+        } catch (error) {
+          response.errors.push(handleError(error, "parse", line));
+        }
+      }
+    } catch (error) {
+      response.errors.push(handleError(error, "tokenize"));
+    }
+  }
+
   return response;
 }
 
