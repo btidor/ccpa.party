@@ -101,7 +101,8 @@
       "^@src/([^.]*)$",
       "^@src/(.*)\\.css$",
       "^@src/fonts/(.*)$",
-      "^@src/img/(.*)$"
+      "^@src/img/(.*)$",
+      "^@go(/(.*))?$"
     ],
     "importOrderSeparation": true,
     "importOrderSortSpecifiers": true

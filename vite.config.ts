@@ -56,10 +56,12 @@ function go(): Plugin {
   return {
     name: "custom:go",
     configureServer(server) {
-      const fn = (f: string) =>
-        f.startsWith(path.join(server.config.root, "go/")) ||
-        (f === path.join(server.config.root, "wasm_exec.js") &&
-          server.restart());
+      const fn = (f: string) => {
+        if (f.startsWith(path.join(server.config.root, "go/")))
+          server.restart();
+        if (f === path.join(server.config.root, "wasm_exec.js"))
+          server.restart();
+      };
       server.watcher.on("add", fn);
       server.watcher.on("change", fn);
       server.watcher.on("unlink", fn);
@@ -73,7 +75,8 @@ function go(): Plugin {
       if (id === "@go") {
         const tmp = fs.mkdtempSync("/tmp/vite-go");
         const out = path.join(tmp, "go.wasm");
-        await execFileSync("go", ["build", "-o", out, "go/main.go"], {
+        await execFileSync("go", ["build", "-o", out, "."], {
+          cwd: "go",
           env: { ...process.env, GOOS: "js", GOARCH: "wasm" },
         });
         const data = fs.readFileSync(out);

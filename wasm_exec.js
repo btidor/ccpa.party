@@ -20,14 +20,17 @@
   };
 
   let outputBuf = "";
+  const hooks = {};
   const myGlobal = {
     crypto,
+    hooks,
     performance,
-    Object,
     Array,
-    Uint8Array,
-    TextEncoder,
+    Object,
+    Promise,
     TextDecoder,
+    TextEncoder,
+    Uint8Array,
 
     fs: {
       constants: {
@@ -161,6 +164,7 @@
   globalThis.Go = class {
     constructor() {
       this.argv = ["js"];
+      this.hooks = hooks;
       this.env = {};
       this.exit = (code) => {
         if (code !== 0) {

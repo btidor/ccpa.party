@@ -23,5 +23,16 @@ namespace globalThis {
 }
 
 declare module "@go" {
-  export default async function Run(): Promise<void>;
+  type TarFile = {
+    Next(): void;
+    Read(): void;
+  };
+  type Go = {
+    hooks: {
+      TarFile: {
+        new (stream: ReadableStream): TarFile;
+      };
+    };
+  };
+  export default async function Run(): Promise<Go>;
 }

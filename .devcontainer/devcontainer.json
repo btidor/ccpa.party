@@ -10,11 +10,17 @@
     "ZixuanChen.vitest-explorer"
   ],
   "settings": {
+    "editor.tabSize": 2,
     "files.exclude": {
       "node_modules/**": true,
       ".vercel/**": true
     },
-    "editor.tabSize": 2,
+    "go.toolsEnvVars": {
+      "GOOS": "js",
+      "GOARCH": "wasm"
+    },
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "typescript.preferences.importModuleSpecifier": "non-relative",
     "[javascript]": {
       "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
@@ -23,9 +29,7 @@
     },
     "[typescriptreact]": {
       "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "typescript.tsdk": "node_modules/typescript/lib",
-    "typescript.preferences.importModuleSpecifier": "non-relative"
+    }
   },
   "remoteUser": "vscode"
 }
