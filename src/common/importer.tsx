@@ -12,6 +12,8 @@ import Go from "@go";
 // The IndexedDB limit is ~255M, but there's a lot of overhead somewhere...
 export const fileSizeLimitMB = 128;
 
+const fallbackBlockSize = 64 * 1024 * 1024;
+
 type ImportFile = {
   path: ReadonlyArray<string>;
   data: File | ArrayBufferLike;
@@ -94,12 +96,13 @@ export async function importFiles<T>(
                   final ? controller.close() : controller.enqueue(chunk);
                 }
               );
-              const reader = data.stream().getReader();
-              for (;;) {
-                const { value, done } = await reader.read();
-                decompressor.push(value || new Uint8Array(), done);
-                if (done) break;
+              for (let i = 0; i < data.size; i += fallbackBlockSize) {
+                const slice = new Uint8Array(
+                  await data.slice(i, i + fallbackBlockSize).arrayBuffer()
+                );
+                decompressor.push(slice, false);
               }
+              decompressor.push(new Uint8Array(), true);
             },
           });
         }
