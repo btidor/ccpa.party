@@ -3,6 +3,7 @@ package main
 import (
 	"archive/tar"
 	"fmt"
+	"io"
 	"syscall/js"
 )
 
@@ -29,17 +30,36 @@ func TarFile(this js.Value, args []js.Value) any {
 		go func() {
 			hdr, err := t.Next()
 			if err != nil {
-				resolve.Invoke(err.Error())
+				resolve.Invoke([]interface{}{js.Null(), err.Error()})
 				return
 			}
-			fmt.Printf("[TODO] Next: %#v\n", hdr)
-			resolve.Invoke(nil)
+			resolve.Invoke([]interface{}{
+				map[string]interface{}{
+					"name": hdr.Name,
+					"type": string(hdr.Typeflag),
+					"size": hdr.Size,
+				},
+			})
 		}()
 		return p
 	}))
 	obj.Set("Read", js.FuncOf(func(this js.Value, args []js.Value) any {
-		fmt.Printf("[TODO] Read\n")
-		return nil
+		var resolve js.Value
+		p := promise.New(js.FuncOf(func(this js.Value, args []js.Value) any {
+			resolve = args[0]
+			return nil
+		}))
+		go func() {
+			size := args[0].Get("length").Int()
+			buf := make([]byte, size)
+			n, err := t.Read(buf)
+			if err != nil && err != io.EOF {
+				panic(err)
+			}
+			js.CopyBytesToJS(args[0], buf[:n])
+			resolve.Invoke(n)
+		}()
+		return p
 	}))
 	return obj
 }

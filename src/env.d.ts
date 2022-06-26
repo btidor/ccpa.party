@@ -4,17 +4,6 @@
 declare module "colorjs.io";
 declare module "emoji-name-map";
 
-declare module "js-untar" {
-  type File = {
-    name: string;
-    type: string;
-    buffer: ArrayBufferLike;
-  };
-
-  function untar(buffer: ArrayBufferLike): Promise<File[]>;
-  export default untar;
-}
-
 namespace globalThis {
   declare const DecompressionStream: {
     prototype: GenericTransformStream;
@@ -23,9 +12,14 @@ namespace globalThis {
 }
 
 declare module "@go" {
+  type TarEntry = {
+    name: string;
+    type: string;
+    size: number;
+  };
   type TarFile = {
-    Next(): void;
-    Read(): void;
+    Next(): Promise<[TarEntry, unknown] | [void, unknown]>;
+    Read(buf: Uint8Array): Promise<number>;
   };
   type Go = {
     hooks: {

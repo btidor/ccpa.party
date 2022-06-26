@@ -1,12 +1,13 @@
-import { gunzip } from "fflate";
-import untar from "js-untar";
+import { Gunzip, gunzip } from "fflate";
 import { unzip } from "unzipit";
 
 import { WritableDatabase } from "@src/common/database";
 import type { DataFile } from "@src/common/database";
 import { parseByStages } from "@src/common/parse";
 import type { Provider } from "@src/common/provider";
-import { serialize, streamToArray } from "@src/common/util";
+import { serialize } from "@src/common/util";
+
+import Go from "@go";
 
 // The IndexedDB limit is ~255M, but there's a lot of overhead somewhere...
 export const fileSizeLimitMB = 128;
@@ -79,28 +80,60 @@ export async function importFiles<T>(
         if (next) work.push(next);
       }
     } else if (path.at(-1)?.endsWith(".tar.gz")) {
-      let buffer: ArrayBuffer;
-      if ("DecompressionStream" in globalThis && data instanceof File) {
-        const decompressor = new DecompressionStream("gzip");
-        data.stream().pipeThrough(decompressor);
-        buffer = (await streamToArray(decompressor.readable)).buffer;
+      let stream: ReadableStream<Uint8Array>;
+      if (data instanceof File) {
+        if ("DecompressionStream" in globalThis) {
+          const decompressor = new DecompressionStream("gzip");
+          data.stream().pipeThrough(decompressor);
+          stream = decompressor.readable;
+        } else {
+          stream = new ReadableStream({
+            async start(controller) {
+              const decompressor = new Gunzip(
+                (chunk: Uint8Array, final: boolean) => {
+                  final ? controller.close() : controller.enqueue(chunk);
+                }
+              );
+              const reader = data.stream().getReader();
+              for (;;) {
+                const { value, done } = await reader.read();
+                decompressor.push(value || new Uint8Array(), done);
+                if (done) break;
+              }
+            },
+          });
+        }
       } else {
-        const input = data instanceof File ? await data.arrayBuffer() : data;
-        buffer = await new Promise<ArrayBuffer>((resolve, reject) =>
-          gunzip(new Uint8Array(input), { consume: true }, (err, data) => {
-            if (err) reject(err);
-            resolve(data.buffer);
-          })
-        );
+        stream = new ReadableStream({
+          async start(controller) {
+            gunzip(new Uint8Array(data), { consume: true }, (err, data) => {
+              if (err) throw err;
+              controller.enqueue(data);
+              controller.close();
+            });
+          },
+        });
       }
-      const entries = await untar(buffer);
-      for (const entry of entries) {
-        if (entry.type !== "0") continue;
+
+      const go = await Go();
+      const tar = new go.hooks.TarFile(stream);
+      for (;;) {
+        const [entry, err] = await tar.Next();
+        if (err === "EOF") break;
+        else if (err) throw err;
+
+        if (entry?.type !== "0") continue;
         const subpath = [
           ...path,
           ...entry.name.split("/").filter((x) => x && x !== "."),
         ];
-        const next = await processEntry(subpath, entry.buffer);
+        const buf = new Uint8Array(entry.size);
+        const ret = await tar.Read(buf);
+        if (ret !== entry.size)
+          throw new Error(
+            "Invalid read length: got " + ret + ", expected: " + entry.size
+          );
+        const next = await processEntry(subpath, buf);
         if (next) work.push(next);
       }
     } else {
