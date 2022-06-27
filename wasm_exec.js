@@ -22,7 +22,6 @@
   let outputBuf = "";
   const hooks = {};
   const myGlobal = {
-    crypto: typeof crypto !== "undefined" ? crypto : require("crypto"),
     hooks,
     performance,
     Array,

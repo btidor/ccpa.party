@@ -12,7 +12,7 @@ export default defineConfig({
     polyfillModulePreload: false,
     sourcemap: true,
   },
-  plugins: [react(), go()],
+  plugins: [react(), goDev(), goProd()],
   resolve: {
     alias: [{ find: "@src", replacement: path.resolve(__dirname, "src") }],
   },
@@ -36,24 +36,10 @@ export default defineConfig({
 
 // Plugin to compile our Go project to WASM, with hot reload. Uses the standard
 // runner that ships with Go, which unfortunately pollutes globalThis.
-function go(): Plugin {
-  const trailer = `export default async function Run() {
-    const data =
-      typeof atob === "function"
-        ? atob(wasm)
-        : new Buffer(wasm, "base64").toString("binary");
-
-    const bytes = new Uint8Array(data.length);
-    for (let i = 0; i < data.length; i++) {
-      bytes[i] = data.charCodeAt(i);
-    }
-    const go = new Go();
-    const result = await WebAssembly.instantiate(bytes, go.importObject);
-    go.run(result.instance);
-    return go;
-  }`;
+function goDev(): Plugin {
   return {
     name: "custom:go",
+    apply: "serve",
     configureServer(server) {
       const fn = (f: string) => {
         if (f.startsWith(path.join(server.config.root, "go/")))
@@ -81,13 +67,64 @@ function go(): Plugin {
         const data = fs.readFileSync(out);
         fs.rmSync(tmp, { recursive: true, force: true });
 
-        const helper = await fs.readFileSync("./wasm_exec.js");
-        return (
-          `const wasm = "${data.toString("base64")}"\n\n` +
-          helper.toString() +
-          "\n\n" +
-          trailer
-        );
+        return `const wasm = "${data.toString("base64")}";
+
+        ${await fs.readFileSync("./wasm_exec.js")}
+
+        export default async function Run() {
+          const data =
+            typeof atob === "function"
+              ? atob(wasm)
+              : new Buffer(wasm, "base64").toString("binary");
+
+          const bytes = new Uint8Array(data.length);
+          for (let i = 0; i < data.length; i++) {
+            bytes[i] = data.charCodeAt(i);
+          }
+          const go = new Go();
+          const result = await WebAssembly.instantiate(bytes, go.importObject);
+          go.run(result.instance);
+          return go;
+        }`;
+      }
+    },
+  };
+}
+
+function goProd(): Plugin {
+  return {
+    name: "custom:go",
+    apply: "build",
+    resolveId(id: string) {
+      if (id === "@go" || id === "@gowasm") {
+        return id;
+      }
+    },
+    async load(id: string) {
+      if (id === "@go") {
+        const tmp = fs.mkdtempSync("/tmp/vite-go");
+        const out = path.join(tmp, "go.wasm");
+        await execFileSync("go", ["build", "-o", out, "."], {
+          cwd: "go",
+          env: { ...process.env, GOOS: "js", GOARCH: "wasm" },
+        });
+        const ref = this.emitFile({
+          type: "asset",
+          name: "go.wasm",
+          source: fs.readFileSync(out),
+        });
+        fs.rmSync(tmp, { recursive: true, force: true });
+
+        return `${await fs.readFileSync("./wasm_exec.js")}
+
+        export default async function Run() {
+          const go = new Go();
+          const result = await WebAssembly.instantiateStreaming(
+            fetch("__VITE_ASSET__${ref}__"), go.importObject,
+          );
+          go.run(result.instance);
+          return go;
+        }`;
       }
     },
   };
