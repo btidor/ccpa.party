@@ -60,10 +60,14 @@ function goDev(): Plugin {
       if (id === "@go") {
         const tmp = fs.mkdtempSync("/tmp/vite-go");
         const out = path.join(tmp, "go.wasm");
-        await execFileSync("go", ["build", "-o", out, "."], {
-          cwd: "go",
-          env: { ...process.env, GOOS: "js", GOARCH: "wasm" },
-        });
+        await execFileSync(
+          "../node_modules/.go/bin/go",
+          ["build", "-o", out, "."],
+          {
+            cwd: "go",
+            env: { ...process.env, GOOS: "js", GOARCH: "wasm" },
+          }
+        );
         const data = fs.readFileSync(out);
         fs.rmSync(tmp, { recursive: true, force: true });
 
@@ -104,10 +108,14 @@ function goProd(): Plugin {
       if (id === "@go") {
         const tmp = fs.mkdtempSync("/tmp/vite-go");
         const out = path.join(tmp, "go.wasm");
-        await execFileSync("go", ["build", "-o", out, "."], {
-          cwd: "go",
-          env: { ...process.env, GOOS: "js", GOARCH: "wasm" },
-        });
+        await execFileSync(
+          "../node_modules/.go/bin/go",
+          ["build", "-o", out, "."],
+          {
+            cwd: "go",
+            env: { ...process.env, GOOS: "js", GOARCH: "wasm" },
+          }
+        );
         const ref = this.emitFile({
           type: "asset",
           name: "go.wasm",

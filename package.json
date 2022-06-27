@@ -46,10 +46,10 @@
     "dev": "vite",
     "build": "tsc -p tsconfig.prod.json && vite build",
     "postbuild": "./prerender",
+    "postinstall": "./install-go",
     "preview": "vite preview",
     "test": "vitest",
-    "lint": "eslint src/",
-    "deploy": "vercel deploy --prod"
+    "lint": "eslint src/"
   },
   "browserslist": {
     "production": [
