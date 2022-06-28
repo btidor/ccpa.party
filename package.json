@@ -50,7 +50,7 @@
     "postinstall": "./go/install",
     "preview": "vite preview",
     "test": "vitest",
-    "lint": "eslint src/"
+    "lint": "eslint --max-warnings=0 src/"
   },
   "browserslist": {
     "production": [

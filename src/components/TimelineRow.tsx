@@ -4,6 +4,7 @@ import React from "react";
 import { ProviderScopedDatabase } from "@src/common/database";
 import type { TimelineEntry, TimelineEntryKey } from "@src/common/database";
 import type { Provider } from "@src/common/provider";
+import { RendererLookup } from "@src/common/renderer";
 import Record from "@src/components/Record";
 
 import styles from "@src/components/TimelineRow.module.css";
@@ -70,8 +71,9 @@ function TimelineRow<T>(props: Props<T>): JSX.Element {
           {hydrated ? (
             (() => {
               const [body, trailer, username] =
+                RendererLookup.get(provider.slug)?.(hydrated, metadata) ||
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                provider.render?.(hydrated, metadata) || hydrated.context!;
+                hydrated.context!;
               return (
                 <Record
                   time={row.time}

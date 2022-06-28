@@ -1,4 +1,3 @@
-import type { TimelineEntry } from "@src/common/database";
 import {
   IgnoreParser,
   MetadataParser,
@@ -40,29 +39,17 @@ export interface Provider<T> {
   timelineParsers: ReadonlyArray<TimelineParser<T>>;
   metadataParsers?: ReadonlyArray<MetadataParser>;
   ignoreParsers?: ReadonlyArray<IgnoreParser>;
-
-  render?: (
-    entry: TimelineEntry<T>,
-    metadata: ReadonlyMap<string, unknown>
-  ) =>
-    | void
-    | [JSX.Element, string | void]
-    | [
-        JSX.Element | void,
-        string | void,
-        { display: string; color?: string } | void
-      ];
 }
 
 export const ProviderRegistry: ReadonlyArray<Provider<unknown>> = [
   new Amazon(),
   new Apple(),
-  new Discord() as Provider<unknown>,
+  new Discord(),
   new Facebook(),
   new GitHub(),
-  new Google() as Provider<unknown>,
+  new Google(),
   new Netflix(),
-  new Slack() as Provider<unknown>,
+  new Slack(),
 ];
 
 export const ProviderLookup: ReadonlyMap<string, Provider<unknown>> = new Map<
