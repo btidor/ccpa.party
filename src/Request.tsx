@@ -4,6 +4,7 @@ import React from "react";
 import { ProviderScopedDatabase } from "@src/common/database";
 import type { Provider } from "@src/common/provider";
 import { Link } from "@src/common/router";
+import isBrowserSupported from "@src/common/support";
 import { getKeyFromCookie } from "@src/common/util";
 import Logo from "@src/components/Logo";
 import { importFiles, resetProvider } from "@src/worker";
@@ -22,27 +23,27 @@ function Request<T>(props: Props<T>): JSX.Element {
   const [db, setDb] = React.useState<ProviderScopedDatabase<T>>();
   const [display, setDisplay] = React.useState<Display>();
   const [epoch, setEpoch] = React.useState(0);
-  React.useEffect(
-    () =>
-      setDb(
-        new ProviderScopedDatabase(
-          getKeyFromCookie(),
-          provider,
-          () => setEpoch(epoch + 1),
-          () => setDisplay("error")
-        )
-      ),
-    [epoch, provider]
-  );
 
   React.useEffect(() => {
     (async () => {
-      if (db) {
+      if (!(await isBrowserSupported())) {
+        setDisplay("error");
+      } else if (db) {
         const imported = (await db.getProviders()).has(provider.slug);
         setDisplay(imported ? "explore" : "import");
       }
     })();
   }, [db, provider]);
+
+  React.useEffect(
+    () =>
+      setDb(
+        new ProviderScopedDatabase(getKeyFromCookie(), provider, () =>
+          setEpoch(epoch + 1)
+        )
+      ),
+    [epoch, provider]
+  );
 
   const fileHandler: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     (async () => {

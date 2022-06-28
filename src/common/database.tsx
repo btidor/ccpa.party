@@ -73,35 +73,19 @@ type AsyncState = { db: IDBDatabase; key: CryptoKey };
 export class Database {
   _terminated: () => void;
   _releaseLock?: () => void;
-  _errored?: () => void;
   _state: Promise<AsyncState | void>;
   _rootIndex: Promise<RootIndex>;
 
-  constructor(
-    key: ArrayBuffer | void,
-    terminated: () => void,
-    errored?: () => void
-  ) {
+  constructor(key: ArrayBuffer | void, terminated: () => void) {
     this._terminated = terminated;
-    this._errored = errored;
     this._state = new Promise((resolve) => {
-      const support = [
-        !!navigator.locks,
-        !!globalThis.indexedDB,
-        !!globalThis.crypto?.subtle,
-      ];
-      if (!support.every((x) => x)) {
-        console.error("Browser not supported:", support);
-        errored?.();
-      } else {
-        navigator.locks.request(dbInitLock, async () => {
-          const db = await this._initializeState(key);
-          // If there's an error (db is undefined), the _state promise should
-          // never resolve so that database operations hang, but we should still
-          // release the init lock (by exiting this block).
-          db !== "error" && resolve(db);
-        });
-      }
+      navigator.locks.request(dbInitLock, async () => {
+        const db = await this._initializeState(key);
+        // If there's an error (db is undefined), the _state promise should
+        // never resolve so that database operations hang, but we should still
+        // release the init lock (by exiting this block).
+        db !== "error" && resolve(db);
+      });
     });
 
     this._rootIndex = (async () =>
@@ -120,12 +104,8 @@ export class Database {
         db.onclose = () => this._terminate();
         resolve(db);
       };
-      // This usually means we're in a Firefox private window, so no IndexedDB:
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=1639542
       op.onerror = (e) => (
-        console.error("Failed to open IndexedDB", e, this._errored),
-        this._errored?.(),
-        resolve(undefined)
+        console.error("Failed to open IndexedDB", e), resolve(undefined)
       );
       op.onupgradeneeded = () => {
         // For now, schema upgrades wipe the database
@@ -233,10 +213,9 @@ export class ProviderScopedDatabase<T> extends Database {
   constructor(
     key: ArrayBuffer | void,
     provider: Provider<T>,
-    terminated: () => void,
-    errored?: () => void
+    terminated: () => void
   ) {
-    super(key, terminated, errored);
+    super(key, terminated);
     this._provider = provider;
     this._providerIndex = (async () => {
       const iv = (await this._rootIndex)[provider.slug];
