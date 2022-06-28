@@ -2,14 +2,12 @@ package main
 
 import (
 	"archive/tar"
-	"fmt"
 	"io"
 	"syscall/js"
 )
 
 func main() {
 	js.Global().Get("hooks").Set("TarFile", js.FuncOf(TarFile))
-	fmt.Println("Initialized Go Environment")
 
 	ch := make(chan interface{})
 	<-ch

@@ -46,7 +46,7 @@
     "dev": "vite",
     "build": "tsc -p tsconfig.prod.json && vite build",
     "postbuild": "./prerender",
-    "postinstall": "./install-go",
+    "postinstall": "./go/install",
     "preview": "vite preview",
     "test": "vitest",
     "lint": "eslint src/"

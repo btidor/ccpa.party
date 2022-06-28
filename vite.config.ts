@@ -110,7 +110,16 @@ function goProd(): Plugin {
         const out = path.join(tmp, "go.wasm");
         await execFileSync(
           "../node_modules/.go/bin/go",
-          ["build", "-o", out, "."],
+          [
+            "build",
+            "-trimpath",
+            "-buildvcs=false",
+            "-ldflags",
+            "-s -w -buildid=",
+            "-o",
+            out,
+            ".",
+          ],
           {
             cwd: "go",
             env: { ...process.env, GOOS: "js", GOARCH: "wasm" },
