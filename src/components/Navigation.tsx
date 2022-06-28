@@ -4,6 +4,7 @@ import { ProviderScopedDatabase } from "@src/common/database";
 import { ProviderRegistry } from "@src/common/provider";
 import type { Provider } from "@src/common/provider";
 import { Link, LocationContext, useNavigate } from "@src/common/router";
+import { getKeyFromCookie } from "@src/common/util";
 import Logo from "@src/components/Logo";
 
 import styles from "@src/components/Navigation.module.css";
@@ -32,8 +33,10 @@ function Navigation<T>(props: Props<T>): JSX.Element {
   React.useEffect(() => {
     (async () => {
       setLinks(baseLinks);
-      const db = new ProviderScopedDatabase(provider, () =>
-        setEpoch(epoch + 1)
+      const db = new ProviderScopedDatabase(
+        await getKeyFromCookie(),
+        provider,
+        () => setEpoch(epoch + 1)
       );
       const active = await db.getProviders();
       setProviders(

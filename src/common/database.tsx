@@ -1,12 +1,5 @@
 import type { Provider } from "@src/common/provider";
-import {
-  b64dec,
-  b64enc,
-  deserialize,
-  getCookie,
-  serialize,
-  setCookie,
-} from "@src/common/util";
+import { b64dec, b64enc, deserialize, serialize } from "@src/common/util";
 
 export type DataFileKey = {
   provider: string;
@@ -58,8 +51,6 @@ const dbWriteLock = "ccpa.party/dbwrite";
 const keyHashKey = "KEY-HASH";
 const rootIndexKey = "ROOT-INDEX";
 
-const keyCookie = "key";
-const keyMaxAge = 24 * 3600; // 24 hours
 const keyUsages: KeyUsage[] = ["encrypt", "decrypt"];
 
 // Increasing the batch size adds latency and makes the timeline view sluggish
@@ -86,21 +77,25 @@ export class Database {
   _state: Promise<AsyncState | void>;
   _rootIndex: Promise<RootIndex>;
 
-  constructor(terminated: () => void, errored?: () => void) {
+  constructor(
+    key: ArrayBuffer | void,
+    terminated: () => void,
+    errored?: () => void
+  ) {
     this._terminated = terminated;
     this._errored = errored;
     this._state = new Promise((resolve) => {
       const support = [
         !!navigator.locks,
-        !!window.indexedDB,
-        !!window.crypto?.subtle,
+        !!globalThis.indexedDB,
+        !!globalThis.crypto?.subtle,
       ];
       if (!support.every((x) => x)) {
         console.error("Browser not supported:", support);
         errored?.();
       } else {
         navigator.locks.request(dbInitLock, async () => {
-          const db = await this._initializeState();
+          const db = await this._initializeState(key);
           // If there's an error (db is undefined), the _state promise should
           // never resolve so that database operations hang, but we should still
           // release the init lock (by exiting this block).
@@ -113,10 +108,12 @@ export class Database {
       ((await this._get(rootIndexKey, { named: true })) as RootIndex) || {})();
   }
 
-  async _initializeState(): Promise<AsyncState | "error" | void> {
+  async _initializeState(
+    keyBytes: ArrayBuffer | void
+  ): Promise<AsyncState | "error" | void> {
     // Open and initialize our IndexedDB database.
     const db: IDBDatabase | void = await new Promise((resolve) => {
-      const op = window.indexedDB.open(dbName, dbVersion);
+      const op = globalThis.indexedDB.open(dbName, dbVersion);
       op.onsuccess = () => {
         const db = op.result;
         db.onversionchange = () => (db.close(), this._terminate());
@@ -145,18 +142,17 @@ export class Database {
     // We encrypt the data and store the key in a cookie because (a) the browser
     // cookie jar is encrypted using OS-level data protection APIs while
     // IndexedDB is not, and (b) we can force the key to expire after 24 hours.
-    const cookie = getCookie(keyCookie);
-    let cookieHash, key;
-    if (cookie) {
-      key = await window.crypto.subtle.importKey(
+    let key, keyHash;
+    if (keyBytes) {
+      key = await globalThis.crypto.subtle.importKey(
         "raw",
-        b64dec(cookie),
+        keyBytes,
         "AES-GCM",
         false,
         keyUsages
       );
-      cookieHash = b64enc(
-        await window.crypto.subtle.digest("SHA-256", b64dec(cookie))
+      keyHash = b64enc(
+        await globalThis.crypto.subtle.digest("SHA-256", keyBytes)
       );
     }
 
@@ -165,39 +161,32 @@ export class Database {
       op.onsuccess = () => resolve(op.result);
       op.onerror = (e) => reject(e);
     });
-    if (storedHash && storedHash === cookieHash && key) {
+    if (storedHash === keyHash && key) {
       // Success! Database was created with the current encryption key.
       return { db, key };
-    } else if (storedHash !== undefined) {
-      // Database exists, but was created with an older enryption key.
-      // Clear, then reload the page to reinitialize.
-      console.warn("Clearing IndexedDB...");
+    } else if (key && keyBytes) {
+      // TODO: handle key mismatch
+
+      // Database is empty; initialize it.
+      console.warn("Initializing IndexedDB...");
+      const keyHash = b64enc(
+        await globalThis.crypto.subtle.digest("SHA-256", keyBytes)
+      );
       await new Promise((resolve, reject) => {
         const op = db
           .transaction(dbStore, "readwrite")
           .objectStore(dbStore)
-          .clear();
+          .put(keyHash, keyHashKey);
         op.onsuccess = () => resolve(op.result);
         op.onerror = (e) => reject(e);
       });
       db.close();
       return await this._initializeState();
     } else {
-      // Database is empty; generate a new key (unless in read-only mode)
-      // and initialize it.
-      if (await this._generateAndSaveKey(db)) {
-        db.close();
-        return await this._initializeState();
-      } else {
-        // Read-only database. Resolve with undefined state so operations
-        // return empty results.
-        return;
-      }
+      // Read-only database. Resolve with undefined state so operations
+      // return empty results.
+      return;
     }
-  }
-
-  async _generateAndSaveKey(_db: IDBDatabase): Promise<boolean> {
-    return false;
   }
 
   async _terminate(): Promise<void> {
@@ -223,7 +212,7 @@ export class Database {
     const [iv, ciphertext] = opts?.named
       ? (result as [ArrayBufferLike, ArrayBufferLike])
       : [b64dec(k), result as ArrayBufferLike];
-    const plaintext = await window.crypto.subtle.decrypt(
+    const plaintext = await globalThis.crypto.subtle.decrypt(
       { name: "AES-GCM", iv },
       key,
       ciphertext
@@ -242,11 +231,12 @@ export class ProviderScopedDatabase<T> extends Database {
   _providerIndex: Promise<ProviderIndex>;
 
   constructor(
+    key: ArrayBuffer | void,
     provider: Provider<T>,
     terminated: () => void,
     errored?: () => void
   ) {
-    super(terminated, errored);
+    super(key, terminated, errored);
     this._provider = provider;
     this._providerIndex = (async () => {
       const iv = (await this._rootIndex)[provider.slug];
@@ -340,8 +330,12 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
     timelineDedup: Set<string>;
   };
 
-  constructor(provider: Provider<T>, terminated: () => void) {
-    super(provider, terminated);
+  constructor(
+    key: ArrayBuffer | void,
+    provider: Provider<T>,
+    terminated: () => void
+  ) {
+    super(key, provider, terminated);
     this._additions = {
       files: [],
       metadata: new Map(),
@@ -352,23 +346,6 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
       (resolve) => (this._releaseLock = resolve)
     );
     navigator.locks.request(dbWriteLock, () => release);
-  }
-
-  async _generateAndSaveKey(db: IDBDatabase): Promise<boolean> {
-    console.warn("Initializing IndexedDB...");
-    const key = await window.crypto.getRandomValues(new Uint8Array(32));
-    const keyHash = b64enc(await window.crypto.subtle.digest("SHA-256", key));
-
-    setCookie(keyCookie, b64enc(key), keyMaxAge);
-    await new Promise((resolve, reject) => {
-      const op = db
-        .transaction(dbStore, "readwrite")
-        .objectStore(dbStore)
-        .put(keyHash, keyHashKey);
-      op.onsuccess = () => resolve(op.result);
-      op.onerror = (e) => reject(e);
-    });
-    return true;
   }
 
   // You MUST call `commit` in order to flush data and indexes.
@@ -475,8 +452,8 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
     if (!state) throw new Error("Writing to closed database");
     const { db, key } = state;
 
-    const iv = await window.crypto.getRandomValues(new Uint8Array(12));
-    const ciphertext = await window.crypto.subtle.encrypt(
+    const iv = await globalThis.crypto.getRandomValues(new Uint8Array(12));
+    const ciphertext = await globalThis.crypto.subtle.encrypt(
       { name: "AES-GCM", iv },
       key,
       serialize(v)
@@ -516,9 +493,9 @@ export class WritableDatabase<T> extends ProviderScopedDatabase<T> {
     const ciphertexts: ArrayBufferLike[] = [];
     const ivs: string[] = [];
     for (let i = 0; i < data.length; i++) {
-      const iv = await window.crypto.getRandomValues(new Uint8Array(12));
+      const iv = await globalThis.crypto.getRandomValues(new Uint8Array(12));
       ciphertexts.push(
-        await window.crypto.subtle.encrypt(
+        await globalThis.crypto.subtle.encrypt(
           { name: "AES-GCM", iv },
           key,
           data[i] as ArrayBufferLike

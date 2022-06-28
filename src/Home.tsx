@@ -3,6 +3,7 @@ import React from "react";
 import { Database } from "@src/common/database";
 import { ProviderRegistry } from "@src/common/provider";
 import { Link } from "@src/common/router";
+import { getKeyFromCookie } from "@src/common/util";
 import Logo from "@src/components/Logo";
 
 import styles from "@src/Home.module.css";
@@ -19,7 +20,9 @@ function Home(props: { scrolled: boolean }): JSX.Element {
   React.useEffect(() => {
     (async () =>
       setImported(
-        await new Database(() => setEpoch(epoch + 1)).getProviders()
+        await new Database(getKeyFromCookie(), () =>
+          setEpoch(epoch + 1)
+        ).getProviders()
       ))();
   }, [epoch]);
 

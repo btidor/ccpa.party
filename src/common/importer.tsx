@@ -20,12 +20,13 @@ type ImportFile = {
 };
 
 export async function importFiles<T>(
+  key: ArrayBuffer,
   provider: Provider<T>,
   files: FileList,
   terminated: () => void
 ) {
   const start = new Date().getTime();
-  const db = new WritableDatabase(provider, terminated);
+  const db = new WritableDatabase(key, provider, terminated);
   const work: ImportFile[] = [];
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -153,9 +154,10 @@ export async function importFiles<T>(
 }
 
 export async function resetProvider<T>(
+  key: ArrayBuffer,
   provider: Provider<T>,
   terminated: () => void
 ) {
-  const db = new WritableDatabase(provider, terminated);
+  const db = new WritableDatabase(key, provider, terminated);
   await db.resetProvider();
 }

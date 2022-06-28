@@ -7,6 +7,7 @@ import { fileSizeLimitMB } from "@src/common/importer";
 import { parseByStages } from "@src/common/parse";
 import type { Provider } from "@src/common/provider";
 import { Navigate, useNavigate } from "@src/common/router";
+import { getKeyFromCookie } from "@src/common/util";
 import FilePreview from "@src/components/FilePreview";
 import FileTree from "@src/components/FileTree";
 import Navigation from "@src/components/Navigation";
@@ -50,7 +51,10 @@ function Files<T>(props: Props<T>): JSX.Element {
 
   const [epoch, setEpoch] = React.useState(0);
   const db = React.useMemo(
-    () => new ProviderScopedDatabase(provider, () => setEpoch(epoch + 1)),
+    () =>
+      new ProviderScopedDatabase(getKeyFromCookie(), provider, () =>
+        setEpoch(epoch + 1)
+      ),
     [epoch, provider]
   );
 

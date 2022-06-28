@@ -6,6 +6,7 @@ import { ProviderScopedDatabase } from "@src/common/database";
 import type { TimelineEntry, TimelineEntryKey } from "@src/common/database";
 import type { Provider } from "@src/common/provider";
 import { useNavigate } from "@src/common/router";
+import { getKeyFromCookie } from "@src/common/util";
 import DatePicker from "@src/components/DatePicker";
 import FilePreview from "@src/components/FilePreview";
 import FilterBar from "@src/components/FilterBar";
@@ -27,7 +28,10 @@ function Timeline<T>(props: Props<T>): JSX.Element {
   const navigate = useNavigate();
   const [epoch, setEpoch] = React.useState(0);
   const db = React.useMemo(
-    () => new ProviderScopedDatabase(provider, () => setEpoch(epoch + 1)),
+    () =>
+      new ProviderScopedDatabase(getKeyFromCookie(), provider, () =>
+        setEpoch(epoch + 1)
+      ),
     [epoch, provider]
   );
 

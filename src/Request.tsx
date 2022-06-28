@@ -2,10 +2,11 @@ import { TrashIcon } from "@primer/octicons-react";
 import React from "react";
 
 import { ProviderScopedDatabase } from "@src/common/database";
-import { importFiles, resetProvider } from "@src/common/importer";
 import type { Provider } from "@src/common/provider";
 import { Link } from "@src/common/router";
+import { getKeyFromCookie } from "@src/common/util";
 import Logo from "@src/components/Logo";
+import { importFiles, resetProvider } from "@src/worker";
 
 import styles from "@src/Request.module.css";
 
@@ -25,6 +26,7 @@ function Request<T>(props: Props<T>): JSX.Element {
     () =>
       setDb(
         new ProviderScopedDatabase(
+          getKeyFromCookie(),
           provider,
           () => setEpoch(epoch + 1),
           () => setDisplay("error")
@@ -42,13 +44,22 @@ function Request<T>(props: Props<T>): JSX.Element {
     })();
   }, [db, provider]);
 
-  const fileHandler: React.ChangeEventHandler<HTMLInputElement> = (event) =>
-    event.target.files &&
-    (setDisplay("pending"),
-    importFiles(provider, event.target.files, () => setEpoch(epoch + 1)));
-  const resetHandler: React.ChangeEventHandler<unknown> = () => (
-    setDisplay("pending"), resetProvider(provider, () => setEpoch(epoch + 1))
-  );
+  const fileHandler: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    (async () => {
+      if (!event.target.files) return;
+      setDisplay("pending");
+      await importFiles(provider, event.target.files);
+      setEpoch(epoch + 1);
+    })();
+  };
+
+  const resetHandler: React.ChangeEventHandler<unknown> = () => {
+    (async () => {
+      setDisplay("pending");
+      await resetProvider(provider);
+      setEpoch(epoch + 1);
+    })();
+  };
 
   const inputRef = React.useRef<HTMLInputElement>(null);
   return (

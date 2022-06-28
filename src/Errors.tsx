@@ -3,6 +3,7 @@ import React from "react";
 import { ParseError, ProviderScopedDatabase } from "@src/common/database";
 import type { Provider } from "@src/common/provider";
 import { useNavigate } from "@src/common/router";
+import { getKeyFromCookie } from "@src/common/util";
 import Navigation from "@src/components/Navigation";
 import Placeholder from "@src/components/Placeholder";
 
@@ -24,7 +25,7 @@ function Errors<T>(props: Props<T>): JSX.Element {
   });
   React.useEffect(() => {
     (async () => {
-      const db = new ProviderScopedDatabase(provider, () =>
+      const db = new ProviderScopedDatabase(getKeyFromCookie(), provider, () =>
         setEpoch(epoch + 1)
       );
       const files = await db.getFiles();
