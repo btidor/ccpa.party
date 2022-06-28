@@ -10,10 +10,6 @@ const tag = "<!-- PRERENDER -->";
 const headEnd = "</head>";
 const noindex = `<meta name="robots" content="noindex" />`;
 
-// Monkeypatch browser APIs
-const HappyDOM = require("@happy-dom/global-registrator");
-HappyDOM.GlobalRegistrator.register();
-
 (async () => {
   const { createServer } = require("vite");
   const vite = await createServer({

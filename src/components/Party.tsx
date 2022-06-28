@@ -10,7 +10,9 @@ function Party(params: Params): JSX.Element {
 
   // On Safari, enabling the glow effect makes the image very pixelated.
   // https://stackoverflow.com/a/23522755
-  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const isSafari = /^((?!chrome|android).)*safari/i.test(
+    globalThis.navigator?.userAgent
+  );
 
   return (
     // This Font Software is licensed under the SIL Open Font
