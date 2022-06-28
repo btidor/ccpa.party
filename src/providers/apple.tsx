@@ -1,5 +1,6 @@
 import { DateTime } from "luxon";
 import { Minimatch } from "minimatch";
+import plist from "plist";
 
 import {
   IgnoreParser,
@@ -13,8 +14,6 @@ import {
 import type { Provider, TimelineCategory } from "@src/common/provider";
 
 type CategoryKey = "account" | "activity" | "icloud" | "media";
-
-const domParser = new DOMParser();
 
 class Apple implements Provider<CategoryKey> {
   slug = "apple";
@@ -514,55 +513,58 @@ class Apple implements Provider<CategoryKey> {
     },
     {
       glob: new Minimatch("**/Apple Features Using iCloud/Mail/Recents.xml"),
-      tokenize: (data) => {
-        const dom = domParser.parseFromString(smartDecode(data), "text/xml");
-        const entries = dom.getElementsByTagName("dict");
-        return Array.from(entries).map((entry) => entry.outerHTML);
-      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      tokenize: (data) => plist.parse(smartDecode(data)) as any,
       parse: (item) => {
-        const children = Array.from(
-          domParser.parseFromString(item, "text/xml").children[0].children
-        );
-        const dates = Array.from(
-          children
-            .find((c) => c.nodeName === "key" && c.innerHTML === "t")
-            ?.nextElementSibling?.getElementsByTagName("date") || []
-        );
-        const address = children.find(
-          (c) => c.nodeName === "key" && c.innerHTML === "address"
-        )?.nextElementSibling?.innerHTML;
-        return dates.map((date) => [
-          "icloud",
-          DateTime.fromISO(date.innerHTML),
-          ["Mail Message", address],
-        ]) as TimelineTuple<CategoryKey>[];
+        if (item.MAX_RECENTS) return;
+        const values = Object.values(item) as {
+          t: Date[];
+          "display name"?: string;
+          address: string;
+          "group members"?: {
+            "display name"?: string;
+            address: string;
+          }[];
+        }[];
+        return values.flatMap((value) => {
+          return value.t.map((time) => {
+            const recipients = value["group members"] || [value];
+            const address = recipients
+              .map((r) =>
+                r["display name"]
+                  ? `${r["display name"]} <${r["address"]}>`
+                  : r["address"]
+              )
+              .join(", ");
+            return [
+              "icloud",
+              DateTime.fromJSDate(time),
+              ["Mail Message", address],
+            ] as TimelineTuple<CategoryKey>;
+          });
+        });
       },
     },
     {
       glob: new Minimatch(
         "**/Apple Features Using iCloud/Wi-Fi/KnownNetworks.xml"
       ),
-      tokenize: (data) => {
-        const dom = domParser.parseFromString(smartDecode(data), "text/xml");
-        const root = dom.getElementsByTagName("array")[0];
-        return Array.from(root.children).map((entry) => entry.outerHTML);
-      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      tokenize: (data) => plist.parse(smartDecode(data)) as any,
       parse: (item) => {
-        const keys = domParser
-          .parseFromString(item, "text/xml")
-          .getElementsByTagName("key");
-        const name = keys[0]?.innerHTML;
-        const added = Array.from(keys).find((k) => k.innerHTML === "added_at")
-          ?.nextElementSibling?.innerHTML;
-        return added
-          ? [
-              "icloud",
-              DateTime.fromFormat(added, "LLL dd yyyy HH:mm:ss", {
-                zone: "UTC",
-              }),
-              ["Added  Wi-Fi Network", name],
-            ]
-          : undefined;
+        const values = Object.values(item) as {
+          added_at: string;
+          SSID_STR: string;
+        }[];
+        return values.flatMap((value) => {
+          return [
+            "icloud",
+            DateTime.fromFormat(value.added_at, "LLL dd yyyy HH:mm:ss", {
+              zone: "UTC",
+            }),
+            ["Added  Wi-Fi Network", value.SSID_STR],
+          ];
+        }) as TimelineTuple<CategoryKey>;
       },
     },
     {
