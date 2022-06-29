@@ -18,9 +18,12 @@ export type DatabaseBroadcast =
   | { type: "reset" }
   | { type: "write"; provider: string };
 
-const dbChannel = import.meta.env.SSR
-  ? undefined
-  : new BroadcastChannel(channelId);
+let dbChannel: BroadcastChannel | void;
+
+function broadcast(msg: DatabaseBroadcast): void {
+  dbChannel ||= new BroadcastChannel(channelId);
+  dbChannel.postMessage(msg);
+}
 
 export type RootIndex = { [key: string]: string }; // provider slug -> iv
 
@@ -166,7 +169,7 @@ export class WriteBackend extends ReadBackend {
         op.onsuccess = () => resolve();
         op.onerror = (e) => reject(e);
       });
-      dbChannel?.postMessage({ type: "rekey" } as DatabaseBroadcast);
+      broadcast({ type: "rekey" });
     } else {
       // Database exists but the original encryption key has expired. We got
       // unlucky; the reset process [TODO] should have cleaned it up by now...
@@ -185,11 +188,11 @@ export class WriteBackend extends ReadBackend {
   }
 
   static broadcastReset() {
-    dbChannel?.postMessage({ type: "reset" } as DatabaseBroadcast);
+    broadcast({ type: "reset" });
   }
 
   static broadcastWrite(provider: string) {
-    dbChannel?.postMessage({ type: "write", provider } as DatabaseBroadcast);
+    broadcast({ type: "write", provider });
   }
 
   async put(v: unknown, k?: string): Promise<string> {

@@ -12,7 +12,7 @@ export default defineConfig({
     polyfillModulePreload: false,
     sourcemap: true,
   },
-  plugins: [react()],
+  plugins: [react(), goDev()],
   resolve: {
     alias: [{ find: "@src", replacement: path.resolve(__dirname, "src") }],
   },
@@ -33,7 +33,7 @@ export default defineConfig({
     environment: "happy-dom",
   },
   worker: {
-    plugins: [goDev(), goProd()],
+    plugins: [goProd()],
   },
 });
 
