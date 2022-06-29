@@ -48,6 +48,10 @@ async function initialize(): Promise<void> {
     else console.error("Feature Detection Failed", support);
 
     cache = { backend, supported };
+
+    const bc = new BroadcastChannel(channelId);
+    bc.onmessage = (msg: MessageEvent<DatabaseBroadcast>) =>
+      msg.data.type === "rekey" && reinitialize();
   })();
   await initializer;
 }
@@ -56,6 +60,7 @@ async function initialize(): Promise<void> {
 // refresh. Called when the key changes or when the database is cleared.
 async function reinitialize(): Promise<void> {
   cache = undefined;
+  initializer = undefined;
   const bc = new BroadcastChannel(channelId);
   bc.postMessage({ type: "reset" });
 }

@@ -28,7 +28,11 @@ function Request<T>(props: Props<T>): JSX.Element {
         setDisplay("error");
       } else if (support === true && db) {
         const imported = (await db.getProviders()).has(provider.slug);
-        setDisplay(imported ? "explore" : "import");
+        setDisplay((display) => {
+          if (imported) return "explore";
+          else if (display === "pending") return "pending";
+          else return "import";
+        });
       }
     })();
   }, [db, provider, support]);
@@ -38,6 +42,7 @@ function Request<T>(props: Props<T>): JSX.Element {
       if (!event.target.files) return;
       setDisplay("pending");
       await importFiles(provider, event.target.files);
+      setDisplay("explore");
     })();
   };
 
@@ -45,6 +50,7 @@ function Request<T>(props: Props<T>): JSX.Element {
     (async () => {
       setDisplay("pending");
       await resetProvider(provider);
+      setDisplay("import");
     })();
   };
 

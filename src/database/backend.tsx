@@ -14,6 +14,7 @@ const keyUsages: KeyUsage[] = ["encrypt", "decrypt"];
 
 export const channelId = "database";
 export type DatabaseBroadcast =
+  | { type: "rekey" }
   | { type: "reset" }
   | { type: "write"; provider: string };
 
@@ -163,7 +164,7 @@ export class WriteBackend extends ReadBackend {
         op.onsuccess = () => resolve();
         op.onerror = (e) => reject(e);
       });
-      this.broadcastReset();
+      dbChannel.postMessage({ type: "rekey" } as DatabaseBroadcast);
     } else {
       // Database exists but the original encryption key has expired. We got
       // unlucky; the reset process [TODO] should have cleaned it up by now...
