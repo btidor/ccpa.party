@@ -32,12 +32,10 @@ export class ReadBackend {
     key: ArrayBuffer
   ): Promise<[IDBDatabase, CryptoKey] | void> {
     // Open and initialize IndexedDB database.
-    const db: IDBDatabase | void = await new Promise((resolve) => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
       const op = globalThis.indexedDB.open(dbName, dbVersion);
       op.onsuccess = () => resolve(op.result);
-      op.onerror = (e) => (
-        console.error("Failed to open IndexedDB", e), resolve(undefined)
-      );
+      op.onerror = (e) => reject(e);
       op.onupgradeneeded = () => {
         // For now, schema upgrades wipe the database
         const db = op.result;
@@ -48,7 +46,6 @@ export class ReadBackend {
       };
       op.onblocked = () => op.result.close();
     });
-    if (!db) return undefined; // errored
 
     // We encrypt the data and store the key in a cookie because (a) the browser
     // cookie jar is encrypted using OS-level data protection APIs while
@@ -59,10 +56,7 @@ export class ReadBackend {
       op.onsuccess = () => resolve(op.result);
       op.onerror = (e) => reject(e);
     });
-    if (storedHash === undefined) {
-      // Database has not yet been initialized or written to.
-      return undefined;
-    } else if (storedHash === b64enc(keyHash)) {
+    if (storedHash === b64enc(keyHash)) {
       // Success! Database was created with the current encryption key.
       const cryptoKey = await globalThis.crypto.subtle.importKey(
         "raw",
@@ -73,6 +67,7 @@ export class ReadBackend {
       );
       return [db, cryptoKey];
     } else {
+      // Database has not yet been initialized or written to.
       // TODO: handle key mismatch (maybe not here)
       return undefined;
     }

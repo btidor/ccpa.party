@@ -3,9 +3,8 @@ import React from "react";
 
 import type { Provider } from "@src/common/provider";
 import { Link } from "@src/common/router";
-import isBrowserSupported from "@src/common/support";
 import Logo from "@src/components/Logo";
-import { useProviderDatabase } from "@src/database/hooks";
+import { useBrowserSupport, useProviderDatabase } from "@src/database/hooks";
 import { importFiles, resetProvider } from "@src/worker";
 
 import styles from "@src/Request.module.css";
@@ -19,19 +18,20 @@ type Display = "explore" | "import" | "pending" | "error";
 function Request<T>(props: Props<T>): JSX.Element {
   const { provider } = props;
 
+  const support = useBrowserSupport();
   const db = useProviderDatabase(provider);
   const [display, setDisplay] = React.useState<Display>();
 
   React.useEffect(() => {
     (async () => {
-      if (!(await isBrowserSupported())) {
+      if (support === false) {
         setDisplay("error");
-      } else if (db) {
+      } else if (support === true && db) {
         const imported = (await db.getProviders()).has(provider.slug);
         setDisplay(imported ? "explore" : "import");
       }
     })();
-  }, [db, provider]);
+  }, [db, provider, support]);
 
   const fileHandler: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     (async () => {
