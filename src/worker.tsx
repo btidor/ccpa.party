@@ -11,15 +11,19 @@ export type WorkerMessage = (
   | { type: "resetProvider"; provider: string }
 ) & { id: string; key: ArrayBuffer };
 
-const worker = new WorkerBackend();
+const worker = import.meta.env.SSR ? undefined : new WorkerBackend();
 const pending = new Map<string, () => void>();
 
-worker.onmessage = (msg: MessageEvent<string>) => pending.get(msg.data)?.();
+if (worker) {
+  worker.onmessage = (msg: MessageEvent<string>) => pending.get(msg.data)?.();
+}
 
 export async function importFiles(
   provider: Provider<unknown>,
   files: FileList
 ): Promise<void> {
+  if (!worker) throw new Error("can't invoke worker in server-side rendering");
+
   const id = globalThis.crypto.randomUUID();
   const key = await getOrGenerateKeyFromCookie();
   await new Promise<void>((resolve) => {
@@ -37,6 +41,8 @@ export async function importFiles(
 export async function resetProvider(
   provider: Provider<unknown>
 ): Promise<void> {
+  if (!worker) throw new Error("can't invoke worker in server-side rendering");
+
   const id = globalThis.crypto.randomUUID();
   const key = await getOrGenerateKeyFromCookie();
   await new Promise<void>((resolve) => {

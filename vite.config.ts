@@ -32,6 +32,9 @@ export default defineConfig({
   test: {
     environment: "happy-dom",
   },
+  worker: {
+    plugins: [goDev(), goProd()],
+  },
 });
 
 // Plugin to compile our Go project to WASM, with hot reload. Uses the standard
@@ -100,7 +103,7 @@ function goProd(): Plugin {
     name: "custom:go",
     apply: "build",
     resolveId(id: string) {
-      if (id === "@go" || id === "@gowasm") {
+      if (id === "@go") {
         return id;
       }
     },
