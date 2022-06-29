@@ -12,7 +12,7 @@ export default defineConfig({
     polyfillModulePreload: false,
     sourcemap: true,
   },
-  plugins: [react(), goDev()],
+  plugins: [react(), goServe()],
   resolve: {
     alias: [{ find: "@src", replacement: path.resolve(__dirname, "src") }],
   },
@@ -33,21 +33,31 @@ export default defineConfig({
     environment: "happy-dom",
   },
   worker: {
-    plugins: [goProd()],
+    plugins: [goBuild()],
   },
 });
 
 // Plugin to compile our Go project to WASM, with hot reload. Uses the standard
 // runner that ships with Go, which unfortunately pollutes globalThis.
-function goDev(): Plugin {
+async function compileGo(): Promise<Buffer> {
+  const tmp = fs.mkdtempSync("/tmp/vite-go");
+  const out = path.join(tmp, "go.wasm");
+  await execFileSync("../node_modules/.go/bin/go", ["build", "-o", out, "."], {
+    cwd: "go",
+    env: { ...process.env, GOOS: "js", GOARCH: "wasm" },
+  });
+  const data = fs.readFileSync(out);
+  fs.rmSync(tmp, { recursive: true, force: true });
+  return data;
+}
+
+function goServe(): Plugin {
   return {
     name: "custom:go",
     apply: "serve",
     configureServer(server) {
       const fn = (f: string) => {
         if (f.startsWith(path.join(server.config.root, "go/")))
-          server.restart();
-        if (f === path.join(server.config.root, "wasm_exec.js"))
           server.restart();
       };
       server.watcher.on("add", fn);
@@ -61,22 +71,10 @@ function goDev(): Plugin {
     },
     async load(id: string) {
       if (id === "@go") {
-        const tmp = fs.mkdtempSync("/tmp/vite-go");
-        const out = path.join(tmp, "go.wasm");
-        await execFileSync(
-          "../node_modules/.go/bin/go",
-          ["build", "-o", out, "."],
-          {
-            cwd: "go",
-            env: { ...process.env, GOOS: "js", GOARCH: "wasm" },
-          }
-        );
-        const data = fs.readFileSync(out);
-        fs.rmSync(tmp, { recursive: true, force: true });
+        const wasm = await compileGo();
+        return `const wasm = "${wasm.toString("base64")}";
 
-        return `const wasm = "${data.toString("base64")}";
-
-        ${await fs.readFileSync("./wasm_exec.js")}
+        ${await fs.readFileSync("./go/wasm_exec.js")}
 
         export default async function Run() {
           const data =
@@ -98,7 +96,7 @@ function goDev(): Plugin {
   };
 }
 
-function goProd(): Plugin {
+function goBuild(): Plugin {
   return {
     name: "custom:go",
     apply: "build",
@@ -109,33 +107,14 @@ function goProd(): Plugin {
     },
     async load(id: string) {
       if (id === "@go") {
-        const tmp = fs.mkdtempSync("/tmp/vite-go");
-        const out = path.join(tmp, "go.wasm");
-        await execFileSync(
-          "../node_modules/.go/bin/go",
-          [
-            "build",
-            "-trimpath",
-            "-buildvcs=false",
-            "-ldflags",
-            "-s -w -buildid=",
-            "-o",
-            out,
-            ".",
-          ],
-          {
-            cwd: "go",
-            env: { ...process.env, GOOS: "js", GOARCH: "wasm" },
-          }
-        );
+        const source = await compileGo();
         const ref = this.emitFile({
           type: "asset",
           name: "go.wasm",
-          source: fs.readFileSync(out),
+          source,
         });
-        fs.rmSync(tmp, { recursive: true, force: true });
 
-        return `${await fs.readFileSync("./wasm_exec.js")}
+        return `${await fs.readFileSync("./go/wasm_exec.js")}
 
         export default async function Run() {
           const go = new Go();
