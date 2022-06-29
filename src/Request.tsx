@@ -5,7 +5,7 @@ import type { Provider } from "@src/common/provider";
 import { Link } from "@src/common/router";
 import Logo from "@src/components/Logo";
 import { useBrowserSupport, useProviderDatabase } from "@src/database/hooks";
-import { importFiles, resetProvider } from "@src/worker";
+import { importFiles, resetProvider } from "@src/worker/client";
 
 import styles from "@src/Request.module.css";
 

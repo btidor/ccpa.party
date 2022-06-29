@@ -1,17 +1,10 @@
 import type { Provider } from "@src/common/provider";
 import { getOrGenerateKeyFromCookie } from "@src/common/util";
-import WorkerBackend from "@src/workerBackend?worker";
+import type { WorkerMessage } from "@src/worker/types";
+import Worker from "@src/worker/worker?worker";
 
-export type WorkerMessage = (
-  | {
-      type: "importFiles";
-      provider: string;
-      files: FileList;
-    }
-  | { type: "resetProvider"; provider: string }
-) & { id: string; key: ArrayBuffer };
-
-const worker = import.meta.env.SSR ? undefined : new WorkerBackend();
+// TODO: adjust
+const worker = import.meta.env.SSR ? undefined : new Worker();
 const pending = new Map<string, () => void>();
 
 if (worker) {

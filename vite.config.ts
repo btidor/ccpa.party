@@ -12,7 +12,7 @@ export default defineConfig({
     polyfillModulePreload: false,
     sourcemap: true,
   },
-  plugins: [react(), goDev(), goProd()],
+  plugins: [react()],
   resolve: {
     alias: [{ find: "@src", replacement: path.resolve(__dirname, "src") }],
   },

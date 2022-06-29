@@ -2,16 +2,15 @@ import { Gunzip, gunzip } from "fflate";
 import { unzip } from "unzipit";
 
 import { parseByStages } from "@src/common/parse";
-import type { Provider } from "@src/common/provider";
+import { Provider, ProviderLookup } from "@src/common/provider";
 import { serialize } from "@src/common/util";
 import { WriteBackend } from "@src/database/backend";
 import type { DataFile } from "@src/database/types";
 import { Resetter, Writer } from "@src/database/write";
+import { fileSizeLimitMB } from "@src/worker/types";
+import type { WorkerMessage } from "@src/worker/types";
 
 import Go from "@go";
-
-// The IndexedDB limit is ~255M, but there's a lot of overhead somewhere...
-export const fileSizeLimitMB = 128;
 
 const fallbackBlockSize = 64 * 1024 * 1024;
 
@@ -20,7 +19,7 @@ type ImportFile = {
   data: File | ArrayBufferLike;
 };
 
-export async function importFiles<T>(
+async function importFiles<T>(
   key: ArrayBuffer,
   provider: Provider<T>,
   files: FileList
@@ -155,11 +154,25 @@ export async function importFiles<T>(
   console.warn(`Total Time: ${(new Date().getTime() - start) / 1000}s`);
 }
 
-export async function resetProvider<T>(
-  key: ArrayBuffer,
-  provider: Provider<T>
-) {
+async function resetProvider<T>(key: ArrayBuffer, provider: Provider<T>) {
   const backend = await WriteBackend.connect(key, async () => undefined);
   const resetter = new Resetter(backend, provider);
   await resetter.resetProvider();
 }
+
+onmessage = (message: MessageEvent<WorkerMessage>) => {
+  (async () => {
+    const { data } = message;
+    const provider = ProviderLookup.get(data.provider);
+    if (!provider) throw new Error("unknown provider: " + provider);
+
+    if (data.type === "importFiles") {
+      await importFiles(data.key, provider, data.files);
+    } else if (data.type === "resetProvider") {
+      await resetProvider(data.key, provider);
+    } else {
+      throw new Error("unknown request type");
+    }
+    postMessage(data.id);
+  })();
+};
