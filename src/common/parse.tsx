@@ -2,15 +2,15 @@ import csv from "csvtojson";
 import { DateTime } from "luxon";
 import type { IMinimatch } from "minimatch";
 
+import { Provider } from "@src/common/provider";
+import { serialize } from "@src/common/util";
 import type {
   DataFile,
   ParseError,
   ParseStage,
   TimelineContext,
   TimelineEntry,
-} from "@src/common/database";
-import { Provider } from "@src/common/provider";
-import { serialize } from "@src/common/util";
+} from "@src/database/types";
 
 export type Tokenizer<U> = (data: ArrayBufferLike) => U[] | Promise<U[]>;
 

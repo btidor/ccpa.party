@@ -1,17 +1,16 @@
 import { BeakerIcon, DesktopDownloadIcon } from "@primer/octicons-react";
 import React from "react";
 
-import { ProviderScopedDatabase } from "@src/common/database";
-import type { DataFile, DataFileKey } from "@src/common/database";
 import { fileSizeLimitMB } from "@src/common/importer";
 import { parseByStages } from "@src/common/parse";
 import type { Provider } from "@src/common/provider";
 import { Navigate, useNavigate } from "@src/common/router";
-import { getKeyFromCookie } from "@src/common/util";
 import FilePreview from "@src/components/FilePreview";
 import FileTree from "@src/components/FileTree";
 import Navigation from "@src/components/Navigation";
 import Placeholder from "@src/components/Placeholder";
+import { useProviderDatabase } from "@src/database/hooks";
+import type { DataFile, DataFileKey } from "@src/database/types";
 
 import styles from "@src/Drilldown.module.css";
 
@@ -49,15 +48,7 @@ function Files<T>(props: Props<T>): JSX.Element {
   const navigate = useNavigate();
   const { provider, selected } = props;
 
-  const [epoch, setEpoch] = React.useState(0);
-  const db = React.useMemo(
-    () =>
-      new ProviderScopedDatabase(getKeyFromCookie(), provider, () =>
-        setEpoch(epoch + 1)
-      ),
-    [epoch, provider]
-  );
-
+  const db = useProviderDatabase(props.provider);
   const [items, setItems] = React.useState<ReadonlyArray<DataFileKey>>();
   React.useEffect(() => {
     // When `provider` changes, immediately unset `items`. This prevents
@@ -77,7 +68,7 @@ function Files<T>(props: Props<T>): JSX.Element {
     // loaded.
     (async () => {
       const key = items?.find((item) => item.slug === selected);
-      setItem(key && (await db.hydrateFile(key)));
+      setItem((key && (await db.hydrateFile(key))) || undefined);
     })();
   }, [db, items, selected]);
 

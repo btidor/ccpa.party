@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 
-import type { TimelineEntry } from "@src/common/database";
 import type { RenderResult } from "@src/common/renderer";
+import type { TimelineEntry } from "@src/database/types";
 import type { CategoryKey } from "@src/providers/google";
 import Google from "@src/providers/google";
 

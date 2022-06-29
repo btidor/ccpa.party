@@ -2,11 +2,8 @@ import { DateTime } from "luxon";
 import React from "react";
 import { Virtuoso, VirtuosoHandle } from "react-virtuoso";
 
-import { ProviderScopedDatabase } from "@src/common/database";
-import type { TimelineEntry, TimelineEntryKey } from "@src/common/database";
 import type { Provider } from "@src/common/provider";
 import { useNavigate } from "@src/common/router";
-import { getKeyFromCookie } from "@src/common/util";
 import DatePicker from "@src/components/DatePicker";
 import FilePreview from "@src/components/FilePreview";
 import FilterBar from "@src/components/FilterBar";
@@ -14,6 +11,8 @@ import Navigation from "@src/components/Navigation";
 import Placeholder from "@src/components/Placeholder";
 import TimelineRow from "@src/components/TimelineRow";
 import type { Entry, Group } from "@src/components/TimelineRow";
+import { useProviderDatabase } from "@src/database/hooks";
+import type { TimelineEntry, TimelineEntryKey } from "@src/database/types";
 
 import styles from "@src/Drilldown.module.css";
 
@@ -26,14 +25,7 @@ type Props<T> = {
 function Timeline<T>(props: Props<T>): JSX.Element {
   const { provider, filter, selected } = props;
   const navigate = useNavigate();
-  const [epoch, setEpoch] = React.useState(0);
-  const db = React.useMemo(
-    () =>
-      new ProviderScopedDatabase(getKeyFromCookie(), provider, () =>
-        setEpoch(epoch + 1)
-      ),
-    [epoch, provider]
-  );
+  const db = useProviderDatabase(provider);
 
   // Convert the abbreviated filter string (e.g. "acns") to a set of slugs (e.g.
   // {"activity", "content", ...}) for fast lookups.
@@ -203,7 +195,6 @@ function Timeline<T>(props: Props<T>): JSX.Element {
                   totalCount={rows.length}
                   itemContent={(index) => (
                     <TimelineRow
-                      db={db}
                       isLast={index === rows.length - 1}
                       metadata={metadata || new Map()}
                       provider={provider}

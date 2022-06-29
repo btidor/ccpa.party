@@ -1,4 +1,4 @@
-import type { TimelineEntry } from "@src/common/database";
+import type { TimelineEntry } from "@src/database/types";
 import Discord from "@src/renderers/discord";
 import Google from "@src/renderers/google";
 import Slack from "@src/renderers/slack";

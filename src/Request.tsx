@@ -1,12 +1,11 @@
 import { TrashIcon } from "@primer/octicons-react";
 import React from "react";
 
-import { ProviderScopedDatabase } from "@src/common/database";
 import type { Provider } from "@src/common/provider";
 import { Link } from "@src/common/router";
 import isBrowserSupported from "@src/common/support";
-import { getKeyFromCookie } from "@src/common/util";
 import Logo from "@src/components/Logo";
+import { useProviderDatabase } from "@src/database/hooks";
 import { importFiles, resetProvider } from "@src/worker";
 
 import styles from "@src/Request.module.css";
@@ -20,9 +19,8 @@ type Display = "explore" | "import" | "pending" | "error";
 function Request<T>(props: Props<T>): JSX.Element {
   const { provider } = props;
 
-  const [db, setDb] = React.useState<ProviderScopedDatabase<T>>();
+  const db = useProviderDatabase(provider);
   const [display, setDisplay] = React.useState<Display>();
-  const [epoch, setEpoch] = React.useState(0);
 
   React.useEffect(() => {
     (async () => {
@@ -35,22 +33,12 @@ function Request<T>(props: Props<T>): JSX.Element {
     })();
   }, [db, provider]);
 
-  React.useEffect(
-    () =>
-      setDb(
-        new ProviderScopedDatabase(getKeyFromCookie(), provider, () =>
-          setEpoch(epoch + 1)
-        )
-      ),
-    [epoch, provider]
-  );
-
   const fileHandler: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     (async () => {
       if (!event.target.files) return;
       setDisplay("pending");
       await importFiles(provider, event.target.files);
-      setEpoch(epoch + 1);
+      // TODO: WritableDatabase should reload all database connections on commit
     })();
   };
 
@@ -58,7 +46,7 @@ function Request<T>(props: Props<T>): JSX.Element {
     (async () => {
       setDisplay("pending");
       await resetProvider(provider);
-      setEpoch(epoch + 1);
+      // TODO: WritableDatabase should reload all database connections on commit
     })();
   };
 

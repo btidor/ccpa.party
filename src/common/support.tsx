@@ -1,3 +1,4 @@
+// TODO: move back into database code?
 export default async function isBrowserSupported(): Promise<boolean> {
   const support = {
     crypto: !!globalThis.crypto?.subtle,

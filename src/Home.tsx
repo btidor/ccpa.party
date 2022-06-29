@@ -1,10 +1,9 @@
 import React from "react";
 
-import { Database } from "@src/common/database";
 import { ProviderRegistry } from "@src/common/provider";
 import { Link } from "@src/common/router";
-import { getKeyFromCookie } from "@src/common/util";
 import Logo from "@src/components/Logo";
+import { useBaseDatabase } from "@src/database/hooks";
 
 import styles from "@src/Home.module.css";
 
@@ -15,16 +14,11 @@ function Home(props: { scrolled: boolean }): JSX.Element {
     [props.scrolled, ref]
   );
 
-  const [epoch, setEpoch] = React.useState(0);
+  const db = useBaseDatabase();
   const [imported, setImported] = React.useState<Set<string>>();
   React.useEffect(() => {
-    (async () =>
-      setImported(
-        await new Database(getKeyFromCookie(), () =>
-          setEpoch(epoch + 1)
-        ).getProviders()
-      ))();
-  }, [epoch]);
+    (async () => setImported(await db.getProviders()))();
+  }, [db]);
 
   return (
     <main className={styles.home} ref={ref}>

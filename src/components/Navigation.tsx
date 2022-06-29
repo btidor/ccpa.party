@@ -1,11 +1,10 @@
 import React from "react";
 
-import { ProviderScopedDatabase } from "@src/common/database";
 import { ProviderRegistry } from "@src/common/provider";
 import type { Provider } from "@src/common/provider";
 import { Link, LocationContext, useNavigate } from "@src/common/router";
-import { getKeyFromCookie } from "@src/common/util";
 import Logo from "@src/components/Logo";
+import { useProviderDatabase } from "@src/database/hooks";
 
 import styles from "@src/components/Navigation.module.css";
 
@@ -25,7 +24,7 @@ function Navigation<T>(props: Props<T>): JSX.Element {
   const navigate = useNavigate();
   const location = React.useContext(LocationContext);
 
-  const [epoch, setEpoch] = React.useState(0);
+  const db = useProviderDatabase(props.provider);
   const [links, setLinks] = React.useState(baseLinks);
   const [providers, setProviders] =
     React.useState<ReadonlyArray<Provider<unknown>>>();
@@ -33,11 +32,6 @@ function Navigation<T>(props: Props<T>): JSX.Element {
   React.useEffect(() => {
     (async () => {
       setLinks(baseLinks);
-      const db = new ProviderScopedDatabase(
-        await getKeyFromCookie(),
-        provider,
-        () => setEpoch(epoch + 1)
-      );
       const active = await db.getProviders();
       setProviders(
         ProviderRegistry.filter((provider) => active.has(provider.slug))
@@ -47,7 +41,7 @@ function Navigation<T>(props: Props<T>): JSX.Element {
         { label: (await db.getHasErrors()) ? "!!" : ":)", to: "errors" },
       ]);
     })();
-  }, [epoch, provider]);
+  }, [db, provider]);
 
   return (
     <header className={styles.header}>

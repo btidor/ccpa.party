@@ -2,9 +2,9 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import type { TimelineEntry } from "@src/common/database";
 import type { RenderResult } from "@src/common/renderer";
 import { Pill } from "@src/components/Record";
+import type { TimelineEntry } from "@src/database/types";
 import type { CategoryKey } from "@src/providers/discord";
 
 export default function render(

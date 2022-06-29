@@ -1,11 +1,13 @@
 import { Gunzip, gunzip } from "fflate";
 import { unzip } from "unzipit";
 
-import { WritableDatabase } from "@src/common/database";
-import type { DataFile } from "@src/common/database";
+// import { WritableDatabase } from "@src/common/database";
 import { parseByStages } from "@src/common/parse";
 import type { Provider } from "@src/common/provider";
 import { serialize } from "@src/common/util";
+import { WriteBackend } from "@src/database/backend";
+import type { DataFile } from "@src/database/types";
+import { Resetter, Writer } from "@src/database/write";
 
 import Go from "@go";
 
@@ -22,11 +24,12 @@ type ImportFile = {
 export async function importFiles<T>(
   key: ArrayBuffer,
   provider: Provider<T>,
-  files: FileList,
-  terminated: () => void
+  files: FileList
 ) {
   const start = new Date().getTime();
-  const db = new WritableDatabase(key, provider, terminated);
+  const backend = await WriteBackend.connect(key);
+  const writer = new Writer(backend, provider);
+
   const work: ImportFile[] = [];
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -59,14 +62,14 @@ export async function importFiles<T>(
       skipped: tooLarge ? "tooLarge" : undefined,
       errors: [],
     };
-    db.putFile(dataFile);
+    writer.putFile(dataFile);
 
     const result = await parseByStages(provider, dataFile);
-    result.timeline.forEach((entry) => db.putTimelineEntry(entry));
+    result.timeline.forEach((entry) => writer.putTimelineEntry(entry));
     result.metadata.forEach(([key, value]) => metadata.set(key, value));
     result.errors.forEach((entry) => dataFile.errors.push(entry));
     dataFile.status = result.status;
-    db.putFile(dataFile);
+    writer.putFile(dataFile);
     return;
   };
 
@@ -144,20 +147,20 @@ export async function importFiles<T>(
       throw new Error("Unknown file: " + path.at(-1));
     }
   }
-  db.putMetadata(metadata);
+  writer.putMetadata(metadata);
   const middle = new Date().getTime();
   console.warn(`Parse Time: ${(new Date().getTime() - start) / 1000}s`);
 
-  await db.commit();
+  await writer.commit();
   console.warn(`Database Time: ${(new Date().getTime() - middle) / 1000}s`);
   console.warn(`Total Time: ${(new Date().getTime() - start) / 1000}s`);
 }
 
 export async function resetProvider<T>(
   key: ArrayBuffer,
-  provider: Provider<T>,
-  terminated: () => void
+  provider: Provider<T>
 ) {
-  const db = new WritableDatabase(key, provider, terminated);
-  await db.resetProvider();
+  const backend = await WriteBackend.connect(key);
+  const resetter = new Resetter(backend, provider);
+  await resetter.resetProvider();
 }

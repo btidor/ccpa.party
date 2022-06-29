@@ -1,9 +1,9 @@
 import EmojiMap from "emoji-name-map";
 import React from "react";
 
-import type { TimelineEntry } from "@src/common/database";
 import type { RenderResult } from "@src/common/renderer";
 import { Highlight, Pill } from "@src/components/Record";
+import type { TimelineEntry } from "@src/database/types";
 import type { CategoryKey } from "@src/providers/slack";
 
 export default function render(

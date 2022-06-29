@@ -1,11 +1,11 @@
 import React from "react";
 
-import { ParseError, ProviderScopedDatabase } from "@src/common/database";
 import type { Provider } from "@src/common/provider";
 import { useNavigate } from "@src/common/router";
-import { getKeyFromCookie } from "@src/common/util";
 import Navigation from "@src/components/Navigation";
 import Placeholder from "@src/components/Placeholder";
+import { useProviderDatabase } from "@src/database/hooks";
+import type { ParseError } from "@src/database/types";
 
 import styles from "@src/Errors.module.css";
 
@@ -18,16 +18,13 @@ function Errors<T>(props: Props<T>): JSX.Element {
 
   const navigate = useNavigate();
 
-  const [epoch, setEpoch] = React.useState(0);
+  const db = useProviderDatabase(props.provider);
   const [message, setMessage] = React.useState({
     provider: provider.slug,
     text: undefined as string | void,
   });
   React.useEffect(() => {
     (async () => {
-      const db = new ProviderScopedDatabase(getKeyFromCookie(), provider, () =>
-        setEpoch(epoch + 1)
-      );
       const files = await db.getFiles();
       if (files.length === 0) navigate(`/${provider.slug}`);
 
@@ -69,7 +66,7 @@ function Errors<T>(props: Props<T>): JSX.Element {
 
       setMessage({ provider: provider.slug, text: rows.join("\n\n") + "\n" });
     })();
-  }, [epoch, navigate, provider]);
+  }, [db, navigate, provider]);
 
   return (
     <div

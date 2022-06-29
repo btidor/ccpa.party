@@ -1,11 +1,11 @@
 import { DateTime } from "luxon";
 import React from "react";
 
-import { ProviderScopedDatabase } from "@src/common/database";
-import type { TimelineEntry, TimelineEntryKey } from "@src/common/database";
 import type { Provider } from "@src/common/provider";
 import { RendererLookup } from "@src/common/renderer";
 import Record from "@src/components/Record";
+import { useProviderDatabase } from "@src/database/hooks";
+import type { TimelineEntry, TimelineEntryKey } from "@src/database/types";
 
 import styles from "@src/components/TimelineRow.module.css";
 
@@ -21,7 +21,6 @@ export type Group = {
 };
 
 type Props<T> = {
-  db: ProviderScopedDatabase<T>;
   isLast: boolean;
   metadata: ReadonlyMap<string, unknown>;
   provider: Provider<T>;
@@ -31,8 +30,9 @@ type Props<T> = {
 };
 
 function TimelineRow<T>(props: Props<T>): JSX.Element {
-  const { db, isLast, metadata, provider, row, selected, setSelected } = props;
+  const { isLast, metadata, provider, row, selected, setSelected } = props;
 
+  const db = useProviderDatabase(props.provider);
   const [hydrated, setHydrated] = React.useState<TimelineEntry<T> | void>();
   React.useEffect(() => {
     (async () => {

@@ -6,7 +6,7 @@ import {
 } from "@primer/octicons-react";
 import React from "react";
 
-import type { DataFileKey } from "@src/common/database";
+import type { DataFileKey } from "@src/database/types";
 
 import styles from "@src/components/FileTree.module.css";
 
