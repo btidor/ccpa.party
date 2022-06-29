@@ -3,6 +3,8 @@ import React from "react";
 import type { Provider } from "@src/common/provider";
 import { getKeyFromCookie } from "@src/common/util";
 import { ReadBackend } from "@src/database/backend";
+import { channelId } from "@src/database/backend";
+import type { DatabaseBroadcast } from "@src/database/backend";
 import { BaseDatabase, ProviderDatabase } from "@src/database/query";
 
 // Globally cache the database backend: we use a single IndexedDB connection for
@@ -20,19 +22,22 @@ async function initialize(): Promise<void> {
     // database is a dependency of all of the interactive parts of the app.
     const support = {
       crypto: !!globalThis.crypto?.subtle,
+      idb: undefined as boolean | void,
       locks: !!globalThis.navigator?.locks,
-    } as { [key: string]: boolean };
+      wasm: !!globalThis.WebAssembly?.instantiateStreaming,
+      worker: !!globalThis.Worker,
+    };
 
     let backend;
     try {
       const key = await getKeyFromCookie();
-      backend = key && (await ReadBackend.connect(key));
-      support.indexedDB = true;
+      backend = key && (await ReadBackend.connect(key, reinitialize));
+      support.idb = true;
     } catch (e) {
       if (e instanceof Event && e.target instanceof IDBOpenDBRequest) {
         // This usually means we're in a Firefox private window, where IndexedDB
         // is blocked: https://bugzilla.mozilla.org/show_bug.cgi?id=1639542
-        support.indexedDB = false;
+        support.idb = false;
       } else {
         throw e;
       }
@@ -47,6 +52,14 @@ async function initialize(): Promise<void> {
   await initializer;
 }
 
+// Open a new connection to the database and make all dependent React components
+// refresh. Called when the key changes or when the database is cleared.
+async function reinitialize(): Promise<void> {
+  cache = undefined;
+  const bc = new BroadcastChannel(channelId);
+  bc.postMessage({ type: "reset" });
+}
+
 export function useBrowserSupport(): boolean | void {
   const [support, setSupport] = React.useState(cache?.supported);
   React.useEffect(() => {
@@ -55,27 +68,34 @@ export function useBrowserSupport(): boolean | void {
   return support;
 }
 
-export function useBaseDatabase(): BaseDatabase {
+function useBackendUpdates(provider?: Provider<unknown>): number {
   const [epoch, setEpoch] = React.useState(0);
   React.useEffect(() => {
     if (!cache) initialize().then(() => setEpoch((e) => e + 1));
   });
-  // TODO: subscribe to further updates
+  React.useEffect(() => {
+    const bc = new BroadcastChannel(channelId);
+    bc.onmessage = (msg: MessageEvent<DatabaseBroadcast>) => {
+      const { data } = msg;
+      if (data.type === "reset") setEpoch((e) => e + 1);
+      if (data.type === "write" && data.provider === provider?.slug)
+        setEpoch((e) => e + 1);
+    };
+  }, [provider, setEpoch]);
+  return epoch;
+}
+
+export function useBaseDatabase(): BaseDatabase {
+  const epoch = useBackendUpdates();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   return React.useMemo(() => new BaseDatabase(cache?.backend), [epoch]);
 }
 
-export function useProviderDatabase<T>(
-  provider: Provider<T>
-): ProviderDatabase<T> {
-  const [epoch, setEpoch] = React.useState(0);
-  React.useEffect(() => {
-    if (!cache) initialize().then(() => setEpoch((e) => e + 1));
-  });
+export function useProviderDatabase<T>(provider: Provider<T>) {
+  const epoch = useBackendUpdates(provider);
   return React.useMemo(
-    // TODO: subscribe to further updates
     () => new ProviderDatabase(cache?.backend, provider),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [epoch, provider]
+    [epoch]
   );
 }

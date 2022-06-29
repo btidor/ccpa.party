@@ -1,5 +1,5 @@
 import type { Provider } from "@src/common/provider";
-import type { WriteBackend } from "@src/database/backend";
+import { WriteBackend } from "@src/database/backend";
 import { ProviderDatabase } from "@src/database/query";
 import type { DataFile, TimelineEntry } from "@src/database/types";
 
@@ -106,10 +106,16 @@ export class Writer<T> {
       (index) => (index[this.provider.slug] = iv)
     );
 
-    // Close database and block future writes [TODO]
-    // this.state?.db.close();
-    // this.state = undefined;
-    // this._terminate();
+    // Reset internal state
+    this.additions = {
+      files: [],
+      metadata: new Map(),
+      timeline: [],
+      timelineDedup: new Set(),
+    };
+
+    // Notify everyone that the data has changed!
+    WriteBackend.broadcastWrite(this.provider.slug);
   }
 }
 
@@ -141,24 +147,13 @@ export class Resetter<T> {
       (index) => delete index[this.provider.slug]
     );
 
-    // Close database and block future writes [TODO]
-    // const isEmpty = !Object.keys(this.backend.getRootIndex()).length;
-    // const state = await this.state;
-    // if (isEmpty && state) {
-    //   console.warn("Clearing IndexedDB...");
-    //   await new Promise((resolve, reject) => {
-    //     const op = state.db
-    //       .transaction(dbStore, "readwrite")
-    //       .objectStore(dbStore)
-    //       .clear();
-    //     op.onsuccess = () => resolve(op.result);
-    //     op.onerror = (e) => reject(e);
-    //   });
-    // }
+    const isEmpty = !Object.keys(this.backend.getRootIndex()).length;
+    if (isEmpty) {
+      console.warn("Clearing IndexedDB...");
+      this.backend.clear();
+    }
 
-    // TODO:
-    // state?.db.close();
-    // this.state = undefined;
-    // this._terminate();
+    // Notify everyone that the data has changed!
+    WriteBackend.broadcastReset();
   }
 }

@@ -18,7 +18,6 @@ type ProviderIndex = {
 export class BaseDatabase {
   protected backend: ReadBackend | void;
   protected rootIndex: Promise<RootIndex>;
-  // TODO: handle reloading
 
   constructor(backend: ReadBackend | void) {
     this.backend = backend;

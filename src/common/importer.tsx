@@ -1,7 +1,6 @@
 import { Gunzip, gunzip } from "fflate";
 import { unzip } from "unzipit";
 
-// import { WritableDatabase } from "@src/common/database";
 import { parseByStages } from "@src/common/parse";
 import type { Provider } from "@src/common/provider";
 import { serialize } from "@src/common/util";
@@ -27,7 +26,7 @@ export async function importFiles<T>(
   files: FileList
 ) {
   const start = new Date().getTime();
-  const backend = await WriteBackend.connect(key);
+  const backend = await WriteBackend.connect(key, async () => undefined);
   const writer = new Writer(backend, provider);
 
   const work: ImportFile[] = [];
@@ -160,7 +159,7 @@ export async function resetProvider<T>(
   key: ArrayBuffer,
   provider: Provider<T>
 ) {
-  const backend = await WriteBackend.connect(key);
+  const backend = await WriteBackend.connect(key, async () => undefined);
   const resetter = new Resetter(backend, provider);
   await resetter.resetProvider();
 }

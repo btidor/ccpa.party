@@ -38,7 +38,6 @@ function Request<T>(props: Props<T>): JSX.Element {
       if (!event.target.files) return;
       setDisplay("pending");
       await importFiles(provider, event.target.files);
-      // TODO: WritableDatabase should reload all database connections on commit
     })();
   };
 
@@ -46,7 +45,6 @@ function Request<T>(props: Props<T>): JSX.Element {
     (async () => {
       setDisplay("pending");
       await resetProvider(provider);
-      // TODO: WritableDatabase should reload all database connections on commit
     })();
   };
 
