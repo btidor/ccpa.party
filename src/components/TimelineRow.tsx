@@ -4,7 +4,7 @@ import React from "react";
 import type { Provider } from "@src/common/provider";
 import { RendererLookup } from "@src/common/renderer";
 import Record from "@src/components/Record";
-import { useProviderDatabase } from "@src/database/hooks";
+import type { ProviderDatabase } from "@src/database/query";
 import type { TimelineEntry, TimelineEntryKey } from "@src/database/types";
 
 import styles from "@src/components/TimelineRow.module.css";
@@ -21,6 +21,7 @@ export type Group = {
 };
 
 type Props<T> = {
+  db: ProviderDatabase<T>;
   isLast: boolean;
   metadata: ReadonlyMap<string, unknown>;
   provider: Provider<T>;
@@ -30,9 +31,8 @@ type Props<T> = {
 };
 
 function TimelineRow<T>(props: Props<T>): JSX.Element {
-  const { isLast, metadata, provider, row, selected, setSelected } = props;
+  const { db, isLast, metadata, provider, row, selected, setSelected } = props;
 
-  const db = useProviderDatabase(props.provider);
   const [hydrated, setHydrated] = React.useState<TimelineEntry<T> | void>();
   React.useEffect(() => {
     (async () => {

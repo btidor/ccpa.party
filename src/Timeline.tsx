@@ -195,6 +195,7 @@ function Timeline<T>(props: Props<T>): JSX.Element {
                   totalCount={rows.length}
                   itemContent={(index) => (
                     <TimelineRow
+                      db={db}
                       isLast={index === rows.length - 1}
                       metadata={metadata || new Map()}
                       provider={provider}
