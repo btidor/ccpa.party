@@ -21,6 +21,7 @@ async function initialize(): Promise<void> {
     // parts of the pages to render even on unsupported browsers. Accessing the
     // database is a dependency of all of the interactive parts of the app.
     const support = {
+      broadcast: !!globalThis.BroadcastChannel,
       crypto: !!globalThis.crypto?.subtle,
       idb: undefined as boolean | void,
       locks: !!globalThis.navigator?.locks,
@@ -45,10 +46,13 @@ async function initialize(): Promise<void> {
     }
 
     const supported = Object.values(support).every((x) => x);
-    if (supported) console.log("Feature Detection OK", support);
-    else console.error("Feature Detection Failed", support);
-
     cache = { backend, supported };
+    if (supported) {
+      console.log("Feature Detection OK", support);
+    } else {
+      console.error("Feature Detection Failed", support);
+      return;
+    }
 
     const bc = new BroadcastChannel(channelId);
     bc.onmessage = (msg: MessageEvent<DatabaseBroadcast>) =>
@@ -80,6 +84,7 @@ function useBackendUpdates(provider?: Provider<unknown>): number {
     if (!cache) initialize().then(() => setEpoch((e) => e + 1));
   });
   React.useEffect(() => {
+    if (!globalThis.BroadcastChannel) return; // in tests
     const bc = new BroadcastChannel(channelId);
     bc.onmessage = (msg: MessageEvent<DatabaseBroadcast>) => {
       const { data } = msg;
