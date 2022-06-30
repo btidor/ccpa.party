@@ -1,8 +1,13 @@
-import { Gunzip, gunzip } from "fflate";
 import { unzip } from "unzipit";
 
 import { parseByStages } from "@src/common/parse";
 import { Provider, ProviderLookup } from "@src/common/provider";
+import {
+  ArrayBufferStream,
+  ChunkingStream,
+  DecompressionStream,
+  ProgressStream,
+} from "@src/common/stream";
 import { serialize } from "@src/common/util";
 import { WriteBackend } from "@src/database/backend";
 import type { DataFile } from "@src/database/types";
@@ -12,17 +17,18 @@ import type { WorkerMessage } from "@src/worker/types";
 
 import Go from "@go";
 
-const fallbackBlockSize = 64 * 1024 * 1024;
-
 type ImportFile = {
   path: ReadonlyArray<string>;
   data: File | ArrayBufferLike;
 };
 
+const chunkSize = 32 * 1024 * 1024;
+
 async function importFiles<T>(
   key: ArrayBuffer,
   provider: Provider<T>,
-  files: FileList
+  files: FileList,
+  progress: (progress: number) => void
 ) {
   const start = new Date().getTime();
   const backend = await WriteBackend.connect(key, async () => undefined);
@@ -84,41 +90,24 @@ async function importFiles<T>(
         if (next) work.push(next);
       }
     } else if (path.at(-1)?.endsWith(".tar.gz")) {
+      let size: number;
       let stream: ReadableStream<Uint8Array>;
       if (data instanceof File) {
-        if ("DecompressionStream" in globalThis) {
-          const decompressor = new DecompressionStream("gzip");
-          data.stream().pipeThrough(decompressor);
-          stream = decompressor.readable;
-        } else {
-          stream = new ReadableStream({
-            async start(controller) {
-              const decompressor = new Gunzip(
-                (chunk: Uint8Array, final: boolean) => {
-                  final ? controller.close() : controller.enqueue(chunk);
-                }
-              );
-              for (let i = 0; i < data.size; i += fallbackBlockSize) {
-                const slice = new Uint8Array(
-                  await data.slice(i, i + fallbackBlockSize).arrayBuffer()
-                );
-                decompressor.push(slice, false);
-              }
-              decompressor.push(new Uint8Array(), true);
-            },
-          });
-        }
+        size = data.size;
+        stream = data.stream().pipeThrough(new ChunkingStream(chunkSize));
       } else {
-        stream = new ReadableStream({
-          async start(controller) {
-            gunzip(new Uint8Array(data), { consume: true }, (err, data) => {
-              if (err) throw err;
-              controller.enqueue(data);
-              controller.close();
-            });
-          },
-        });
+        size = data.byteLength;
+        stream = new ArrayBufferStream(data, chunkSize);
       }
+
+      // Report progress as we read the underlying data. This has to be on the
+      // original, compressed file because we know its size ahead of time.
+      stream = stream.pipeThrough(
+        new ProgressStream((bytes) => progress(bytes / size))
+      );
+
+      // Un-gzip!
+      stream = stream.pipeThrough(new DecompressionStream("gzip"));
 
       const go = await Go();
       const tar = new go.hooks.TarFile(stream);
@@ -167,7 +156,9 @@ onmessage = (message: MessageEvent<WorkerMessage>) => {
     if (!provider) throw new Error("unknown provider: " + provider);
 
     if (data.type === "importFiles") {
-      await importFiles(data.key, provider, data.files);
+      await importFiles(data.key, provider, data.files, (p: number) => {
+        console.warn("Progress:", p);
+      });
     } else if (data.type === "resetProvider") {
       await resetProvider(data.key, provider);
     } else {

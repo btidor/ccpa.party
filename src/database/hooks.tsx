@@ -24,6 +24,7 @@ async function initialize(): Promise<void> {
       crypto: !!globalThis.crypto?.subtle,
       idb: undefined as boolean | void,
       locks: !!globalThis.navigator?.locks,
+      transform: !!globalThis.TransformStream,
       wasm: !!globalThis.WebAssembly?.instantiateStreaming,
       worker: !!globalThis.Worker,
     };
