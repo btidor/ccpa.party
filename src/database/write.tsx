@@ -7,7 +7,7 @@ import type { DataFile, TimelineEntry } from "@src/database/types";
 // (because we have to sift through more extraneous data in order to load the
 // items we want), but it also speeds up imports by a lot, especially on older
 // browsers (because the per-put overhead is so high). :(
-const batchSize = 250;
+const batchSize = 64;
 
 export class Writer<T> {
   protected backend: WriteBackend;
