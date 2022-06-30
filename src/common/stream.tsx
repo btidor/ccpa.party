@@ -61,10 +61,7 @@ class FflateDecompressionStream extends TransformStream<
   Uint8Array,
   Uint8Array
 > {
-  constructor(format: "gzip" | "deflate") {
-    // For compatibility with Compression Streams API:
-    if (format !== "gzip") throw new Error("only gzip is supported");
-
+  constructor(_: "gzip") {
     let decompressor: Gunzip;
     super({
       async start(controller) {
@@ -83,7 +80,7 @@ class FflateDecompressionStream extends TransformStream<
 }
 
 export const DecompressionStream: {
-  new (format: "gzip" | "deflate"): TransformStream<Uint8Array, Uint8Array>;
+  new (format: "gzip"): TransformStream<Uint8Array, Uint8Array>;
 } =
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (globalThis as any).DecompressionStream || FflateDecompressionStream;
