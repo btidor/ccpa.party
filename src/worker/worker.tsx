@@ -13,7 +13,7 @@ import { WriteBackend } from "@src/database/backend";
 import type { DataFile } from "@src/database/types";
 import { Resetter, Writer } from "@src/database/write";
 import { fileSizeLimitMB } from "@src/worker/types";
-import type { WorkerMessage } from "@src/worker/types";
+import type { WorkerRequest, WorkerResponse } from "@src/worker/types";
 
 import Go from "@go";
 
@@ -28,7 +28,7 @@ async function importFiles<T>(
   key: ArrayBuffer,
   provider: Provider<T>,
   files: FileList,
-  progress: (progress: number) => void
+  reportProgress: (fraction: number) => void
 ) {
   const start = new Date().getTime();
   const backend = await WriteBackend.connect(key, async () => undefined);
@@ -80,12 +80,21 @@ async function importFiles<T>(
   for (const { path, data } of work) {
     if (path.at(-1)?.endsWith(".zip")) {
       const zip = await unzip(data);
-      for (const entry of Object.values(zip.entries || [])) {
+      const entries = Object.values(zip.entries || []);
+
+      let count = 0;
+      const size = entries.reduce((s, e) => s + e.size, 0);
+
+      for (const entry of entries) {
+        count += entry.size;
+        reportProgress(count / size);
         if (entry.isDirectory) continue;
         const subpath = [
           ...path,
           ...entry.name.split("/").filter((x) => x && x !== "."),
         ];
+        // TODO: only entries with a matching path should be decompressed (and
+        // counted towards size)
         const next = await processEntry(subpath, await entry.arrayBuffer());
         if (next) work.push(next);
       }
@@ -103,7 +112,7 @@ async function importFiles<T>(
       // Report progress as we read the underlying data. This has to be on the
       // original, compressed file because we know its size ahead of time.
       stream = stream.pipeThrough(
-        new ProgressStream((bytes) => progress(bytes / size))
+        new ProgressStream((bytes) => reportProgress(bytes / size))
       );
 
       // Un-gzip!
@@ -149,21 +158,31 @@ async function resetProvider<T>(key: ArrayBuffer, provider: Provider<T>) {
   await resetter.resetProvider();
 }
 
-onmessage = (message: MessageEvent<WorkerMessage>) => {
+function sendResponse(msg: WorkerResponse) {
+  postMessage(msg);
+}
+
+onmessage = (message: MessageEvent<WorkerRequest>) => {
   (async () => {
     const { data } = message;
     const provider = ProviderLookup.get(data.provider);
     if (!provider) throw new Error("unknown provider: " + provider);
 
+    let previous = Date.now();
+    const reportProgress = (fraction: number) => {
+      const now = Date.now();
+      if (now - previous < 200) return; // debounce
+      sendResponse({ type: "progress", id: data.id, fraction });
+      previous = now;
+    };
+
     if (data.type === "importFiles") {
-      await importFiles(data.key, provider, data.files, (p: number) => {
-        console.warn("Progress:", p);
-      });
+      await importFiles(data.key, provider, data.files, reportProgress);
     } else if (data.type === "resetProvider") {
       await resetProvider(data.key, provider);
     } else {
       throw new Error("unknown request type");
     }
-    postMessage(data.id);
+    sendResponse({ type: "done", id: data.id });
   })();
 };

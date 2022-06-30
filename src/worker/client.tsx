@@ -1,28 +1,40 @@
 import type { Provider } from "@src/common/provider";
 import { getOrGenerateKeyFromCookie } from "@src/common/util";
-import type { WorkerMessage } from "@src/worker/types";
+import type { WorkerRequest, WorkerResponse } from "@src/worker/types";
 import Worker from "@src/worker/worker?worker";
 
 let worker: Worker | void;
 const pending = new Map<string, () => void>();
+const progress = new Map<string, (fraction: number) => void>();
 
-function sendMessage(msg: WorkerMessage): void {
+function sendRequest(msg: WorkerRequest): void {
   if (!worker) {
     worker = new Worker();
-    worker.onmessage = (msg: MessageEvent<string>) => pending.get(msg.data)?.();
+    worker.onmessage = (msg: MessageEvent<WorkerResponse>) => {
+      const { data } = msg;
+      if (data.type === "done") {
+        pending.get(data.id)?.();
+      } else if (data.type === "progress") {
+        progress.get(data.id)?.(data.fraction);
+      } else {
+        throw new Error("unknown response type");
+      }
+    };
   }
   worker.postMessage(msg);
 }
 
 export async function importFiles(
   provider: Provider<unknown>,
-  files: FileList
+  files: FileList,
+  reportProgress: (fraction: number) => void
 ): Promise<void> {
   const id = globalThis.crypto.randomUUID();
   const key = await getOrGenerateKeyFromCookie();
   await new Promise<void>((resolve) => {
     pending.set(id, resolve);
-    sendMessage({
+    progress.set(id, reportProgress);
+    sendRequest({
       id,
       key,
       type: "importFiles",
@@ -39,7 +51,7 @@ export async function resetProvider(
   const key = await getOrGenerateKeyFromCookie();
   await new Promise<void>((resolve) => {
     pending.set(id, resolve);
-    sendMessage({
+    sendRequest({
       id,
       key,
       type: "resetProvider",

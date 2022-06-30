@@ -37,17 +37,22 @@ function Request<T>(props: Props<T>): JSX.Element {
     })();
   }, [db, provider, support]);
 
+  const [progress, setProgress] = React.useState<number>();
   const fileHandler: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     (async () => {
       if (!event.target.files) return;
+      setProgress(0);
       setDisplay("pending");
-      await importFiles(provider, event.target.files);
+      await importFiles(provider, event.target.files, (fraction: number) =>
+        setProgress(fraction)
+      );
       setDisplay("explore");
     })();
   };
 
   const resetHandler: React.ChangeEventHandler<unknown> = () => {
     (async () => {
+      setProgress(undefined);
       setDisplay("pending");
       await resetProvider(provider);
       setDisplay("import");
@@ -133,7 +138,7 @@ function Request<T>(props: Props<T>): JSX.Element {
                 Import {provider.fileName} ↑
               </label>
             ) : display === "pending" ? (
-              <code>...</code>
+              <code>{progress ? `${Math.round(progress * 100)}%` : "..."}</code>
             ) : display === "error" ? (
               <code>[Browser Not Supported]</code>
             ) : undefined}
