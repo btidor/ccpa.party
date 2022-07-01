@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/vscode/devcontainers/base:0-hirsute
+FROM mcr.microsoft.com/vscode/devcontainers/base:0-jammy
 
 ENV DEBIAN_FRONTEND=noninteractive
 COPY *.gpg /usr/share/keyrings/
@@ -7,7 +7,8 @@ COPY *.list /etc/apt/sources.list.d/
 RUN apt update -q && apt upgrade -yq
 
 RUN apt install -yq nodejs libatomic1 && \
-    npm install -g npm@latest vercel@latest
+    npm install -g npm@latest vercel@latest && \
+    sudo -iu vscode -- npx --yes playwright install --with-deps
 
 RUN apt install -yq python3-pip brotli && \
     pip3 install fonttools brotli uharfbuzz
