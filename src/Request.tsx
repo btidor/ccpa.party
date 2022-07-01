@@ -13,53 +13,57 @@ type Props<T> = {
   provider: Provider<T>;
 };
 
-type Display = "explore" | "import" | "pending" | "error";
+type Status =
+  | { type: "explore" }
+  | { type: "import" }
+  | { type: "pending"; progress: number | void }
+  | { type: "unsupported" };
 
 function Request<T>(props: Props<T>): JSX.Element {
   const { provider } = props;
 
   const support = useBrowserSupport();
   const db = useProviderDatabase(provider);
-  const [display, setDisplay] = React.useState<Display>();
+  const [status, setStatus] = React.useState<Status>();
 
   React.useEffect(() => {
     (async () => {
       if (support === false) {
-        setDisplay("error");
+        setStatus({ type: "unsupported" });
       } else if (support === true && db) {
         const imported = (await db.getProviders()).has(provider.slug);
-        setDisplay((display) => {
-          if (imported) return "explore";
-          else if (display === "pending") return "pending";
-          else return "import";
+        setStatus((status) => {
+          if (imported) return { type: "explore" };
+          else if (status?.type === "pending") return status;
+          else return { type: "import" };
         });
       }
     })();
   }, [db, provider, support]);
 
-  const [progress, setProgress] = React.useState<number>();
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
   const fileHandler: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     (async () => {
       if (!event.target.files) return;
-      setProgress(0);
-      setDisplay("pending");
-      await importFiles(provider, event.target.files, (fraction: number) =>
-        setProgress(fraction)
+      setStatus({ type: "pending", progress: 0 });
+      await importFiles(provider, event.target.files, (progress: number) =>
+        setStatus({ type: "pending", progress })
       );
-      setDisplay("explore");
+      setStatus({ type: "explore" });
     })();
   };
 
   const resetHandler: React.ChangeEventHandler<unknown> = () => {
     (async () => {
-      setProgress(undefined);
-      setDisplay("pending");
+      setStatus({ type: "pending", progress: undefined });
       await resetProvider(provider);
-      setDisplay("import");
+      setStatus({ type: "import" });
+      // Reset file input (for Chrome)
+      if (inputRef?.current) inputRef.current.value = "";
     })();
   };
 
-  const inputRef = React.useRef<HTMLInputElement>(null);
   return (
     <main
       className={styles.request}
@@ -114,7 +118,7 @@ function Request<T>(props: Props<T>): JSX.Element {
               ref={inputRef}
               onChange={fileHandler}
             />
-            {display === "explore" ? (
+            {status?.type === "explore" ? (
               <React.Fragment>
                 <div className={styles.import}>
                   <Link to={`/${provider.slug}/timeline`}>Explore →</Link>
@@ -126,7 +130,7 @@ function Request<T>(props: Props<T>): JSX.Element {
                   </div>
                 </div>
               </React.Fragment>
-            ) : display === "import" ? (
+            ) : status?.type === "import" ? (
               <label
                 htmlFor="import"
                 tabIndex={0}
@@ -137,9 +141,15 @@ function Request<T>(props: Props<T>): JSX.Element {
               >
                 Import {provider.fileName} ↑
               </label>
-            ) : display === "pending" ? (
-              <code>{progress ? `${Math.round(progress * 100)}%` : "..."}</code>
-            ) : display === "error" ? (
+            ) : status?.type === "pending" ? (
+              <code>
+                {status.progress === undefined
+                  ? "..."
+                  : `${Math.min(Math.round(status.progress * 100), 99)
+                      .toString()
+                      .padStart(2, "0")}%`}
+              </code>
+            ) : status?.type === "unsupported" ? (
               <code>[Browser Not Supported]</code>
             ) : undefined}
           </div>
