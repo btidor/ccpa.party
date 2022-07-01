@@ -147,11 +147,9 @@ export class Resetter<T> {
       (index) => delete index[this.provider.slug]
     );
 
-    const isEmpty = !Object.keys(this.backend.getRootIndex()).length;
-    if (isEmpty) {
-      console.warn("Clearing IndexedDB...");
-      this.backend.clear();
-    }
+    const remaining = new Set(Object.keys(await this.backend.getRootIndex()));
+    remaining.delete(this.provider.slug);
+    if (remaining.size === 0) this.backend.clear();
 
     // Notify everyone that the data has changed!
     WriteBackend.broadcastReset();
