@@ -107,8 +107,8 @@ class App extends React.Component<Props, State> {
     if (parts.length) return this.error(404);
     const pageSlug = matches[1];
     if (pageSlug === "timeline") {
-      // URL: `/:provider/timeline(:filter)?(@selected)?`
-      const filter = matches[2]?.slice(1) || undefined;
+      // URL: `/:provider/timeline(:filter)?(@selected)?`;
+      const filter = matches[2]?.slice(1);
       const selected = matches[3]?.slice(1) || undefined;
       return (
         <Timeline provider={provider} filter={filter} selected={selected} />
