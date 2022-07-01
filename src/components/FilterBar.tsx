@@ -72,4 +72,4 @@ function FilterBar<T>(props: Props<T>): JSX.Element {
   }
 }
 
-export default FilterBar;
+export default React.memo(FilterBar);

@@ -93,4 +93,4 @@ function TimelineRow<T>(props: Props<T>): JSX.Element {
   }
 }
 
-export default TimelineRow;
+export default React.memo(TimelineRow);

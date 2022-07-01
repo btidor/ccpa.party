@@ -95,4 +95,4 @@ function Navigation<T>(props: Props<T>): JSX.Element {
   );
 }
 
-export default Navigation;
+export default React.memo(Navigation);
