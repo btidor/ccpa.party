@@ -6,8 +6,7 @@
   "extensions": [
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "golang.go",
-    "ZixuanChen.vitest-explorer"
+    "golang.go"
   ],
   "settings": {
     "editor.tabSize": 2,
