@@ -16,7 +16,7 @@ type Props<T> = {
 type Status =
   | { type: "explore" }
   | { type: "import" }
-  | { type: "pending"; progress: number | void }
+  | { type: "pending"; progress: number }
   | { type: "unsupported" };
 
 function Request<T>(props: Props<T>): JSX.Element {
@@ -56,7 +56,7 @@ function Request<T>(props: Props<T>): JSX.Element {
 
   const resetHandler: React.ChangeEventHandler<unknown> = () => {
     (async () => {
-      setStatus({ type: "pending", progress: undefined });
+      setStatus({ type: "pending", progress: 0 });
       await resetProvider(provider);
       setStatus({ type: "import" });
       // Reset file input (for Chrome)
@@ -142,13 +142,10 @@ function Request<T>(props: Props<T>): JSX.Element {
                 Import {provider.fileName} ↑
               </label>
             ) : status?.type === "pending" ? (
-              <code>
-                {status.progress === undefined
-                  ? "..."
-                  : `${Math.min(Math.round(status.progress * 100), 99)
-                      .toString()
-                      .padStart(2, "0")}%`}
-              </code>
+              (() => {
+                const bars = Math.round(status.progress * 25);
+                return <code>{"▓".repeat(bars) + "░".repeat(25 - bars)}</code>;
+              })()
             ) : status?.type === "unsupported" ? (
               <code>[Browser Not Supported]</code>
             ) : undefined}
