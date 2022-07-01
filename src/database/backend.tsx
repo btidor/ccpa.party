@@ -14,7 +14,7 @@ const keyUsages: KeyUsage[] = ["encrypt", "decrypt"];
 
 export const channelId = "database";
 export type DatabaseBroadcast =
-  | { type: "rekey" }
+  | { type: "rekey"; clear: string | void }
   | { type: "reset" }
   | { type: "write"; provider: string };
 
@@ -48,11 +48,13 @@ async function dbInit(): Promise<IDBDatabase> {
 export class ReadBackend {
   protected db: IDBDatabase;
   protected key: CryptoKey;
+  protected keyHash: string;
   reload: () => Promise<void>;
 
   protected constructor(
     db: IDBDatabase,
     key: CryptoKey,
+    keyHash: string,
     reload: () => Promise<void>
   ) {
     db.onversionchange = () => (db.close(), reload());
@@ -60,6 +62,7 @@ export class ReadBackend {
 
     this.db = db;
     this.key = key;
+    this.keyHash = keyHash;
     this.reload = reload;
   }
 
@@ -89,7 +92,7 @@ export class ReadBackend {
         false,
         keyUsages
       );
-      return new this(db, cryptoKey, reload);
+      return new this(db, cryptoKey, keyHash, reload);
     } else {
       // Database has not yet been initialized or written to, or database exists
       // but the original encryption key has expired.
@@ -160,7 +163,7 @@ export class WriteBackend extends ReadBackend {
         op.onsuccess = () => resolve();
         op.onerror = (e) => reject(e);
       });
-      broadcast({ type: "rekey" });
+      broadcast({ type: "rekey", clear: undefined });
     } else {
       // Database exists but the original encryption key has expired. We got
       // unlucky; the expiry process should have cleaned it up by now...
@@ -176,7 +179,7 @@ export class WriteBackend extends ReadBackend {
       false,
       keyUsages
     );
-    return new this(db, cryptoKey, reload);
+    return new this(db, cryptoKey, keyHash, reload);
   }
 
   static broadcastReset() {
@@ -265,16 +268,21 @@ export class WriteBackend extends ReadBackend {
   }
 
   async clear(): Promise<void> {
-    console.warn("Clearing IndexedDB...");
-    await new Promise((resolve, reject) => {
-      const op = this.db
-        .transaction(dbStore, "readwrite")
-        .objectStore(dbStore)
-        .clear();
-      op.onsuccess = () => resolve(op.result);
-      op.onerror = (e) => reject(e);
-    });
+    expireDatabaseAndKey(this.db, this.keyHash);
   }
+}
+
+async function expireDatabaseAndKey(db: IDBDatabase, keyHash: string | void) {
+  await new Promise((resolve, reject) => {
+    const op = db
+      .transaction(dbStore, "readwrite")
+      .objectStore(dbStore)
+      .clear();
+    op.onsuccess = () => resolve(op.result);
+    op.onerror = (e) => reject(e);
+  });
+  broadcast({ type: "rekey", clear: keyHash });
+  console.log("Reset database");
 }
 
 export async function maybeExpire(key: ArrayBuffer | void) {
@@ -295,16 +303,7 @@ export async function maybeExpire(key: ArrayBuffer | void) {
     // ok: database key is current
   } else {
     // not ok: database key is expired or inconsistent
-    console.warn("Expiring IndexedDB...");
-    await new Promise((resolve, reject) => {
-      const op = db
-        .transaction(dbStore, "readwrite")
-        .objectStore(dbStore)
-        .clear();
-      op.onsuccess = () => resolve(op.result);
-      op.onerror = (e) => reject(e);
-    });
-    broadcast({ type: "rekey" });
+    expireDatabaseAndKey(db, keyHash);
   }
 
   db.close();

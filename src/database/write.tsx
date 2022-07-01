@@ -149,9 +149,13 @@ export class Resetter<T> {
 
     const remaining = new Set(Object.keys(await this.backend.getRootIndex()));
     remaining.delete(this.provider.slug);
-    if (remaining.size === 0) this.backend.clear();
-
-    // Notify everyone that the data has changed!
-    WriteBackend.broadcastReset();
+    if (remaining.size === 0) {
+      // Wipe the IndexedDB database, delete the key cookie (so the 24-hour
+      // retention period restarts on next import) and broadcast a rekey event.
+      this.backend.clear();
+    } else {
+      // Notify everyone that the data (but not the key) has changed
+      WriteBackend.broadcastReset();
+    }
   }
 }

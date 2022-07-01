@@ -1,7 +1,7 @@
 import React from "react";
 
 import type { Provider } from "@src/common/provider";
-import { getKeyFromCookie } from "@src/common/util";
+import { clearKeyCookieIfMatch, getKeyFromCookie } from "@src/common/util";
 import { ReadBackend, maybeExpire } from "@src/database/backend";
 import { channelId } from "@src/database/backend";
 import type { DatabaseBroadcast } from "@src/database/backend";
@@ -60,8 +60,13 @@ async function initialize(): Promise<void> {
     setInterval(() => maybeExpire(getKeyFromCookie()), expiryCheckInterval);
 
     const bc = new BroadcastChannel(channelId);
-    bc.onmessage = (msg: MessageEvent<DatabaseBroadcast>) =>
-      msg.data.type === "rekey" && reinitialize();
+    bc.onmessage = (msg: MessageEvent<DatabaseBroadcast>) => {
+      (async () => {
+        if (msg.data.type !== "rekey") return;
+        if (msg.data.clear) await clearKeyCookieIfMatch(msg.data.clear);
+        reinitialize();
+      })();
+    };
   })();
   await initializer;
 }

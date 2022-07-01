@@ -56,6 +56,18 @@ export async function getOrGenerateKeyFromCookie(): Promise<ArrayBuffer> {
   return rand;
 }
 
+export async function clearKeyCookieIfMatch(matchHash: string): Promise<void> {
+  const cookieKey = getKeyFromCookie();
+  if (!cookieKey) return;
+  const cookieHash = b64enc(
+    await globalThis.crypto.subtle.digest("SHA-256", cookieKey)
+  );
+  if (cookieHash !== matchHash) return;
+
+  setCookie(keyCookie, "", 0);
+  console.log("Cleared encryption key");
+}
+
 export async function streamToArray(
   stream: ReadableStream<Uint8Array>
 ): Promise<Uint8Array> {
