@@ -9,6 +9,13 @@ import { BaseDatabase, ProviderDatabase } from "@src/database/query";
 
 // Globally cache the database backend: we use a single IndexedDB connection for
 // all components and maintain it across page transitions.
+//
+// Important: if the database connection has not yet been initialized, `cache`
+// should be undefined so no BaseDatabase or ProviderDatabase is returned to the
+// caller. If the database connection has been made but the database is empty or
+// uninitialized, `cache` should be set but `cache.backend` should be undefined
+// so BaseDatabase/ProviderDatabase return empty results.
+//
 let cache: {
   backend: ReadBackend | void;
   supported: boolean;
@@ -106,16 +113,18 @@ function useBackendUpdates(provider?: Provider<unknown>): number {
   return epoch;
 }
 
-export function useBaseDatabase(): BaseDatabase {
+export function useBaseDatabase(): BaseDatabase | void {
   const epoch = useBackendUpdates();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  return React.useMemo(() => new BaseDatabase(cache?.backend), [epoch]);
+  return React.useMemo(() => cache && new BaseDatabase(cache.backend), [epoch]);
 }
 
-export function useProviderDatabase<T>(provider: Provider<T>) {
+export function useProviderDatabase<T>(
+  provider: Provider<T>
+): ProviderDatabase<T> | void {
   const epoch = useBackendUpdates(provider);
   return React.useMemo(
-    () => new ProviderDatabase(cache?.backend, provider),
+    () => cache && new ProviderDatabase(cache.backend, provider),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [epoch]
   );

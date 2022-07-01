@@ -17,7 +17,7 @@ function Home(props: { scrolled: boolean }): JSX.Element {
   const db = useBaseDatabase();
   const [imported, setImported] = React.useState<Set<string>>();
   React.useEffect(() => {
-    (async () => setImported(await db.getProviders()))();
+    (async () => db && setImported(await db.getProviders()))();
   }, [db]);
 
   return (

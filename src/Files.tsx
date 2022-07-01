@@ -56,7 +56,7 @@ function Files<T>(props: Props<T>): JSX.Element {
     // incorrect data (e.g. expanding the wrong root).
     setItems(undefined);
     (async () => {
-      setItems(await db.getFiles());
+      db && setItems(await db.getFiles());
     })();
   }, [db, provider]);
 
@@ -68,7 +68,7 @@ function Files<T>(props: Props<T>): JSX.Element {
     // loaded.
     (async () => {
       const key = items?.find((item) => item.slug === selected);
-      setItem((key && (await db.hydrateFile(key))) || undefined);
+      setItem((db && key && (await db.hydrateFile(key))) || undefined);
     })();
   }, [db, items, selected]);
 

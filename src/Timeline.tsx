@@ -54,6 +54,7 @@ function Timeline<T>(props: Props<T>): JSX.Element {
     setEntries(undefined);
     setMetadata(undefined);
     (async () => {
+      if (!db) return;
       const entries = await db.getTimelineEntries();
       entries.reverse(); // sort in descending order by timestamp/slug
       setEntries(entries);
@@ -67,7 +68,7 @@ function Timeline<T>(props: Props<T>): JSX.Element {
   // makes it re-run on every page navigation.
   React.useEffect(() => {
     (async () => {
-      if (entries && entries.length === 0) {
+      if (db && entries && entries.length === 0) {
         const files = await db.getFiles();
         if (files.length === 0) navigate(`/${provider.slug}`);
       }
@@ -120,6 +121,7 @@ function Timeline<T>(props: Props<T>): JSX.Element {
 
       let drilldownItem;
       if (selected) {
+        if (!db) return;
         drilldownItem = await db.getTimelineEntryBySlug(selected);
 
         // Extra: if the currently-selected entry does not exist in the
@@ -193,23 +195,25 @@ function Timeline<T>(props: Props<T>): JSX.Element {
                   style={{ overflowY: "scroll" }}
                   ref={virtuoso}
                   totalCount={rows.length}
-                  itemContent={(index) => (
-                    <TimelineRow
-                      db={db}
-                      isLast={index === rows.length - 1}
-                      metadata={metadata || new Map()}
-                      provider={provider}
-                      row={rows[index]}
-                      selected={selected}
-                      setSelected={(slug) =>
-                        filter &&
-                        navigate(
-                          `/${provider.slug}/timeline:${filter}` +
-                            (selected === slug ? "" : `@${slug}`)
-                        )
-                      }
-                    />
-                  )}
+                  itemContent={(index) =>
+                    db ? (
+                      <TimelineRow
+                        db={db}
+                        isLast={index === rows.length - 1}
+                        metadata={metadata || new Map()}
+                        provider={provider}
+                        row={rows[index]}
+                        selected={selected}
+                        setSelected={(slug) =>
+                          filter &&
+                          navigate(
+                            `/${provider.slug}/timeline:${filter}` +
+                              (selected === slug ? "" : `@${slug}`)
+                          )
+                        }
+                      />
+                    ) : undefined
+                  }
                   rangeChanged={(range) => setRangeStart(range.startIndex)}
                 />
               )}

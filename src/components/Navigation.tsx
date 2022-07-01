@@ -31,6 +31,7 @@ function Navigation<T>(props: Props<T>): JSX.Element {
 
   React.useEffect(() => {
     (async () => {
+      if (!db) return;
       setLinks(baseLinks);
       const active = await db.getProviders();
       setProviders(

@@ -25,6 +25,7 @@ function Errors<T>(props: Props<T>): JSX.Element {
   });
   React.useEffect(() => {
     (async () => {
+      if (!db) return;
       const files = await db.getFiles();
       if (files.length === 0) navigate(`/${provider.slug}`);
 
