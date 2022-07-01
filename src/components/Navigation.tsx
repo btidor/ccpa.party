@@ -32,7 +32,7 @@ function Navigation<T>(props: Props<T>): JSX.Element {
   React.useEffect(() => {
     (async () => {
       if (!db) return;
-      setLinks(baseLinks);
+      setLinks([...baseLinks, { label: ":)", to: "errors" }]);
       const active = await db.getProviders();
       setProviders(
         ProviderRegistry.filter((provider) => active.has(provider.slug))
