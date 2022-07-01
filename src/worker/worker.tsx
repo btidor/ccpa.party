@@ -66,7 +66,6 @@ async function importFiles<T>(
       skipped: tooLarge ? "tooLarge" : undefined,
       errors: [],
     };
-    writer.putFile(dataFile);
 
     const result = await parseByStages(provider, dataFile);
     result.timeline.forEach((entry) => writer.putTimelineEntry(entry));
