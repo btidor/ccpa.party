@@ -36,6 +36,8 @@ export interface Provider<T> {
   privacyPolicy: string;
 
   timelineCategories: ReadonlyMap<T, TimelineCategory>;
+
+  // TODO: reduce bundle size by moving parsers into a dedicated file tree
   timelineParsers: ReadonlyArray<TimelineParser<T>>;
   metadataParsers?: ReadonlyArray<MetadataParser>;
   ignoreParsers?: ReadonlyArray<IgnoreParser>;
