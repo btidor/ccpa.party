@@ -31,6 +31,7 @@ export default defineConfig({
   },
   test: {
     environment: "happy-dom",
+    include: ["src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
   },
   worker: {
     plugins: [goBuild()],
