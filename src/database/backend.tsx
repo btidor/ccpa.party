@@ -27,6 +27,24 @@ function broadcast(msg: DatabaseBroadcast): void {
 
 export type RootIndex = { [key: string]: string }; // provider slug -> iv
 
+async function dbInit(): Promise<IDBDatabase> {
+  // Open and initialize IndexedDB database.
+  return await new Promise<IDBDatabase>((resolve, reject) => {
+    const op = globalThis.indexedDB.open(dbName, dbVersion);
+    op.onsuccess = () => resolve(op.result);
+    op.onerror = (e) => reject(e);
+    op.onupgradeneeded = () => {
+      // For now, schema upgrades wipe the database
+      const db = op.result;
+      Array.from(db.objectStoreNames).forEach((store) =>
+        db.deleteObjectStore(store)
+      );
+      db.createObjectStore(dbStore);
+    };
+    op.onblocked = () => op.result.close();
+  });
+}
+
 export class ReadBackend {
   protected db: IDBDatabase;
   protected key: CryptoKey;
@@ -49,51 +67,29 @@ export class ReadBackend {
     key: ArrayBuffer,
     reload: () => Promise<void>
   ): Promise<ReadBackend | void> {
-    const db = await this.dbInit();
-    const cryptoKey = await this.keyInit(db, key);
-    return cryptoKey && new this(db, cryptoKey, reload);
-  }
+    const db = await dbInit();
 
-  protected static async dbInit(): Promise<IDBDatabase> {
-    // Open and initialize IndexedDB database.
-    return await new Promise<IDBDatabase>((resolve, reject) => {
-      const op = globalThis.indexedDB.open(dbName, dbVersion);
-      op.onsuccess = () => resolve(op.result);
-      op.onerror = (e) => reject(e);
-      op.onupgradeneeded = () => {
-        // For now, schema upgrades wipe the database
-        const db = op.result;
-        Array.from(db.objectStoreNames).forEach((store) =>
-          db.deleteObjectStore(store)
-        );
-        db.createObjectStore(dbStore);
-      };
-      op.onblocked = () => op.result.close();
-    });
-  }
-
-  protected static async keyInit(
-    db: IDBDatabase,
-    key: ArrayBuffer
-  ): Promise<CryptoKey | void> {
     // We encrypt the data and store the key in a cookie because (a) the browser
     // cookie jar is encrypted using OS-level data protection APIs while
     // IndexedDB is not, and (b) we can force the key to expire after 24 hours.
-    const keyHash = await globalThis.crypto.subtle.digest("SHA-256", key);
+    const keyHash = b64enc(
+      await globalThis.crypto.subtle.digest("SHA-256", key)
+    );
     const storedHash: string = await new Promise((resolve, reject) => {
       const op = db.transaction(dbStore).objectStore(dbStore).get(keyHashKey);
       op.onsuccess = () => resolve(op.result);
       op.onerror = (e) => reject(e);
     });
-    if (storedHash === b64enc(keyHash)) {
+    if (storedHash === keyHash) {
       // Success! Database was created with the current encryption key.
-      return await globalThis.crypto.subtle.importKey(
+      const cryptoKey = await globalThis.crypto.subtle.importKey(
         "raw",
         key,
         "AES-GCM",
         false,
         keyUsages
       );
+      return new this(db, cryptoKey, reload);
     } else {
       // Database has not yet been initialized or written to, or database exists
       // but the original encryption key has expired.
@@ -135,26 +131,21 @@ export class WriteBackend extends ReadBackend {
     key: ArrayBuffer,
     reload: () => Promise<void>
   ): Promise<WriteBackend> {
-    const db = await this.dbInit();
-    const cryptoKey = await this.keyInit(db, key);
-    return new this(db, cryptoKey, reload);
-  }
+    const db = await dbInit();
 
-  protected static async keyInit(
-    db: IDBDatabase,
-    key: ArrayBuffer
-  ): Promise<CryptoKey> {
     // We encrypt the data and store the key in a cookie because (a) the browser
     // cookie jar is encrypted using OS-level data protection APIs while
     // IndexedDB is not, and (b) we can force the key to expire after 24 hours.
-    const keyHash = await globalThis.crypto.subtle.digest("SHA-256", key);
+    const keyHash = b64enc(
+      await globalThis.crypto.subtle.digest("SHA-256", key)
+    );
     const storedHash: string = await new Promise((resolve, reject) => {
       const op = db.transaction(dbStore).objectStore(dbStore).get(keyHashKey);
       op.onsuccess = () => resolve(op.result);
       op.onerror = (e) => reject(e);
     });
 
-    if (storedHash === b64enc(keyHash)) {
+    if (storedHash === keyHash) {
       // Success! Database was created with the current encryption key.
     } else if (storedHash === undefined) {
       // Database has not yet been initialized or written to. Set our encryption
@@ -165,26 +156,27 @@ export class WriteBackend extends ReadBackend {
         const op = db
           .transaction(dbStore, "readwrite")
           .objectStore(dbStore)
-          .put(b64enc(keyHash), keyHashKey);
+          .put(keyHash, keyHashKey);
         op.onsuccess = () => resolve();
         op.onerror = (e) => reject(e);
       });
       broadcast({ type: "rekey" });
     } else {
       // Database exists but the original encryption key has expired. We got
-      // unlucky; the reset process [TODO] should have cleaned it up by now...
+      // unlucky; the expiry process should have cleaned it up by now...
       throw new Error(
         "writing to database created under old encryption key..."
       );
     }
 
-    return await globalThis.crypto.subtle.importKey(
+    const cryptoKey = await globalThis.crypto.subtle.importKey(
       "raw",
       key,
       "AES-GCM",
       false,
       keyUsages
     );
+    return new this(db, cryptoKey, reload);
   }
 
   static broadcastReset() {
@@ -273,6 +265,7 @@ export class WriteBackend extends ReadBackend {
   }
 
   async clear(): Promise<void> {
+    console.warn("Clearing IndexedDB...");
     await new Promise((resolve, reject) => {
       const op = this.db
         .transaction(dbStore, "readwrite")
@@ -282,4 +275,37 @@ export class WriteBackend extends ReadBackend {
       op.onerror = (e) => reject(e);
     });
   }
+}
+
+export async function maybeExpire(key: ArrayBuffer | void) {
+  const db = await dbInit();
+  if (!db) return;
+
+  const keyHash =
+    key && b64enc(await globalThis.crypto.subtle.digest("SHA-256", key));
+  const storedHash: string = await new Promise((resolve, reject) => {
+    const op = db.transaction(dbStore).objectStore(dbStore).get(keyHashKey);
+    op.onsuccess = () => resolve(op.result);
+    op.onerror = (e) => reject(e);
+  });
+
+  if (!storedHash) {
+    // ok: database is empty
+  } else if (storedHash === keyHash) {
+    // ok: database key is current
+  } else {
+    // not ok: database key is expired or inconsistent
+    console.warn("Expiring IndexedDB...");
+    await new Promise((resolve, reject) => {
+      const op = db
+        .transaction(dbStore, "readwrite")
+        .objectStore(dbStore)
+        .clear();
+      op.onsuccess = () => resolve(op.result);
+      op.onerror = (e) => reject(e);
+    });
+    broadcast({ type: "rekey" });
+  }
+
+  db.close();
 }

@@ -2,7 +2,7 @@ import React from "react";
 
 import type { Provider } from "@src/common/provider";
 import { getKeyFromCookie } from "@src/common/util";
-import { ReadBackend } from "@src/database/backend";
+import { ReadBackend, maybeExpire } from "@src/database/backend";
 import { channelId } from "@src/database/backend";
 import type { DatabaseBroadcast } from "@src/database/backend";
 import { BaseDatabase, ProviderDatabase } from "@src/database/query";
@@ -14,6 +14,8 @@ let cache: {
   supported: boolean;
 } | void;
 let initializer: Promise<void> | void;
+
+const expiryCheckInterval = 60 * 1000; // milliseconds
 
 async function initialize(): Promise<void> {
   initializer ||= (async () => {
@@ -53,6 +55,9 @@ async function initialize(): Promise<void> {
       console.error("Feature Detection Failed", support);
       return;
     }
+
+    maybeExpire(getKeyFromCookie());
+    setInterval(() => maybeExpire(getKeyFromCookie()), expiryCheckInterval);
 
     const bc = new BroadcastChannel(channelId);
     bc.onmessage = (msg: MessageEvent<DatabaseBroadcast>) =>
