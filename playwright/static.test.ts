@@ -5,8 +5,8 @@ test("home page renders", async ({ page }) => {
 
   await expect(page).toHaveTitle("ccpa.party");
 
-  const logo = page.locator("_react=Logo");
-  await expect(logo).toHaveText(/ccpa\.party/i);
+  const logo = page.locator("span", { hasText: /ccpa\.party/i });
+  await expect(logo).toBeVisible();
 
   const provider = page.locator("a", { hasText: /facebook/i });
   await expect(provider).toBeVisible();
@@ -15,8 +15,8 @@ test("home page renders", async ({ page }) => {
 test("request page renders", async ({ page }) => {
   await page.goto("/github");
 
-  const logo = page.locator("_react=Logo");
-  await expect(logo).toHaveText(/ccpa\.party/i);
+  const logo = page.locator("span", { hasText: /ccpa\.party/i });
+  await expect(logo).toBeVisible();
 
   const link = page.locator("a", { hasText: /account settings/i });
   await expect(link).toHaveAttribute(
@@ -27,6 +27,6 @@ test("request page renders", async ({ page }) => {
   const info = page.locator("code", { hasText: /results in 15 minutes/i });
   await expect(info).toBeVisible();
 
-  const button = page.locator("[for='import']");
+  const button = page.locator("label[for='import']");
   await expect(button).toBeVisible();
 });
