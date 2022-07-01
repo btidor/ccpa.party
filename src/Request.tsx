@@ -16,7 +16,7 @@ type Props<T> = {
 type Status =
   | { type: "explore" }
   | { type: "import" }
-  | { type: "pending"; progress: number }
+  | { type: "pending"; action: "importing" | "clearing"; progress: number }
   | { type: "unsupported" };
 
 function Request<T>(props: Props<T>): JSX.Element {
@@ -46,9 +46,9 @@ function Request<T>(props: Props<T>): JSX.Element {
   const fileHandler: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     (async () => {
       if (!event.target.files) return;
-      setStatus({ type: "pending", progress: 0 });
+      setStatus({ type: "pending", action: "importing", progress: 0 });
       await importFiles(provider, event.target.files, (progress: number) =>
-        setStatus({ type: "pending", progress })
+        setStatus({ type: "pending", action: "importing", progress })
       );
       setStatus({ type: "explore" });
     })();
@@ -56,7 +56,7 @@ function Request<T>(props: Props<T>): JSX.Element {
 
   const resetHandler: React.ChangeEventHandler<unknown> = () => {
     (async () => {
-      setStatus({ type: "pending", progress: 0 });
+      setStatus({ type: "pending", action: "clearing", progress: 0 });
       await resetProvider(provider);
       setStatus({ type: "import" });
       // Reset file input (for Chrome)
@@ -144,7 +144,15 @@ function Request<T>(props: Props<T>): JSX.Element {
             ) : status?.type === "pending" ? (
               (() => {
                 const bars = Math.round(status.progress * 25);
-                return <code>{"▓".repeat(bars) + "░".repeat(25 - bars)}</code>;
+                return (
+                  <code
+                    role="progressbar"
+                    aria-valuenow={Math.round(status.progress * 100)}
+                    aria-label={status.action}
+                  >
+                    {"▓".repeat(bars) + "░".repeat(25 - bars)}
+                  </code>
+                );
               })()
             ) : status?.type === "unsupported" ? (
               <code>[Browser Not Supported]</code>
