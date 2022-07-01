@@ -144,11 +144,11 @@ async function importFiles<T>(
   }
   writer.putMetadata(metadata);
   const middle = new Date().getTime();
-  console.warn(`Parse Time: ${(new Date().getTime() - start) / 1000}s`);
+  console.log(`Parse Time: ${(new Date().getTime() - start) / 1000}s`);
 
   await writer.commit();
-  console.warn(`Database Time: ${(new Date().getTime() - middle) / 1000}s`);
-  console.warn(`Total Time: ${(new Date().getTime() - start) / 1000}s`);
+  console.log(`Database Time: ${(new Date().getTime() - middle) / 1000}s`);
+  console.log(`Total Time: ${(new Date().getTime() - start) / 1000}s`);
 }
 
 async function resetProvider<T>(key: ArrayBuffer, provider: Provider<T>) {

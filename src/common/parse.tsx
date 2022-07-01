@@ -134,14 +134,6 @@ export function smartDecode(data: ArrayBufferLike): string {
     text = utf16beDecoder.decode(data);
 
     if (!isPrintableUnicode(text)) {
-      // Fail :(
-      console.warn(
-        "Smart Decode Failed:",
-        data,
-        Array.from(utf8Decoder.decode(data)).filter(
-          (c) => !printableRegExp.test(c)
-        )
-      );
       throw new Error("Could not decode data to a printable Unicode string");
     }
   }
@@ -158,11 +150,6 @@ export function smartDecodeText(text: string): string {
   if (isPrintableUnicode(double)) return double;
   if (isPrintableUnicode(text)) return text;
 
-  console.warn(
-    "Smart Decode Text Failed:",
-    text,
-    Array.from(text).filter((c) => !printableRegExp.test(c))
-  );
   throw new Error("Could not decode text to a printable Unicode string");
 }
 
