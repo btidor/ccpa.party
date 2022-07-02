@@ -10,7 +10,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self' blob:; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self' https://pong.ccpa.party; object-src; base-uri; frame-ancestors; form-action;"
+          "value": "default-src 'self' blob:; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self' https://pong.ccpa.party; object-src; base-uri; frame-ancestors; form-action;"
         },
         {
           "key": "Cross-Origin-Embedder-Policy",
