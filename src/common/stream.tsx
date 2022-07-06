@@ -100,3 +100,50 @@ export class ProgressStream<T extends ArrayBufferView> extends TransformStream<
     });
   }
 }
+
+class TextDecoderPolyfillStream extends TransformStream<BufferSource, string> {
+  constructor(label?: string | undefined) {
+    const decoder = new TextDecoder(label);
+    super({
+      async transform(chunk, controller) {
+        controller.enqueue(decoder.decode(chunk, { stream: true }));
+      },
+      flush(controller) {
+        controller.terminate();
+      },
+    });
+  }
+}
+
+export const TextDecoderPonyfillStream: {
+  new (label?: string | undefined): TransformStream<BufferSource, string>;
+} = globalThis.TextDecoderStream || TextDecoderPolyfillStream;
+
+export type MboxEntry = {
+  msgid: string | undefined;
+  data: string;
+};
+
+export class MboxDecoderStream extends TransformStream<string, MboxEntry> {
+  constructor() {
+    let carry = "\r\n";
+    const separator = "\r\nFrom ";
+    super({
+      async transform(chunk, controller) {
+        const parts = (carry + chunk).split(separator).filter((x) => x);
+        for (let i = 0; i < parts.length; i++) {
+          if (i === parts.length - 1) {
+            carry = parts[i];
+          } else {
+            const data = "From " + parts[i];
+            const msgid = data.match(/^From (\w+)/)?.[1];
+            controller.enqueue({ msgid, data });
+          }
+        }
+      },
+      flush(controller) {
+        controller.terminate();
+      },
+    });
+  }
+}

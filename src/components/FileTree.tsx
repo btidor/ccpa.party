@@ -6,6 +6,7 @@ import {
 } from "@primer/octicons-react";
 import React from "react";
 
+import { archiveSuffixes } from "@src/common/util";
 import type { DataFileKey } from "@src/database/types";
 
 import styles from "@src/components/FileTree.module.css";
@@ -16,7 +17,6 @@ type Props = {
   onSelect: (slug?: string) => void;
 };
 
-const compressedEndings = [".zip", ".gz", ".tgz"];
 const indent = 12;
 
 type Tree = Map<string, DataFileKey | Tree>;
@@ -109,7 +109,7 @@ const Branch = React.memo((props: BranchProps): JSX.Element | null => {
           style={{ paddingLeft: (path.length - 1) * indent }}
           onClick={() => setExpanded((x) => !x)}
         >
-          {compressedEndings.some((end) => name?.endsWith(end)) ? (
+          {archiveSuffixes.some((end) => name?.endsWith(end)) ? (
             <FileZipIcon />
           ) : expanded ? (
             <ChevronDownIcon />

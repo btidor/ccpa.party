@@ -44,7 +44,8 @@ function displayFile(data: ArrayBufferLike, filename: string): JSX.Element {
     case "csv":
     case "txt":
     case undefined: // e.g. "README"
-    case "xml": {
+    case "xml":
+    case "eml": {
       return displayText(data);
     }
     case "htm":

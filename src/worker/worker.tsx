@@ -6,9 +6,11 @@ import {
   ArrayBufferStream,
   ChunkingStream,
   DecompressionStream,
+  MboxDecoderStream,
   ProgressStream,
+  TextDecoderPonyfillStream,
 } from "@src/common/stream";
-import { serialize } from "@src/common/util";
+import { archiveSuffixes, serialize } from "@src/common/util";
 import { WriteBackend } from "@src/database/backend";
 import type { DataFile } from "@src/database/types";
 import { Resetter, Writer } from "@src/database/write";
@@ -48,10 +50,11 @@ async function importFiles<T>(
     path: ReadonlyArray<string>,
     data: ArrayBufferLike
   ): Promise<ImportFile | void> => {
-    if (path.at(-1)?.endsWith(".zip") || path.at(-1)?.endsWith(".tar.gz")) {
+    if (archiveSuffixes.some((s) => path.at(-1)?.endsWith(s))) {
       return { path, data };
     }
 
+    // TODO: store oversize files by chunking them up
     const tooLarge = data.byteLength > (2 << 20) * fileSizeLimitMB;
     const hash = new Uint32Array(
       await crypto.subtle.digest("SHA-1", serialize(path.join("/")))
@@ -137,6 +140,42 @@ async function importFiles<T>(
           );
         const next = await processEntry(subpath, buf);
         if (next) work.push(next);
+      }
+    } else if (path.at(-1)?.endsWith(".mbox")) {
+      // Google exports Gmail messages as an uncompressed *.mbox file. Fun fact:
+      // these files can be so large that `.arrayBuffer()` fails: we *have* to
+      // handle them as streams. We pretend the *.mbox is an archive where each
+      // message is an *.eml file.
+      let size: number;
+      let stream: ReadableStream<Uint8Array>;
+      if (data instanceof File) {
+        size = data.size;
+        stream = data.stream();
+      } else {
+        size = data.byteLength;
+        stream = new ArrayBufferStream(data, chunkSize);
+      }
+
+      // Report progress as we read the underlying data.
+      stream = stream.pipeThrough(
+        new ProgressStream((bytes) => reportProgress(bytes / size))
+      );
+
+      const output = stream
+        .pipeThrough(new TextDecoderPonyfillStream())
+        .pipeThrough(new MboxDecoderStream());
+
+      const reader = output.getReader();
+      const encoder = new TextEncoder();
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const next = await processEntry(
+          [...path, (value.msgid || crypto.randomUUID()) + ".eml"],
+          encoder.encode(value.data)
+        );
+        if (next)
+          throw new Error("*.mbox processing should not result in next");
       }
     } else {
       throw new Error("Unknown file: " + path.at(-1));

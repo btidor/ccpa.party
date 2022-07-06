@@ -3,6 +3,7 @@ import React from "react";
 
 import type { Provider } from "@src/common/provider";
 import { Link } from "@src/common/router";
+import { archiveSuffixes } from "@src/common/util";
 import Logo from "@src/components/Logo";
 import { useBrowserSupport, useProviderDatabase } from "@src/database/hooks";
 import { importFiles, resetProvider } from "@src/worker/client";
@@ -114,7 +115,7 @@ function Request<T>(props: Props<T>): JSX.Element {
               id="import"
               type="file"
               multiple
-              accept=".zip,.tar.gz,.tgz,.gz"
+              accept={archiveSuffixes.join(",")}
               ref={inputRef}
               onChange={fileHandler}
             />

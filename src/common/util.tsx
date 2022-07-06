@@ -1,6 +1,8 @@
 const keyCookie = "key";
 const keyMaxAge = 24 * 3600; // 24 hours
 
+export const archiveSuffixes = [".zip", ".tar.gz", ".tgz", ".mbox"];
+
 export function b64enc(buf: ArrayBufferLike): string {
   return btoa(
     Array.from(new Uint8Array(buf))
@@ -66,20 +68,4 @@ export async function clearKeyCookieIfMatch(matchHash: string): Promise<void> {
 
   setCookie(keyCookie, "", 0);
   console.log("Cleared encryption key");
-}
-
-export async function streamToArray(
-  stream: ReadableStream<Uint8Array>
-): Promise<Uint8Array> {
-  const reader = stream.getReader();
-  const values = [];
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    values.push(value);
-  }
-  const size = values.reduce((s, b) => (s += b.length), 0);
-  const result = new Uint8Array(size);
-  values.reduce((s, b) => (result.set(b, s), (s += b.length)), 0);
-  return result;
 }
