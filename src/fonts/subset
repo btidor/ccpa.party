@@ -30,7 +30,7 @@ pyftsubset "noto-emoji.woff2" \
   --output-file="noto-emoji-home-subset.woff2"
 
 pyftsubset "noto-emoji.woff2" \
-  --text="🪪🖱💬💵🔔🚚🌥🎶📱🎞" \
+  --text="🪪🖱💬✉️💵🔔🚚🌥🎶📱🎞" \
   --no-ignore-missing-unicodes \
   --layout-features="" \
   --layout-scripts="" \

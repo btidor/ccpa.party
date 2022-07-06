@@ -9,7 +9,9 @@ import type {
 } from "@src/common/parse";
 import type { Provider, TimelineCategory } from "@src/common/provider";
 
-export type CategoryKey = "activity" | "chat" | "security";
+export type CategoryKey = "activity" | "chat" | "mail" | "security";
+
+const decoder = new TextDecoder();
 
 class Google implements Provider<CategoryKey> {
   slug = "google";
@@ -71,6 +73,15 @@ class Google implements Provider<CategoryKey> {
       },
     ],
     [
+      "mail",
+      {
+        char: "m",
+        icon: "✉️",
+        displayName: "Mail",
+        defaultEnabled: true,
+      },
+    ],
+    [
       "security",
       {
         char: "s",
@@ -82,6 +93,27 @@ class Google implements Provider<CategoryKey> {
   ]);
 
   timelineParsers: ReadonlyArray<TimelineParser<CategoryKey>> = [
+    {
+      glob: new Minimatch("**/*.eml"),
+      tokenize: (data) => [decoder.decode(data)],
+      parse: (item: string) => {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        let from = item.match(/^From: (.*)$/m)![1];
+        from = from.match(/^(.*) <[^>]+>$/)?.[1] || from;
+        from = from.match(/"([^"]+)"$/)?.[1] || from;
+        from = from.match(/<([^>]+)>$/)?.[1] || from;
+
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const subject = item.match(/^Subject: (.*)$/m)![1];
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const date = item.match(/^From [^ ]+ (.*)$/m)![1];
+        return [
+          "mail",
+          DateTime.fromFormat(date, "EEE MMM dd HH:mm:ss ZZZ yyyy"),
+          [subject, from],
+        ];
+      },
+    },
     {
       glob: new Minimatch("Takeout/Access Log Activity/Activities - *.csv"),
       parse: (item) => [
