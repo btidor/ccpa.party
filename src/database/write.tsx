@@ -108,7 +108,9 @@ export class Writer<T> {
       index[i].forEach((row) => (row[0] = ivs[i]));
     }
 
-    this.timeline.index.push(...index.flat(1));
+    for (const entry of index.flat(1)) {
+      this.timeline.index.push(entry);
+    }
     this.timeline.uncommitted = [];
   }
 
