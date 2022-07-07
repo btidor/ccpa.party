@@ -71,11 +71,13 @@ async function importFiles<T>(
     };
 
     const result = await parseByStages(provider, dataFile);
-    result.timeline.forEach((entry) => writer.putTimelineEntry(entry));
+    for (const entry of result.timeline) {
+      await writer.putTimelineEntry(entry);
+    }
     result.metadata.forEach(([key, value]) => metadata.set(key, value));
     result.errors.forEach((entry) => dataFile.errors.push(entry));
     dataFile.status = result.status;
-    writer.putFile(dataFile);
+    await writer.putFile(dataFile);
     return;
   };
 
@@ -181,7 +183,7 @@ async function importFiles<T>(
       throw new Error("Unknown file: " + path.at(-1));
     }
   }
-  writer.putMetadata(metadata);
+  await writer.putMetadata(metadata);
   const middle = new Date().getTime();
   console.log(`Parse Time: ${(new Date().getTime() - start) / 1000}s`);
 

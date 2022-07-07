@@ -1,7 +1,7 @@
 import type { Provider } from "@src/common/provider";
 import { WriteBackend } from "@src/database/backend";
 import { ProviderDatabase } from "@src/database/query";
-import type { DataFile, TimelineEntry } from "@src/database/types";
+import type { DataFile, DataFileKey, TimelineEntry } from "@src/database/types";
 
 // Increasing the batch size adds latency and makes the timeline view sluggish
 // (because we have to sift through more extraneous data in order to load the
@@ -9,16 +9,24 @@ import type { DataFile, TimelineEntry } from "@src/database/types";
 // browsers (because the per-put overhead is so high). :(
 const batchSize = 64;
 
+const fileBufferLimitBytes = 16 * 1024 * 1024;
+const timelineEntryLimit = 1024;
+
 export class Writer<T> {
   protected backend: WriteBackend;
   provider: Provider<T>;
   protected query: ProviderDatabase<T>;
 
-  protected additions: {
-    files: DataFile[];
-    metadata: Map<string, unknown>;
-    timeline: TimelineEntry<T>[];
-    timelineDedup: Set<string>;
+  protected files: {
+    uncommitted: DataFile[];
+    uncommittedSize: number;
+    index: DataFileKey[];
+  };
+  protected metadata: Map<string, unknown>;
+  protected timeline: {
+    uncommitted: TimelineEntry<T>[];
+    dedup: Set<string>;
+    index: [string | void, number, string, number, string, T][];
   };
 
   constructor(backend: WriteBackend, provider: Provider<T>) {
@@ -26,56 +34,65 @@ export class Writer<T> {
     this.provider = provider;
     this.query = new ProviderDatabase(backend, provider);
 
-    this.additions = {
-      files: [],
-      metadata: new Map(),
-      timeline: [],
-      timelineDedup: new Set(),
+    this.files = {
+      uncommitted: [],
+      uncommittedSize: 0,
+      index: [],
+    };
+    this.metadata = new Map();
+    this.timeline = {
+      uncommitted: [],
+      dedup: new Set(),
+      index: [],
     };
   }
 
-  putFile(file: DataFile): void {
-    this.additions.files.push(file);
-  }
-
-  putMetadata(metadata: Map<string, unknown>): void {
-    metadata.forEach((v, k) => this.additions.metadata.set(k, v));
-  }
-
-  putTimelineEntry(entry: TimelineEntry<T>): void {
-    if (!this.additions.timelineDedup.has(entry.slug)) {
-      this.additions.timeline.push(entry);
-      this.additions.timelineDedup.add(entry.slug);
+  async putFile(file: DataFile): Promise<void> {
+    this.files.uncommitted.push(file);
+    this.files.uncommittedSize += file.data.byteLength;
+    if (this.files.uncommittedSize > fileBufferLimitBytes) {
+      await this.flushFiles();
     }
   }
 
-  // You MUST call `commit` in order to flush data and indexes.
-  async commit(): Promise<void> {
-    // Write files and compute index
-    const fileIvs = await this.backend.puts(
-      this.additions.files.map(({ data }) => data),
+  async putMetadata(metadata: Map<string, unknown>): Promise<void> {
+    metadata.forEach((v, k) => this.metadata.set(k, v));
+  }
+
+  async putTimelineEntry(entry: TimelineEntry<T>): Promise<void> {
+    if (!this.timeline.dedup.has(entry.slug)) {
+      this.timeline.uncommitted.push(entry);
+      this.timeline.dedup.add(entry.slug);
+    }
+    if (this.timeline.uncommitted.length > batchSize * timelineEntryLimit) {
+      await this.flushTimeline();
+    }
+  }
+
+  protected async flushFiles(): Promise<void> {
+    const ivs = await this.backend.puts(
+      this.files.uncommitted.map(({ data }) => data),
       { binary: true }
     );
-    const fileIndex = this.additions.files.map(({ data, ...rest }, i) => ({
-      iv: fileIvs[i],
-      ...rest,
-    }));
-    fileIndex.sort((a, b) => a.path.join().localeCompare(b.path.join()));
+    this.files.index.push(
+      ...this.files.uncommitted.map(({ data, ...rest }, i) => ({
+        iv: ivs[i],
+        ...rest,
+      }))
+    );
+    this.files.uncommitted = [];
+    this.files.uncommittedSize = 0;
+  }
 
-    // Compute metadata index
-    const metadataIndex = Array.from(this.additions.metadata);
-    metadataIndex.sort();
-
-    // Write timeline entries and compute index
-    const workingIndex: [string | void, number, string, number, string, T][][] =
-      [];
-    const writeQueue = [];
-    for (let i = 0; i < this.additions.timeline.length; i += batchSize) {
-      const batch = this.additions.timeline.slice(i, i + batchSize);
-      writeQueue.push(
+  protected async flushTimeline(): Promise<void> {
+    const index: [string | void, number, string, number, string, T][][] = [];
+    const writes = [];
+    for (let i = 0; i < this.timeline.uncommitted.length; i += batchSize) {
+      const batch = this.timeline.uncommitted.slice(i, i + batchSize);
+      writes.push(
         batch.map(({ file, context, value }) => [file, context, value])
       );
-      workingIndex.push(
+      index.push(
         batch.map(({ day, timestamp, slug, category }, i) => [
           undefined,
           i,
@@ -86,19 +103,35 @@ export class Writer<T> {
         ])
       );
     }
-    const ivs = await this.backend.puts(writeQueue);
+    const ivs = await this.backend.puts(writes);
     for (let i = 0; i < ivs.length; i++) {
-      workingIndex[i].forEach((row) => (row[0] = ivs[i]));
+      index[i].forEach((row) => (row[0] = ivs[i]));
     }
-    const timelineIndex = workingIndex.flat(1);
-    timelineIndex.sort((a, b) => a[4].localeCompare(b[4]));
+
+    this.timeline.index.push(...index.flat(1));
+    this.timeline.uncommitted = [];
+  }
+
+  // You MUST call `commit` in order to flush data and indexes.
+  async commit(): Promise<void> {
+    // Write files and compute index
+    await this.flushFiles();
+    this.files.index.sort((a, b) => a.path.join().localeCompare(b.path.join()));
+
+    // Compute metadata index
+    const metadataIndex = Array.from(this.metadata);
+    metadataIndex.sort();
+
+    // Write timeline entries and compute index
+    await this.flushTimeline();
+    this.timeline.index.sort((a, b) => a[4].localeCompare(b[4]));
 
     // Write provider index
     const iv = await this.backend.put({
-      files: fileIndex,
+      files: this.files.index,
       metadata: metadataIndex,
-      timeline: timelineIndex,
-      hasErrors: this.additions.files.some((file) => file.errors.length),
+      timeline: this.timeline.index,
+      hasErrors: this.files.index.some((file) => file.errors.length),
     });
 
     // Update root index
@@ -107,11 +140,16 @@ export class Writer<T> {
     );
 
     // Reset internal state
-    this.additions = {
-      files: [],
-      metadata: new Map(),
-      timeline: [],
-      timelineDedup: new Set(),
+    this.files = {
+      uncommitted: [],
+      uncommittedSize: 0,
+      index: [],
+    };
+    this.metadata = new Map();
+    this.timeline = {
+      uncommitted: [],
+      dedup: new Set(),
+      index: [],
     };
 
     // Notify everyone that the data has changed!
