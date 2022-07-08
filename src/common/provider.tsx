@@ -1,8 +1,3 @@
-import {
-  IgnoreParser,
-  MetadataParser,
-  TimelineParser,
-} from "@src/common/parse";
 import Amazon from "@src/providers/amazon";
 import Apple from "@src/providers/apple";
 import Discord from "@src/providers/discord";
@@ -36,11 +31,6 @@ export interface Provider<T> {
   privacyPolicy: string;
 
   timelineCategories: ReadonlyMap<T, TimelineCategory>;
-
-  // TODO: reduce bundle size by moving parsers into a dedicated file tree
-  timelineParsers: ReadonlyArray<TimelineParser<T>>;
-  metadataParsers?: ReadonlyArray<MetadataParser>;
-  ignoreParsers?: ReadonlyArray<IgnoreParser>;
 }
 
 export const ProviderRegistry: ReadonlyArray<Provider<unknown>> = [
@@ -54,11 +44,6 @@ export const ProviderRegistry: ReadonlyArray<Provider<unknown>> = [
   new Slack(),
 ];
 
-export const ProviderLookup: ReadonlyMap<string, Provider<unknown>> = new Map<
-  string,
-  Provider<unknown>
->();
-ProviderRegistry.forEach((provider) =>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (ProviderLookup as any).set(provider.slug, provider)
+export const ProviderLookup: ReadonlyMap<string, Provider<unknown>> = new Map(
+  ProviderRegistry.map((p) => [p.slug, p])
 );

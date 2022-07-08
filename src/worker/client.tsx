@@ -1,10 +1,16 @@
 import type { Provider } from "@src/common/provider";
 import { getOrGenerateKeyFromCookie } from "@src/common/util";
-import type { WorkerRequest, WorkerResponse } from "@src/worker/types";
+import type { DataFile } from "@src/database/types";
+import type {
+  DecodeResponse,
+  WorkerRequest,
+  WorkerResponse,
+} from "@src/worker/types";
 import Worker from "@src/worker/worker?worker";
 
 let worker: Worker | void;
-const pending = new Map<string, () => void>();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const pending = new Map<string, (result: any) => void>();
 const progress = new Map<string, (fraction: number) => void>();
 
 function sendRequest(msg: WorkerRequest): void {
@@ -13,7 +19,7 @@ function sendRequest(msg: WorkerRequest): void {
     worker.onmessage = (msg: MessageEvent<WorkerResponse>) => {
       const { data } = msg;
       if (data.type === "done") {
-        pending.get(data.id)?.();
+        pending.get(data.id)?.(data.result);
       } else if (data.type === "progress") {
         progress.get(data.id)?.(data.fraction);
       } else {
@@ -56,6 +62,38 @@ export async function resetProvider(
       key,
       type: "resetProvider",
       provider: provider.slug,
+    });
+  });
+}
+
+export async function decodeData(
+  data: ArrayBufferLike,
+  tryJSON: boolean
+): Promise<DecodeResponse> {
+  const id = globalThis.crypto.randomUUID();
+  return await new Promise<DecodeResponse>((resolve) => {
+    pending.set(id, resolve);
+    sendRequest({
+      id,
+      type: "decodeData",
+      data,
+      tryJSON,
+    });
+  });
+}
+
+export async function parseByStages(
+  provider: Provider<unknown>,
+  file: DataFile
+): Promise<unknown> {
+  const id = globalThis.crypto.randomUUID();
+  return await new Promise<DecodeResponse>((resolve) => {
+    pending.set(id, resolve);
+    sendRequest({
+      id,
+      type: "parseByStages",
+      provider: provider.slug,
+      file,
     });
   });
 }

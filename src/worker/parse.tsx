@@ -1,48 +1,21 @@
 import csv from "csvtojson";
-import { DateTime } from "luxon";
-import type { IMinimatch } from "minimatch";
 
+import {
+  MetadataParser,
+  TimelineParser,
+  TimelineTuple,
+  TokenizedItem,
+  Tokenizer,
+  getParser,
+} from "@src/common/parser";
 import { Provider } from "@src/common/provider";
 import { serialize } from "@src/common/util";
 import type {
   DataFile,
   ParseError,
   ParseStage,
-  TimelineContext,
   TimelineEntry,
 } from "@src/database/types";
-
-export type Tokenizer<U> = (data: ArrayBufferLike) => U[] | Promise<U[]>;
-
-export type TokenizedItem = { [key: string]: unknown };
-export type TimelineTuple<T> = [T, DateTime, TimelineContext];
-export type ParsedItem<T> = TimelineTuple<T> | TimelineTuple<T>[] | void;
-
-export type MetadataParser = {
-  glob: IMinimatch;
-  tokenize?: Tokenizer<unknown>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  parse: (item: any) => [string, unknown];
-};
-
-export type TimelineParser<T> = (
-  | {
-      tokenize?: Tokenizer<TokenizedItem>;
-      parse: (item: TokenizedItem) => ParsedItem<T>;
-    }
-  | {
-      tokenize: Tokenizer<string>;
-      parse: (item: string) => ParsedItem<T>;
-    }
-) & {
-  glob: IMinimatch;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  parse: (item: any) => ParsedItem<T>;
-};
-
-export type IgnoreParser = { glob: IMinimatch };
-
-type Parser<T> = MetadataParser | TimelineParser<T>;
 
 const defaultTokenizers = new Map<string, Tokenizer<TokenizedItem>>([
   ["csv", parseCSV],
@@ -154,7 +127,7 @@ export function smartDecodeText(text: string): string {
 }
 
 async function tokenize<T>(
-  parser: Parser<T>,
+  parser: TimelineParser<T> | MetadataParser,
   path: string,
   data: ArrayBufferLike
 ): Promise<unknown[]> {
@@ -182,13 +155,10 @@ export async function parseByStages<T>(
   file: DataFile
 ): Promise<ParseResponse<T>> {
   const path = file.path.slice(1).join("/");
-  const timelineParser = provider.timelineParsers.find((c) =>
-    c.glob.match(path)
-  );
-  const metadataParser = provider.metadataParsers?.find((c) =>
-    c.glob.match(path)
-  );
-  const ignoreParser = provider.ignoreParsers?.find((c) => c.glob.match(path));
+  const parser = getParser(provider);
+  const timelineParser = parser.timeline.find((c) => c.glob.match(path));
+  const metadataParser = parser.metadata?.find((c) => c.glob.match(path));
+  const ignoreParser = parser.ignore?.find((c) => c.glob.match(path));
 
   const response = {
     timeline: [],

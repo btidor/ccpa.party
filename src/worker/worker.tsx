@@ -1,6 +1,5 @@
 import { unzip } from "unzipit";
 
-import { parseByStages } from "@src/common/parse";
 import { Provider, ProviderLookup } from "@src/common/provider";
 import {
   ArrayBufferStream,
@@ -14,7 +13,8 @@ import { archiveSuffixes, serialize } from "@src/common/util";
 import { WriteBackend } from "@src/database/backend";
 import type { DataFile } from "@src/database/types";
 import { Resetter, Writer } from "@src/database/write";
-import { fileSizeLimitMB } from "@src/worker/types";
+import { parseByStages, parseJSON, smartDecode } from "@src/worker/parse";
+import { DecodeResponse, fileSizeLimitMB } from "@src/worker/types";
 import type { WorkerRequest, WorkerResponse } from "@src/worker/types";
 
 import Go from "@go";
@@ -202,11 +202,29 @@ function sendResponse(msg: WorkerResponse) {
   postMessage(msg);
 }
 
+async function decodeData(
+  data: ArrayBufferLike,
+  tryJSON: boolean
+): Promise<DecodeResponse> {
+  if (tryJSON) {
+    try {
+      return { type: "json", parsed: await parseJSON(data) };
+    } catch {
+      // Fall through
+    }
+  }
+  try {
+    const parsed = await smartDecode(data);
+    if (parsed && /^\n*$/.test(parsed)) return { type: "empty" };
+    else return { type: "text", parsed };
+  } catch {
+    return { type: "error" };
+  }
+}
+
 onmessage = (message: MessageEvent<WorkerRequest>) => {
   (async () => {
     const { data } = message;
-    const provider = ProviderLookup.get(data.provider);
-    if (!provider) throw new Error("unknown provider: " + provider);
 
     let previous = Date.now();
     const reportProgress = (fraction: number) => {
@@ -216,13 +234,24 @@ onmessage = (message: MessageEvent<WorkerRequest>) => {
       previous = now;
     };
 
+    let result: unknown = null;
     if (data.type === "importFiles") {
+      const provider = ProviderLookup.get(data.provider);
+      if (!provider) throw new Error("unknown provider: " + provider);
       await importFiles(data.key, provider, data.files, reportProgress);
     } else if (data.type === "resetProvider") {
+      const provider = ProviderLookup.get(data.provider);
+      if (!provider) throw new Error("unknown provider: " + provider);
       await resetProvider(data.key, provider);
+    } else if (data.type === "decodeData") {
+      result = await decodeData(data.data, data.tryJSON);
+    } else if (data.type === "parseByStages") {
+      const provider = ProviderLookup.get(data.provider);
+      if (!provider) throw new Error("unknown provider: " + provider);
+      result = await parseByStages(provider, data.file);
     } else {
       throw new Error("unknown request type");
     }
-    sendResponse({ type: "done", id: data.id });
+    sendResponse({ type: "done", id: data.id, result });
   })();
 };

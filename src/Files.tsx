@@ -1,7 +1,6 @@
 import { BeakerIcon, DesktopDownloadIcon } from "@primer/octicons-react";
 import React from "react";
 
-import { parseByStages } from "@src/common/parse";
 import type { Provider } from "@src/common/provider";
 import { Navigate, useNavigate } from "@src/common/router";
 import FilePreview from "@src/components/FilePreview";
@@ -10,6 +9,7 @@ import Navigation from "@src/components/Navigation";
 import Placeholder from "@src/components/Placeholder";
 import { useProviderDatabase } from "@src/database/hooks";
 import type { DataFile, DataFileKey } from "@src/database/types";
+import { parseByStages } from "@src/worker/client";
 import { fileSizeLimitMB } from "@src/worker/types";
 
 import styles from "@src/Drilldown.module.css";

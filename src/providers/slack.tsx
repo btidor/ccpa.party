@@ -1,7 +1,3 @@
-import { DateTime } from "luxon";
-import { Minimatch } from "minimatch";
-
-import { MetadataParser, TimelineParser } from "@src/common/parse";
 import type { Provider, TimelineCategory } from "@src/common/provider";
 
 export type CategoryKey = "message" | "integration";
@@ -46,36 +42,6 @@ class Slack implements Provider<CategoryKey> {
       },
     ],
   ]);
-
-  metadataParsers: ReadonlyArray<MetadataParser> = [
-    {
-      glob: new Minimatch("users.json"),
-      parse: (item) => [`user.${item.id}`, item],
-    },
-    {
-      glob: new Minimatch("channels.json"),
-      parse: (item) => [`channel.${item.id}`, item],
-    },
-  ];
-
-  timelineParsers: ReadonlyArray<TimelineParser<CategoryKey>> = [
-    {
-      glob: new Minimatch("*/*.json"),
-      parse: (item) => [
-        "message",
-        DateTime.fromSeconds(parseInt(item.ts)),
-        null,
-      ],
-    },
-    {
-      glob: new Minimatch("integration_logs.json"),
-      parse: (item) => [
-        "integration",
-        DateTime.fromSeconds(parseInt(item.date)),
-        null,
-      ],
-    },
-  ];
 }
 
 export default Slack;
