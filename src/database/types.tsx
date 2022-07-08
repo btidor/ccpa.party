@@ -37,3 +37,8 @@ export type TimelineEntry<T> = TimelineEntryKey<T> & {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
 };
+
+export type DatabaseRecord = {
+  readonly iv: string;
+  readonly ciphertext: ArrayBuffer;
+};

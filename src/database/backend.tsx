@@ -1,4 +1,5 @@
 import { b64dec, b64enc, deserialize, serialize } from "@src/common/util";
+import { DatabaseRecord } from "@src/database/types";
 
 const dbName = "ccpa.party";
 const dbVersion = 1;
@@ -211,43 +212,39 @@ export class WriteBackend extends ReadBackend {
     return dbkey;
   }
 
-  async puts(
-    data: ReadonlyArray<unknown>,
+  async encrypt(
+    data: unknown,
     opts?: { binary: false }
-  ): Promise<string[]>;
-  async puts(
-    data: ReadonlyArray<ArrayBufferLike>,
+  ): Promise<DatabaseRecord>;
+  async encrypt(
+    data: ArrayBufferLike,
     opts: { binary: true }
-  ): Promise<string[]>;
-  async puts(
-    data: ReadonlyArray<unknown>,
+  ): Promise<DatabaseRecord>;
+  async encrypt(
+    data: unknown,
     opts?: { binary?: boolean }
-  ): Promise<string[]> {
-    if (!opts?.binary) data = data.map((v) => serialize(v));
+  ): Promise<DatabaseRecord> {
+    const source = (opts?.binary ? data : serialize(data)) as ArrayBufferLike;
+    const iv = await globalThis.crypto.getRandomValues(new Uint8Array(12));
+    return {
+      iv: b64enc(iv),
+      ciphertext: await globalThis.crypto.subtle.encrypt(
+        { name: "AES-GCM", iv },
+        this.key,
+        source
+      ),
+    };
+  }
 
-    const ciphertexts: ArrayBufferLike[] = [];
-    const ivs: string[] = [];
-    for (let i = 0; i < data.length; i++) {
-      const iv = await globalThis.crypto.getRandomValues(new Uint8Array(12));
-      ciphertexts.push(
-        await globalThis.crypto.subtle.encrypt(
-          { name: "AES-GCM", iv },
-          this.key,
-          data[i] as ArrayBufferLike
-        )
-      );
-      ivs.push(b64enc(iv));
-    }
-
+  async puts(records: ReadonlyArray<DatabaseRecord>): Promise<void> {
     await new Promise<void>((resolve, reject) => {
       const txn: IDBTransaction = this.db.transaction(dbStore, "readwrite");
       const store = txn.objectStore(dbStore);
-      ivs.map((iv, i) => store.put(ciphertexts[i], iv));
+      records.map((r) => store.put(r.ciphertext, r.iv));
 
       txn.oncomplete = () => resolve();
       txn.onerror = (e) => reject(e);
     });
-    return ivs;
   }
 
   async deletes(keys: ReadonlySet<string>): Promise<void> {

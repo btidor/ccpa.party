@@ -1,7 +1,12 @@
 import type { Provider } from "@src/common/provider";
 import { WriteBackend } from "@src/database/backend";
 import { ProviderDatabase } from "@src/database/query";
-import type { DataFile, DataFileKey, TimelineEntry } from "@src/database/types";
+import type {
+  DataFile,
+  DataFileKey,
+  DatabaseRecord,
+  TimelineEntry,
+} from "@src/database/types";
 
 // Increasing the batch size adds latency and makes the timeline view sluggish
 // (because we have to sift through more extraneous data in order to load the
@@ -20,13 +25,16 @@ export class Writer<T> {
   protected query: ProviderDatabase<T>;
 
   protected files: {
-    uncommitted: DataFile[];
-    uncommittedSize: number;
+    pending: {
+      records: DatabaseRecord[];
+      size: number;
+    };
     index: DataFileKey[];
   };
   protected metadata: Map<string, unknown>;
   protected timeline: {
-    uncommitted: TimelineEntry<T>[];
+    pendingBatch: TimelineEntry<T>[];
+    pendingWrite: DatabaseRecord[];
     dedup: Set<string>;
     index: [string | void, number, string, number, string, T][];
   };
@@ -37,22 +45,27 @@ export class Writer<T> {
     this.query = new ProviderDatabase(backend, provider);
 
     this.files = {
-      uncommitted: [],
-      uncommittedSize: 0,
+      pending: { records: [], size: 0 },
       index: [],
     };
     this.metadata = new Map();
     this.timeline = {
-      uncommitted: [],
+      pendingBatch: [],
+      pendingWrite: [],
       dedup: new Set(),
       index: [],
     };
   }
 
   async putFile(file: DataFile): Promise<void> {
-    this.files.uncommitted.push(file);
-    this.files.uncommittedSize += file.data.byteLength;
-    if (this.files.uncommittedSize > fileBufferLimitBytes) {
+    const { data, ...metadata } = file;
+    const record = await this.backend.encrypt(data, { binary: true });
+
+    this.files.pending.records.push(record);
+    this.files.pending.size += file.data.byteLength;
+    this.files.index.push({ iv: record.iv, ...metadata });
+
+    if (this.files.pending.size > fileBufferLimitBytes) {
       await this.flushFiles();
     }
   }
@@ -63,57 +76,44 @@ export class Writer<T> {
 
   async putTimelineEntry(entry: TimelineEntry<T>): Promise<void> {
     if (!this.timeline.dedup.has(entry.slug)) {
-      this.timeline.uncommitted.push(entry);
+      this.timeline.pendingBatch.push(entry);
       this.timeline.dedup.add(entry.slug);
-    }
-    if (this.timeline.uncommitted.length > timelineEntryLimit) {
-      await this.flushTimeline();
+      if (this.timeline.pendingBatch.length >= batchSize) {
+        await this.flushTimelineBatch();
+      }
+      if (this.timeline.pendingWrite.length * batchSize >= timelineEntryLimit) {
+        await this.flushTimelineWrites();
+      }
     }
   }
 
   protected async flushFiles(): Promise<void> {
-    const ivs = await this.backend.puts(
-      this.files.uncommitted.map(({ data }) => data),
-      { binary: true }
-    );
-    this.files.index.push(
-      ...this.files.uncommitted.map(({ data, ...rest }, i) => ({
-        iv: ivs[i],
-        ...rest,
-      }))
-    );
-    this.files.uncommitted = [];
-    this.files.uncommittedSize = 0;
+    await this.backend.puts(this.files.pending.records);
+    this.files.pending = {
+      records: [],
+      size: 0,
+    };
   }
 
-  protected async flushTimeline(): Promise<void> {
-    const index: [string | void, number, string, number, string, T][][] = [];
-    const writes = [];
-    for (let i = 0; i < this.timeline.uncommitted.length; i += batchSize) {
-      const batch = this.timeline.uncommitted.slice(i, i + batchSize);
-      writes.push(
-        batch.map(({ file, context, value }) => [file, context, value])
-      );
-      index.push(
-        batch.map(({ day, timestamp, slug, category }, i) => [
-          undefined,
-          i,
-          day,
-          timestamp,
-          slug,
-          category,
-        ])
-      );
+  protected async flushTimelineBatch(): Promise<void> {
+    const record = await this.backend.encrypt(
+      this.timeline.pendingBatch.map(({ file, context, value }) => [
+        file,
+        context,
+        value,
+      ])
+    );
+    this.timeline.pendingWrite.push(record);
+    for (let i = 0; i < this.timeline.pendingBatch.length; i++) {
+      const { day, timestamp, slug, category } = this.timeline.pendingBatch[i];
+      this.timeline.index.push([record.iv, i, day, timestamp, slug, category]);
     }
-    const ivs = await this.backend.puts(writes);
-    for (let i = 0; i < ivs.length; i++) {
-      index[i].forEach((row) => (row[0] = ivs[i]));
-    }
+    this.timeline.pendingBatch = [];
+  }
 
-    for (const entry of index.flat(1)) {
-      this.timeline.index.push(entry);
-    }
-    this.timeline.uncommitted = [];
+  protected async flushTimelineWrites(): Promise<void> {
+    await this.backend.puts(this.timeline.pendingWrite);
+    this.timeline.pendingWrite = [];
   }
 
   // You MUST call `commit` in order to flush data and indexes.
@@ -127,7 +127,8 @@ export class Writer<T> {
     metadataIndex.sort();
 
     // Write timeline entries and compute index
-    await this.flushTimeline();
+    await this.flushTimelineBatch();
+    await this.flushTimelineWrites();
     this.timeline.index.sort((a, b) => a[4].localeCompare(b[4]));
 
     // Write provider index
@@ -145,13 +146,16 @@ export class Writer<T> {
 
     // Reset internal state
     this.files = {
-      uncommitted: [],
-      uncommittedSize: 0,
+      pending: {
+        records: [],
+        size: 0,
+      },
       index: [],
     };
     this.metadata = new Map();
     this.timeline = {
-      uncommitted: [],
+      pendingBatch: [],
+      pendingWrite: [],
       dedup: new Set(),
       index: [],
     };
