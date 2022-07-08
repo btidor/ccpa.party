@@ -9,6 +9,8 @@ import type { DataFile, DataFileKey, TimelineEntry } from "@src/database/types";
 // browsers (because the per-put overhead is so high). :(
 const batchSize = 64;
 
+// Writing too much data in a single IndexedDB operation causes the Chrome tab
+// to crash, possibly because it generates a too-large IPC message.
 const fileBufferLimitBytes = 16 * 1024 * 1024;
 const timelineEntryLimit = 1024;
 
@@ -64,7 +66,7 @@ export class Writer<T> {
       this.timeline.uncommitted.push(entry);
       this.timeline.dedup.add(entry.slug);
     }
-    if (this.timeline.uncommitted.length > batchSize * timelineEntryLimit) {
+    if (this.timeline.uncommitted.length > timelineEntryLimit) {
       await this.flushTimeline();
     }
   }
