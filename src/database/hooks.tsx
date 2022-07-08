@@ -126,6 +126,6 @@ export function useProviderDatabase<T>(
   return React.useMemo(
     () => cache && new ProviderDatabase(cache.backend, provider),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [epoch]
+    [epoch, provider]
   );
 }
