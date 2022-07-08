@@ -21,10 +21,11 @@ const unknownMessage = "😕 Unknown file type";
 function FilePreview(props: Props): JSX.Element {
   const { children, filename } = props;
 
-  const [mode, setMode] = React.useState<DisplayMode>();
+  const [mode, setMode] = React.useState<DisplayMode | void>();
   useEffect(() => {
     displayMode(children, filename).then((m) => setMode(m));
   }, [children, filename]);
+  console.warn(children, mode);
 
   if (!mode) {
     return <React.Fragment></React.Fragment>;
@@ -117,11 +118,12 @@ type DisplayMode =
 async function displayMode(
   data: void | string | ArrayBufferLike | { [key: string]: unknown },
   filename: string | void
-): Promise<DisplayMode> {
-  if (!data) {
-    return { type: "empty" };
+): Promise<DisplayMode | void> {
+  if (data === undefined) {
+    return undefined;
   } else if (typeof data === "string") {
-    return { type: "text", parsed: data };
+    if (/^\n*$/.test(data)) return { type: "empty" };
+    else return { type: "text", parsed: data };
   } else if (data instanceof ArrayBuffer) {
     const ext = filename?.includes(".")
       ? filename.split(".").at(-1)
