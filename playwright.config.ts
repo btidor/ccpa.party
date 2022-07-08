@@ -11,7 +11,7 @@ const config: PlaywrightTestConfig = {
     // TODO: test on more browsers (wait until Playwright supports Firefox 102;
     // debug Safari issues)
   ],
-  retries: process.env.CI ? 2 : 0,
+  retries: 2,
   testDir: "playwright",
   use: {
     trace: "retain-on-failure",
