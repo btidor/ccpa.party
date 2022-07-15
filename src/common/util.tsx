@@ -40,7 +40,21 @@ export function getCookie(name: string): string | undefined {
 }
 
 export function setCookie(name: string, value: string, maxAge: number): void {
-  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; secure; samesite=strict`;
+  let directives = [
+    `${name}=${value}`,
+    `path=/`,
+    `max-age=${maxAge}`,
+    `secure`,
+    `samesite=strict`,
+  ];
+  if (globalThis.location?.hostname === "localhost") {
+    // HACK: due to WebKit bug #231035, the `secure` attribute causes the cookie
+    // to be dropped in Safari when running on `localhost` (e.g. in Playwright
+    // tests).
+    console.warn("localhost detected, setting non-secure cookie");
+    directives = directives.filter((x) => x !== "secure");
+  }
+  document.cookie = directives.join("; ");
 }
 
 export function getKeyFromCookie(): ArrayBuffer | undefined {
