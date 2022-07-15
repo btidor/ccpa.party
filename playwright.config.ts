@@ -8,17 +8,22 @@ const config: PlaywrightTestConfig = {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
-    // TODO: test on more browsers (wait until Playwright supports Firefox 102;
-    // debug Safari issues)
+    {
+      name: "firefox",
+      use: { ...devices["Desktop Firefox"] },
+    },
+    {
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
+    },
   ],
-  retries: 2,
   testDir: "playwright",
   use: {
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "npm run dev",
-    port: 3000,
+    command: "npm run preview",
+    port: 4173,
     reuseExistingServer: !process.env.CI,
   },
 };

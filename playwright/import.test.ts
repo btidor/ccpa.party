@@ -22,7 +22,10 @@ test("tar.gz import", async ({ page }) => {
   );
 
   await page.locator("a", { hasText: /files/i }).click(); // files
-  await page.locator("div", { hasText: /repositories_000001.json/i }).click();
+  await page
+    .locator("div", { hasText: /repositories_000001.json/i })
+    .last()
+    .click();
   expect(await page.locator("pre").last()).toContainText(
     /"url": "https:\/\/github.com\/btidor\/ccpa.party",/i
   );
@@ -44,14 +47,23 @@ test("zip import", async ({ page }) => {
 
   await compass.locator("a").click(); // Explore ->
 
-  await page.locator("span", { hasText: /hello, world!/i }).click();
+  await page
+    .locator("span", { hasText: /hello, world!/i })
+    .last()
+    .click();
   expect(await page.locator("pre").last()).toContainText(
     /"client_msg_id": "20848668-047f-44b9-a314-0d1f44ed8d5c",/i
   );
 
   await page.locator("a", { hasText: /files/i }).click(); // files
-  await page.locator("div", { hasText: /ccpa-discuss/i }).click();
-  await page.locator("div", { hasText: /2022-06-30/i }).click();
+  await page
+    .locator("div", { hasText: /ccpa-discuss/i })
+    .last()
+    .click();
+  await page
+    .locator("div", { hasText: /2022-06-30/i })
+    .last()
+    .click();
   expect(await page.locator("pre").last()).toContainText(
     /\[\s*{\s*"client_msg_id":/i
   );
