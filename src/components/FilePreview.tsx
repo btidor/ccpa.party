@@ -25,7 +25,6 @@ function FilePreview(props: Props): JSX.Element {
   useEffect(() => {
     displayMode(children, filename).then((m) => setMode(m));
   }, [children, filename]);
-  console.warn(children, mode);
 
   if (!mode) {
     return <React.Fragment></React.Fragment>;
