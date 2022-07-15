@@ -157,12 +157,12 @@ export class WriteBackend extends ReadBackend {
       // cached. (Note that writers typically do not reset, so make sure this
       // WriteBackend is still usable.)
       await new Promise<void>((resolve, reject) => {
-        const op = db
-          .transaction(dbStore, "readwrite")
-          .objectStore(dbStore)
-          .put(keyHash, keyHashKey);
-        op.onsuccess = () => resolve();
-        op.onerror = (e) => reject(e);
+        const txn = db.transaction(dbStore, "readwrite");
+        const store = txn.objectStore(dbStore);
+        store.put(keyHash, keyHashKey);
+
+        txn.oncomplete = () => resolve();
+        txn.onerror = (e) => reject(e);
       });
       broadcast({ type: "rekey", clear: undefined });
     } else {
@@ -202,12 +202,12 @@ export class WriteBackend extends ReadBackend {
     const [dbkey, dbval] = k ? [k, [iv, ciphertext]] : [b64enc(iv), ciphertext];
 
     await new Promise<void>((resolve, reject) => {
-      const op = this.db
-        .transaction(dbStore, "readwrite")
-        .objectStore(dbStore)
-        .put(dbval, dbkey);
-      op.onsuccess = () => resolve();
-      op.onerror = (e) => reject(e);
+      const txn = this.db.transaction(dbStore, "readwrite");
+      const store = txn.objectStore(dbStore);
+      store.put(dbval, dbkey);
+
+      txn.oncomplete = () => resolve();
+      txn.onerror = (e) => reject(e);
     });
     return dbkey;
   }
@@ -238,7 +238,7 @@ export class WriteBackend extends ReadBackend {
 
   async puts(records: ReadonlyArray<DatabaseRecord>): Promise<void> {
     await new Promise<void>((resolve, reject) => {
-      const txn: IDBTransaction = this.db.transaction(dbStore, "readwrite");
+      const txn = this.db.transaction(dbStore, "readwrite");
       const store = txn.objectStore(dbStore);
       records.map((r) => store.put(r.ciphertext, r.iv));
 
@@ -249,7 +249,7 @@ export class WriteBackend extends ReadBackend {
 
   async deletes(keys: ReadonlySet<string>): Promise<void> {
     await new Promise<void>((resolve, reject) => {
-      const txn: IDBTransaction = this.db.transaction(dbStore, "readwrite");
+      const txn = this.db.transaction(dbStore, "readwrite");
       const store = txn.objectStore(dbStore);
       keys.forEach((k) => store.delete(k));
 
@@ -270,13 +270,13 @@ export class WriteBackend extends ReadBackend {
 }
 
 async function expireDatabaseAndKey(db: IDBDatabase, keyHash: string | void) {
-  await new Promise((resolve, reject) => {
-    const op = db
-      .transaction(dbStore, "readwrite")
-      .objectStore(dbStore)
-      .clear();
-    op.onsuccess = () => resolve(op.result);
-    op.onerror = (e) => reject(e);
+  await new Promise<void>((resolve, reject) => {
+    const txn = db.transaction(dbStore, "readwrite");
+    const store = txn.objectStore(dbStore);
+    store.clear();
+
+    txn.oncomplete = () => resolve();
+    txn.onerror = (e) => reject(e);
   });
   broadcast({ type: "rekey", clear: keyHash });
   console.log("Reset database");
