@@ -19,11 +19,11 @@ class Google implements Provider<CategoryKey> {
     `check Access Log Activity`,
     ``,
     `under My Activity`,
-    ` click Multiple Formats`,
-    `  change HTML to JSON`,
+    `click Multiple Formats`,
+    `change HTML to JSON`,
   ];
   singleFile = true;
-  fileName = "takeout.zip";
+  fileName = "zip/mbox files";
   privacyPolicy = "https://policies.google.com/privacy?hl=en#california";
 
   timelineCategories: ReadonlyMap<CategoryKey, TimelineCategory> = new Map([
