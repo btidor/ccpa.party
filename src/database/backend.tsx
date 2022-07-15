@@ -105,16 +105,26 @@ export class ReadBackend {
     k: string,
     opts?: { binary?: boolean; named?: boolean }
   ): Promise<unknown> {
-    const result = await new Promise((resolve, reject) => {
+    const result = await new Promise<
+      ArrayBufferLike | [string, ArrayBufferLike]
+    >((resolve, reject) => {
       const op = this.db.transaction(dbStore).objectStore(dbStore).get(k);
       op.onsuccess = () => resolve(op.result);
       op.onerror = (e) => reject(e);
     });
     if (result === undefined) return;
 
-    const [iv, ciphertext] = opts?.named
-      ? (result as [ArrayBufferLike, ArrayBufferLike])
-      : [b64dec(k), result as ArrayBufferLike];
+    let iv, ciphertext;
+    if (opts?.named) {
+      if (!Array.isArray(result)) throw new Error("invalid named record");
+      iv = b64dec(result[0]);
+      ciphertext = result[1];
+    } else {
+      if (Array.isArray(result)) throw new Error("invalid unnamed record");
+      iv = b64dec(k);
+      ciphertext = result;
+    }
+
     const plaintext = await globalThis.crypto.subtle.decrypt(
       { name: "AES-GCM", iv },
       this.key,
@@ -191,15 +201,10 @@ export class WriteBackend extends ReadBackend {
     broadcast({ type: "write", provider });
   }
 
-  async put(v: unknown, k?: string): Promise<string> {
-    const iv = await globalThis.crypto.getRandomValues(new Uint8Array(12));
-    const ciphertext = await globalThis.crypto.subtle.encrypt(
-      { name: "AES-GCM", iv },
-      this.key,
-      serialize(v)
-    );
-
-    const [dbkey, dbval] = k ? [k, [iv, ciphertext]] : [b64enc(iv), ciphertext];
+  async put(record: DatabaseRecord, key?: string): Promise<string> {
+    const [dbkey, dbval] = key
+      ? [key, [record.iv, record.ciphertext]]
+      : [record.iv, record.ciphertext];
 
     await new Promise<void>((resolve, reject) => {
       const txn = this.db.transaction(dbStore, "readwrite");
@@ -261,7 +266,7 @@ export class WriteBackend extends ReadBackend {
   async updateRootIndex(update: (index: RootIndex) => void): Promise<void> {
     const index = await this.getRootIndex();
     update(index);
-    this.put(index, rootIndexKey);
+    this.put(await this.encrypt(index), rootIndexKey);
   }
 
   async clear(): Promise<void> {

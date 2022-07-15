@@ -132,16 +132,17 @@ export class Writer<T> {
     this.timeline.index.sort((a, b) => a[4].localeCompare(b[4]));
 
     // Write provider index
-    const iv = await this.backend.put({
+    const record = await this.backend.encrypt({
       files: this.files.index,
       metadata: metadataIndex,
       timeline: this.timeline.index,
       hasErrors: this.files.index.some((file) => file.errors.length),
     });
+    await this.backend.put(record);
 
     // Update root index
     await this.backend.updateRootIndex(
-      (index) => (index[this.provider.slug] = iv)
+      (index) => (index[this.provider.slug] = record.iv)
     );
 
     // Reset internal state
