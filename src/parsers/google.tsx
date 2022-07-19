@@ -10,9 +10,13 @@ import type {
 import type { CategoryKey } from "@src/providers/google";
 import { parseJSON } from "@src/worker/parse";
 
-const decoder = new TextDecoder();
-
 class Google implements Parser<CategoryKey> {
+  decoder: TextDecoder;
+
+  constructor() {
+    this.decoder = new TextDecoder();
+  }
+
   slug = "google";
 
   ignore: ReadonlyArray<IgnoreParser> = [
@@ -34,23 +38,38 @@ class Google implements Parser<CategoryKey> {
   timeline: ReadonlyArray<TimelineParser<CategoryKey>> = [
     {
       glob: new Minimatch("**/*.eml"),
-      tokenize: (data) => [decoder.decode(data)],
+      tokenize: (data, go) => [go.ParseEmail(new Uint8Array(data))],
       parse: (item: string) => {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        let from = item.match(/^From: (.*)$/m)![1];
-        from = from.match(/^(.*) <[^>]+>$/)?.[1] || from;
-        from = from.match(/"([^"]+)"$/)?.[1] || from;
-        from = from.match(/<([^>]+)>$/)?.[1] || from;
+        const parts = item.split(/\r?\n/);
+        const headers = {} as { [key: string]: string };
+        for (let i = 0; i < parts.length; i++) {
+          if (parts[i] === "") {
+            break;
+          } else if (parts[i].startsWith("From ")) {
+            const subparts = parts[i].split(" ");
+            headers["Date"] = subparts.slice(2).join(" ");
+          } else {
+            const [name, ...value] = parts[i].split(": ");
+            headers[name] = value.join(": ");
+          }
+        }
 
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const subject = item.match(/^Subject: (.*)$/m)![1];
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const date = item.match(/^From [^ ]+ (.*)$/m)![1];
-        return [
-          "mail",
-          DateTime.fromFormat(date, "EEE MMM dd HH:mm:ss ZZZ yyyy"),
-          [subject, from],
-        ];
+        const labels = (headers["X-Gmail-Labels"] || "").split(",");
+        const date = DateTime.fromFormat(
+          headers["Date"],
+          "EEE MMM dd HH:mm:ss ZZZ yyyy"
+        );
+
+        if (labels.includes("Trash") || labels.includes("Spam")) {
+          // TODO: for now, completely hide messages in Trash + Spam
+          return undefined;
+        } else if (labels.includes("Chat")) {
+          // Skip chat messages, they're duplicated in the Hangouts export (and
+          // are provided here without the recipient...?)
+          return undefined;
+        } else {
+          return ["mail", date, [headers["Subject"], headers["From"]]];
+        }
       },
     },
     {

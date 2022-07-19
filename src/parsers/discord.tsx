@@ -50,7 +50,7 @@ class Discord implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch("activity/*/events-*.json"),
-      tokenize: parseJSONND,
+      tokenize: (data) => parseJSONND(data),
       parse: (item) => [
         "activity",
         DateTime.fromISO(item.timestamp.slice(1, -1)),

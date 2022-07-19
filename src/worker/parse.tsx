@@ -17,9 +17,11 @@ import type {
   TimelineEntry,
 } from "@src/database/types";
 
+import type { GoHooks } from "@go";
+
 const defaultTokenizers = new Map<string, Tokenizer<TokenizedItem>>([
-  ["csv", parseCSV],
-  ["json", parseJSON],
+  ["csv", (data) => parseCSV(data)],
+  ["json", (data) => parseJSON(data)],
 ]);
 
 const printableRegExp =
@@ -129,7 +131,8 @@ export function smartDecodeText(text: string): string {
 async function tokenize<T>(
   parser: TimelineParser<T> | MetadataParser,
   path: string,
-  data: ArrayBufferLike
+  data: ArrayBufferLike,
+  go: GoHooks
 ): Promise<unknown[]> {
   const ext = path.split(".").at(-1) || "";
 
@@ -138,7 +141,7 @@ async function tokenize<T>(
     throw new Error(`No default tokenizer for .${ext || "unknown"}`);
   }
 
-  const tokens = await tokenizer(data);
+  const tokens = await tokenizer(data, go);
   if (!Array.isArray(tokens)) throw new Error("Non-Array Tokenization");
   return tokens;
 }
@@ -152,7 +155,8 @@ export type ParseResponse<T> = {
 
 export async function parseByStages<T>(
   provider: Provider<T>,
-  file: DataFile
+  file: DataFile,
+  go: GoHooks
 ): Promise<ParseResponse<T>> {
   const path = file.path.slice(1).join("/");
   const parser = getParser(provider);
@@ -170,7 +174,7 @@ export async function parseByStages<T>(
   if (metadataParser) {
     response.status = "parsed";
     try {
-      const tokenized = await tokenize(metadataParser, path, file.data);
+      const tokenized = await tokenize(metadataParser, path, file.data, go);
 
       for (const line of tokenized) {
         try {
@@ -188,7 +192,7 @@ export async function parseByStages<T>(
   if (timelineParser) {
     response.status = "parsed";
     try {
-      const tokenized = await tokenize(timelineParser, path, file.data);
+      const tokenized = await tokenize(timelineParser, path, file.data, go);
 
       for (const line of tokenized) {
         try {

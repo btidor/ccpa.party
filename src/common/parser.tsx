@@ -12,7 +12,12 @@ import Google from "@src/parsers/google";
 import Netflix from "@src/parsers/netflix";
 import Slack from "@src/parsers/slack";
 
-export type Tokenizer<U> = (data: ArrayBufferLike) => U[] | Promise<U[]>;
+import type { GoHooks } from "@go";
+
+export type Tokenizer<U> = (
+  data: ArrayBufferLike,
+  go: GoHooks
+) => U[] | Promise<U[]>;
 
 export type TokenizedItem = { [key: string]: unknown };
 export type TimelineTuple<T> = [T, DateTime, TimelineContext];

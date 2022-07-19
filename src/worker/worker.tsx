@@ -70,7 +70,7 @@ async function importFiles<T>(
       errors: [],
     };
 
-    const result = await parseByStages(provider, dataFile);
+    const result = await parseByStages(provider, dataFile, (await go).hooks);
     for (const entry of result.timeline) {
       await writer.putTimelineEntry(entry);
     }
@@ -222,6 +222,8 @@ async function decodeData(
   }
 }
 
+const go = Go();
+
 onmessage = (message: MessageEvent<WorkerRequest>) => {
   (async () => {
     const { data } = message;
@@ -248,7 +250,7 @@ onmessage = (message: MessageEvent<WorkerRequest>) => {
     } else if (data.type === "parseByStages") {
       const provider = ProviderLookup.get(data.provider);
       if (!provider) throw new Error("unknown provider: " + provider);
-      result = await parseByStages(provider, data.file);
+      result = await parseByStages(provider, data.file, (await go).hooks);
     } else {
       throw new Error("unknown request type");
     }

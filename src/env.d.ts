@@ -17,16 +17,18 @@ declare module "@go" {
     type: string;
     size: number;
   };
+
   type TarFile = {
     Next(): Promise<[TarEntry, unknown] | [void, unknown]>;
     Read(buf: Uint8Array): Promise<number>;
   };
-  type Go = {
-    hooks: {
-      TarFile: {
-        new (stream: ReadableStream): TarFile;
-      };
+
+  export type GoHooks = {
+    TarFile: {
+      new (stream: ReadableStream): TarFile;
     };
+    ParseEmail(body: Uint8Array): string;
   };
-  export default async function Run(): Promise<Go>;
+
+  export default async function Run(): Promise<{ hooks: GoHooks }>;
 }
