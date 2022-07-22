@@ -60,6 +60,14 @@ class Google implements Parser<CategoryKey> {
           "EEE MMM dd HH:mm:ss ZZZ yyyy"
         );
 
+        const subject = headers["Subject"];
+
+        const matches = headers["From"].trim().match(/^((.*) )?(<([^>]+)>)?$/);
+        let from = (matches?.[2] || matches?.[5] || headers["From"]).trim();
+        if (from.at(0) === '"' && from.at(-1) === '"') {
+          from = from.slice(1, -1);
+        }
+
         if (labels.includes("Trash") || labels.includes("Spam")) {
           // TODO: for now, completely hide messages in Trash + Spam
           return undefined;
@@ -68,7 +76,7 @@ class Google implements Parser<CategoryKey> {
           // are provided here without the recipient...?)
           return undefined;
         } else {
-          return ["mail", date, [headers["Subject"], headers["From"]]];
+          return ["mail", date, [subject, from]];
         }
       },
     },
