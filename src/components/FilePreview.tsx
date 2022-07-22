@@ -12,6 +12,7 @@ type Props = {
     | ArrayBufferLike // display file (please also pass filename)
     | { [key: string]: unknown }; // display JSON object
   filename?: string;
+  special?: "email" | void;
 };
 
 const decodeFailureMessage = "🥗 Unable to decode text";
@@ -19,12 +20,12 @@ const emptyMessage = "🥛 File is empty";
 const unknownMessage = "😕 Unknown file type";
 
 function FilePreview(props: Props): JSX.Element {
-  const { children, filename } = props;
+  const { children, filename, special } = props;
 
   const [mode, setMode] = React.useState<DisplayMode | void>();
   useEffect(() => {
-    displayMode(children, filename).then((m) => setMode(m));
-  }, [children, filename]);
+    displayMode(children, filename, special).then((m) => setMode(m));
+  }, [children, filename, special]);
 
   if (!mode) {
     return <React.Fragment></React.Fragment>;
@@ -116,10 +117,33 @@ type DisplayMode =
 
 async function displayMode(
   data: void | string | ArrayBufferLike | { [key: string]: unknown },
-  filename: string | void
+  filename: string | void,
+  special: "email" | void
 ): Promise<DisplayMode | void> {
   if (data === undefined) {
     return undefined;
+  } else if (special === "email") {
+    if (typeof data !== "string") {
+      throw new Error(
+        "filepreview: special email must be used with string data"
+      );
+    }
+    const parts = data.split("\r\n\r\n");
+    const header = parts[0];
+    const body = parts.slice(1).join("\r\n\r\n").trim();
+    if (body.match(/^\s*(<!DOCTYPE|<HTML)\b/i)) {
+      return {
+        type: "webpage",
+        document: new TextEncoder().encode(
+          "<pre style='background-color: #000; color: #fff; font-size: 13px; padding: 4px; line-height: 1.425;'>" +
+            header +
+            "</pre>" +
+            body
+        ),
+      };
+    } else {
+      return { type: "text", parsed: data };
+    }
   } else if (typeof data === "string") {
     if (/^\n*$/.test(data)) return { type: "empty" };
     else return { type: "text", parsed: data };
@@ -163,4 +187,4 @@ async function displayMode(
   }
 }
 
-export default FilePreview;
+export default React.memo(FilePreview);

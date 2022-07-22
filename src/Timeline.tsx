@@ -226,7 +226,17 @@ function Timeline<T>(props: Props<T>): JSX.Element {
               )}
             </div>
             <div className={styles.box}>
-              {selected && <FilePreview>{selectedEntry?.value}</FilePreview>}
+              {selected && (
+                <FilePreview
+                  special={
+                    selectedEntry?.file.at(-1)?.endsWith(".eml")
+                      ? "email"
+                      : undefined
+                  }
+                >
+                  {selectedEntry?.value}
+                </FilePreview>
+              )}
             </div>
           </div>
         </div>
