@@ -14,7 +14,7 @@ import (
 
 var mimeDecoder = mime.WordDecoder{}
 
-var headers = []string{"From", "To", "Cc", "Subject", "X-Gmail-Labels"}
+var headers = []string{"From", "To", "Cc", "Subject", "Content-Type", "X-Gmail-Labels"}
 
 func ParseEmail(_ js.Value, args []js.Value) any {
 	buf := make([]byte, args[0].Length())
@@ -61,7 +61,7 @@ func parseSection(header header, body io.Reader, builder *strings.Builder) {
 	if err != nil {
 		panic(err)
 	}
-	if mediatype == "text/plain" {
+	if mediatype == "text/plain" || mediatype == "text/html" {
 		encoding := strings.ToLower(header.Get("Content-Transfer-Encoding"))
 		switch encoding {
 		case "", "7bit", "8bit", "binary":
@@ -101,7 +101,7 @@ func parseSection(header header, body io.Reader, builder *strings.Builder) {
 			if err != nil {
 				panic(err)
 			}
-			if mediatype == "text/plain" {
+			if mediatype == "text/plain" || mediatype == "text/html" {
 				parseSection(part.Header, part, builder)
 				break
 			}
