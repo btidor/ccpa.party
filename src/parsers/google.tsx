@@ -20,7 +20,27 @@ class Google implements Parser<CategoryKey> {
   slug = "google";
 
   ignore: ReadonlyArray<IgnoreParser> = [
-    { glob: new Minimatch("**") }, // for now
+    // Settings
+    { glob: new Minimatch("Takeout/Classic Sites/**") },
+    { glob: new Minimatch("Takeout/Contacts/**") },
+    { glob: new Minimatch("Takeout/Mail/User Settings/**") },
+    { glob: new Minimatch("Takeout/News/**") },
+    { glob: new Minimatch("Takeout/Profile/**") },
+    { glob: new Minimatch("Takeout/Tasks/**") },
+
+    // Attachments
+    { glob: new Minimatch("Takeout/Hangouts/Photos/**") },
+
+    // Miscellaneous & Unparseable
+    { glob: new Minimatch("Takeout/archive_browser.html") },
+    {
+      glob: new Minimatch(
+        "Takeout/Google Pay/**/Loyalty Gift Cards and Offers.pdf"
+      ),
+    },
+    { glob: new Minimatch("Takeout/My Activity/**/*.html") },
+    { glob: new Minimatch("Takeout/Google Account/**.html") },
+    { glob: new Minimatch("**/README") },
   ];
 
   metadata: ReadonlyArray<MetadataParser> = [
