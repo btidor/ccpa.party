@@ -145,9 +145,14 @@ async function displayMode(
       return { type: "text", parsed: data };
     }
   } else if (typeof data === "string") {
-    if (/^\n*$/.test(data)) return { type: "empty" };
+    if (/^\s*$/.test(data)) return { type: "empty" };
     else return { type: "text", parsed: data };
   } else if (data instanceof ArrayBuffer) {
+    if (data.byteLength < 16 * 1024) {
+      const decoded = new TextDecoder().decode(data);
+      if (decoded.match(/^\s*$/)) return { type: "empty" };
+    }
+
     const ext = filename?.includes(".")
       ? filename.split(".").at(-1)
       : undefined;
