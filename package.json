@@ -51,7 +51,8 @@
     "postinstall": "./go/install",
     "preview": "vite preview",
     "test": "vitest",
-    "playwright": "playwright test",
+    "playwright": "playwright test --config playwright.dev.ts",
+    "playwright/prod": "playwright test --config playwright.prod.ts",
     "lint": "eslint --max-warnings=0 src/"
   },
   "browserslist": {
