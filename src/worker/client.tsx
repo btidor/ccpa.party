@@ -9,23 +9,27 @@ import type {
 import Worker from "@src/worker/worker?worker";
 
 let worker: Worker | void;
+if (!import.meta.env.SSR) {
+  worker = new Worker();
+  worker.onmessage = (msg: MessageEvent<WorkerResponse>) => {
+    const { data } = msg;
+    if (data.type === "done") {
+      pending.get(data.id)?.(data.result);
+    } else if (data.type === "progress") {
+      progress.get(data.id)?.(data.fraction);
+    } else {
+      throw new Error("unknown response type");
+    }
+  };
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const pending = new Map<string, (result: any) => void>();
 const progress = new Map<string, (fraction: number) => void>();
 
 function sendRequest(msg: WorkerRequest): void {
   if (!worker) {
-    worker = new Worker();
-    worker.onmessage = (msg: MessageEvent<WorkerResponse>) => {
-      const { data } = msg;
-      if (data.type === "done") {
-        pending.get(data.id)?.(data.result);
-      } else if (data.type === "progress") {
-        progress.get(data.id)?.(data.fraction);
-      } else {
-        throw new Error("unknown response type");
-      }
-    };
+    throw new Error("Can't invoke worker during server-side rendering");
   }
   worker.postMessage(msg);
 }
