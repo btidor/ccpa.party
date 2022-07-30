@@ -155,6 +155,7 @@ export type ParseResponse<T> = {
 
 export async function parseByStages<T>(
   provider: Provider<T>,
+  profile: string | void,
   file: DataFile,
   go: GoHooks
 ): Promise<ParseResponse<T>> {
@@ -196,6 +197,10 @@ export async function parseByStages<T>(
 
       for (const line of tokenized) {
         try {
+          if (profile && timelineParser.filter?.(line, profile) === false) {
+            continue;
+          }
+
           let parsed = timelineParser.parse(line) || [];
           parsed = (
             !parsed.length || Array.isArray(parsed[0]) ? parsed : [parsed]

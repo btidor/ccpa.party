@@ -132,3 +132,8 @@
 .reset button svg {
   margin-bottom: 0.2em;
 }
+
+.profiles button:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}

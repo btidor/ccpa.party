@@ -4,10 +4,12 @@
 import type { DataFile } from "@src/database/types";
 
 export type WorkerRequest = (
+  | { type: "listProfiles"; provider: string; files: FileList }
   | {
       type: "importFiles";
       key: ArrayBuffer;
       provider: string;
+      profile: string | void;
       files: FileList;
     }
   | { type: "resetProvider"; key: ArrayBuffer; provider: string }

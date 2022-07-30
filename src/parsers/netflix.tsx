@@ -1,11 +1,24 @@
 import { DateTime } from "luxon";
 import { Minimatch } from "minimatch";
 
-import type { IgnoreParser, Parser, TimelineParser } from "@src/common/parser";
+import type {
+  IgnoreParser,
+  Parser,
+  ProfileParser,
+  TimelineParser,
+  TimelineTuple,
+} from "@src/common/parser";
 import type { CategoryKey } from "@src/providers/netflix";
+import { parseCSV } from "@src/worker/parse";
 
 class Netflix implements Parser<CategoryKey> {
   slug = "netflix";
+
+  profile: ProfileParser = {
+    file: "PROFILES/Profiles.csv",
+    extract: async (data) =>
+      (await parseCSV(data)).map((item) => item["Profile Name"]),
+  };
 
   ignore: ReadonlyArray<IgnoreParser> = [
     { glob: new Minimatch("Additional Information.pdf") },
@@ -42,6 +55,7 @@ class Netflix implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch("CLICKSTREAM/Clickstream.csv"),
+      filter: (item, profile) => item["Profile Name"] === profile,
       parse: (item) => {
         let nav = item["Navigation Level"].replace(/([A-Z])/g, " $1");
         nav = nav[0].toUpperCase() + nav.slice(1);
@@ -54,6 +68,7 @@ class Netflix implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch("CONTENT_INTERACTION/PlaybackRelatedEvents.csv"),
+      filter: (item, profile) => item["Profile Name"] === profile,
       parse: (item) =>
         (
           JSON.parse(item.Playtraces) as {
@@ -88,11 +103,12 @@ class Netflix implements Parser<CategoryKey> {
               zone: "UTC",
             }).plus(trace.sessionOffsetMs),
             [type, `${item["Title Description"]} @ ${mediaTime}`],
-          ];
+          ] as TimelineTuple<CategoryKey>;
         }),
     },
     {
       glob: new Minimatch("CONTENT_INTERACTION/Ratings.csv"),
+      filter: (item, profile) => item["Profile Name"] === profile,
       parse: (item) => [
         "account",
         DateTime.fromSQL(item["Event Utc Ts"], { zone: "UTC" }),
@@ -110,6 +126,7 @@ class Netflix implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch("CONTENT_INTERACTION/SearchHistory.csv"),
+      filter: (item, profile) => item["Profile Name"] === profile,
       parse: (item) => [
         "activity",
         DateTime.fromSQL(item["Utc Timestamp"], { zone: "UTC" }),
@@ -118,6 +135,7 @@ class Netflix implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch("CONTENT_INTERACTION/ViewingActivity.csv"),
+      filter: (item, profile) => item["Profile Name"] === profile,
       parse: (item) => [
         "activity",
         DateTime.fromSQL(item["Start Time"], { zone: "UTC" }),
@@ -126,6 +144,7 @@ class Netflix implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch("DEVICES/Devices.csv"),
+      filter: (item, profile) => item["Profile Name"] === profile,
       parse: (item) =>
         [
           item["Acct First Playback Date"] && [
@@ -158,6 +177,7 @@ class Netflix implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch("MESSAGES/MessagesSentByNetflix.csv"),
+      filter: (item, profile) => item["Profile Name"] === profile,
       parse: (item) =>
         [
           [
@@ -200,6 +220,7 @@ class Netflix implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch("PROFILES/Profiles.csv"),
+      filter: (item, profile) => item["Profile Name"] === profile,
       parse: (item) => [
         "account",
         DateTime.fromISO(item["Profile Creation Time"]),

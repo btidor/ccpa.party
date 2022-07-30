@@ -30,8 +30,25 @@ function sendRequest(msg: WorkerRequest): void {
   worker.postMessage(msg);
 }
 
+export async function listProfiles(
+  provider: Provider<unknown>,
+  files: FileList
+): Promise<string[] | void> {
+  const id = globalThis.crypto.randomUUID();
+  return await new Promise<string[] | void>((resolve) => {
+    pending.set(id, resolve);
+    sendRequest({
+      id,
+      type: "listProfiles",
+      provider: provider.slug,
+      files,
+    });
+  });
+}
+
 export async function importFiles(
   provider: Provider<unknown>,
+  profile: string | void,
   files: FileList,
   reportProgress: (fraction: number) => void
 ): Promise<void> {
@@ -45,6 +62,7 @@ export async function importFiles(
       key,
       type: "importFiles",
       provider: provider.slug,
+      profile,
       files,
     });
   });

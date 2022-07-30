@@ -1,5 +1,6 @@
 import { unzip } from "unzipit";
 
+import { getParser } from "@src/common/parser";
 import { Provider, ProviderLookup } from "@src/common/provider";
 import {
   ArrayBufferStream,
@@ -26,12 +27,32 @@ type ImportFile = {
 
 const chunkSize = 32 * 1024 * 1024;
 
+async function listProfiles<T>(
+  provider: Provider<T>,
+  files: FileList
+): Promise<string[] | void> {
+  const parser = getParser(provider);
+  if (
+    !parser.profile ||
+    files.length !== 1 ||
+    !files[0].name.endsWith(".zip")
+  ) {
+    // TODO: better handle these cases
+    return;
+  }
+
+  const zip = await unzip(await files[0].arrayBuffer());
+  const entry = zip.entries[parser.profile.file];
+  return parser.profile.extract(await entry.arrayBuffer());
+}
+
 async function importFiles<T>(
   key: ArrayBuffer,
   provider: Provider<T>,
+  profile: string | void,
   files: FileList,
   reportProgress: (fraction: number) => void
-) {
+): Promise<void> {
   const start = new Date().getTime();
   const backend = await WriteBackend.connect(key, async () => undefined);
   const writer = new Writer(backend, provider);
@@ -70,7 +91,14 @@ async function importFiles<T>(
       errors: [],
     };
 
-    const result = await parseByStages(provider, dataFile, (await go).hooks);
+    const result = await parseByStages(
+      provider,
+      profile,
+      dataFile,
+      (
+        await go
+      ).hooks
+    );
     for (const entry of result.timeline) {
       await writer.putTimelineEntry(entry);
     }
@@ -84,7 +112,7 @@ async function importFiles<T>(
   for (const { path, data } of work) {
     if (path.at(-1)?.endsWith(".zip")) {
       const zip = await unzip(data);
-      const entries = Object.values(zip.entries || []);
+      const entries = Object.values(zip.entries);
 
       let count = 0;
       const size = entries.reduce((s, e) => s + e.size, 0);
@@ -237,10 +265,20 @@ onmessage = (message: MessageEvent<WorkerRequest>) => {
     };
 
     let result: unknown = null;
-    if (data.type === "importFiles") {
+    if (data.type === "listProfiles") {
       const provider = ProviderLookup.get(data.provider);
       if (!provider) throw new Error("unknown provider: " + provider);
-      await importFiles(data.key, provider, data.files, reportProgress);
+      result = await listProfiles(provider, data.files);
+    } else if (data.type === "importFiles") {
+      const provider = ProviderLookup.get(data.provider);
+      if (!provider) throw new Error("unknown provider: " + provider);
+      await importFiles(
+        data.key,
+        provider,
+        data.profile,
+        data.files,
+        reportProgress
+      );
     } else if (data.type === "resetProvider") {
       const provider = ProviderLookup.get(data.provider);
       if (!provider) throw new Error("unknown provider: " + provider);
@@ -250,7 +288,14 @@ onmessage = (message: MessageEvent<WorkerRequest>) => {
     } else if (data.type === "parseByStages") {
       const provider = ProviderLookup.get(data.provider);
       if (!provider) throw new Error("unknown provider: " + provider);
-      result = await parseByStages(provider, data.file, (await go).hooks);
+      result = await parseByStages(
+        provider,
+        undefined,
+        data.file,
+        (
+          await go
+        ).hooks
+      );
     } else {
       throw new Error("unknown request type");
     }

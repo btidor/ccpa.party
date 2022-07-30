@@ -6,7 +6,7 @@ import { Link } from "@src/common/router";
 import { archiveSuffixes } from "@src/common/util";
 import Logo from "@src/components/Logo";
 import { useBrowserSupport, useProviderDatabase } from "@src/database/hooks";
-import { importFiles, resetProvider } from "@src/worker/client";
+import { importFiles, listProfiles, resetProvider } from "@src/worker/client";
 
 import styles from "@src/Request.module.css";
 
@@ -17,6 +17,7 @@ type Props<T> = {
 type Status =
   | { type: "explore" }
   | { type: "import" }
+  | { type: "profile"; profiles: string[]; files: FileList }
   | { type: "pending"; action: "importing" | "clearing"; progress: number }
   | { type: "unsupported" };
 
@@ -44,14 +45,25 @@ function Request<T>(props: Props<T>): JSX.Element {
 
   const inputRef = React.useRef<HTMLInputElement>(null);
 
+  const finishImport = async (files: FileList, profile?: string) => {
+    setStatus({ type: "pending", action: "importing", progress: 0 });
+    await importFiles(provider, profile, files, (progress: number) =>
+      setStatus({ type: "pending", action: "importing", progress })
+    );
+    setStatus({ type: "explore" });
+  };
+
   const fileHandler: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     (async () => {
       if (!event.target.files) return;
-      setStatus({ type: "pending", action: "importing", progress: 0 });
-      await importFiles(provider, event.target.files, (progress: number) =>
-        setStatus({ type: "pending", action: "importing", progress })
-      );
-      setStatus({ type: "explore" });
+      const profiles = await listProfiles(provider, event.target.files);
+      if (!profiles) {
+        await finishImport(event.target.files);
+      } else if (profiles.length === 1) {
+        await finishImport(event.target.files, profiles[0]);
+      } else {
+        setStatus({ type: "profile", profiles, files: event.target.files });
+      }
     })();
   };
 
@@ -64,6 +76,40 @@ function Request<T>(props: Props<T>): JSX.Element {
       if (inputRef?.current) inputRef.current.value = "";
     })();
   };
+
+  if (status?.type === "profile") {
+    return (
+      <main
+        className={styles.request}
+        style={
+          {
+            "--neon-hex": provider.neonColor,
+            "--neon-hdr": provider.neonColorHDR,
+          } as React.CSSProperties
+        }
+      >
+        {/* HACK: place extra <div>s so that vertical spacing gets distriuted
+          in a 2:3 ratio above/below the <section> */}
+        <div></div>
+        <section>
+          <ul className={styles.profiles}>
+            {status.profiles.map((profile) => (
+              <li>
+                <button
+                  key={profile}
+                  onClick={() => finishImport(status.files, profile)}
+                >
+                  {profile}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <div></div>
+        <div></div>
+      </main>
+    );
+  }
 
   return (
     <main

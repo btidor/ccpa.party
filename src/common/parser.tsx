@@ -42,10 +42,17 @@ export type TimelineParser<T> = (
 ) & {
   glob: IMinimatch;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  filter?: (item: any, profile: string) => boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parse: (item: any) => ParsedItem<T>;
 };
 
 export type IgnoreParser = { glob: IMinimatch };
+
+export type ProfileParser = {
+  file: string;
+  extract: (data: ArrayBufferLike) => Promise<string[]>;
+};
 
 export type TimelineCategory = {
   char: string; // single-character identifier for URLs
@@ -57,6 +64,7 @@ export type TimelineCategory = {
 export interface Parser<T> {
   slug: string;
 
+  profile?: ProfileParser;
   ignore: ReadonlyArray<IgnoreParser>;
   metadata?: ReadonlyArray<MetadataParser>;
   timeline: ReadonlyArray<TimelineParser<T>>;
