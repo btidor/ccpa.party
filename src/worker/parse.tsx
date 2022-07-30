@@ -150,7 +150,7 @@ export type ParseResponse<T> = {
   timeline: TimelineEntry<T>[];
   metadata: [string, unknown][];
   errors: ParseError[];
-  status: "parsed" | "skipped" | "unknown";
+  status: "parsed" | "skipped" | "empty" | "unknown";
 };
 
 export async function parseByStages<T>(
@@ -169,7 +169,7 @@ export async function parseByStages<T>(
     timeline: [],
     metadata: [],
     errors: [],
-    status: ignoreParser ? "skipped" : "unknown",
+    status: "unknown",
   } as ParseResponse<T>;
 
   if (metadataParser) {
@@ -239,7 +239,39 @@ export async function parseByStages<T>(
     }
   }
 
+  if (response.status === "unknown") {
+    if (fileIsEmpty(file.data)) response.status = "empty";
+    else if (ignoreParser) response.status = "skipped";
+    else response.status = "unknown";
+  }
+
   return response;
+}
+
+function fileIsEmpty(data: ArrayBufferLike): boolean {
+  if (data.byteLength > 16 * 1024) return false;
+
+  const decoded = utf8Decoder.decode(data);
+  if (decoded.match(/^\s*$/)) return true;
+
+  try {
+    const parsed = parseJSON(data);
+    if (objectIsEmpty(parsed)) return true;
+  } catch {
+    /* ignore parse errors */
+  }
+
+  return false;
+}
+
+function objectIsEmpty(object: unknown): boolean {
+  if (Array.isArray(object)) {
+    return object.length === 0;
+  } else if (typeof object === "object" && object !== null) {
+    return Object.entries(object).every(([_, v]) => objectIsEmpty(v));
+  } else {
+    return false;
+  }
 }
 
 function handleError(

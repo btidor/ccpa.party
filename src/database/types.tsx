@@ -4,7 +4,7 @@ export type DataFileKey = {
   slug: string; // hash of path
   skipped: "tooLarge" | void;
   iv?: string;
-  status?: "parsed" | "skipped" | "unknown";
+  status?: "parsed" | "skipped" | "empty" | "unknown";
   errors: ParseError[];
 };
 
