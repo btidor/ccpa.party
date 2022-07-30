@@ -240,7 +240,7 @@ export async function parseByStages<T>(
   }
 
   if (response.status === "unknown") {
-    if (fileIsEmpty(file.data)) response.status = "empty";
+    if (await fileIsEmpty(file.data)) response.status = "empty";
     else if (ignoreParser) response.status = "skipped";
     else response.status = "unknown";
   }
@@ -248,17 +248,24 @@ export async function parseByStages<T>(
   return response;
 }
 
-function fileIsEmpty(data: ArrayBufferLike): boolean {
+async function fileIsEmpty(data: ArrayBufferLike): Promise<boolean> {
   if (data.byteLength > 16 * 1024) return false;
 
   const decoded = utf8Decoder.decode(data);
   if (decoded.match(/^\s*$/)) return true;
 
   try {
-    const parsed = parseJSON(data);
-    if (objectIsEmpty(parsed)) return true;
+    const json = parseJSON(data);
+    if (objectIsEmpty(json)) return true;
   } catch {
-    /* ignore parse errors */
+    // ignore parse errors
+  }
+
+  try {
+    const csv = await parseCSV(data);
+    if (csv.length === 0) return true;
+  } catch {
+    // ignore parse errors
   }
 
   return false;
@@ -266,7 +273,7 @@ function fileIsEmpty(data: ArrayBufferLike): boolean {
 
 function objectIsEmpty(object: unknown): boolean {
   if (Array.isArray(object)) {
-    return object.length === 0;
+    return object.every((x) => objectIsEmpty(x));
   } else if (typeof object === "object" && object !== null) {
     return Object.entries(object).every(([_, v]) => objectIsEmpty(v));
   } else {

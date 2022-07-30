@@ -29,7 +29,7 @@ class Google implements Parser<CategoryKey> {
     { glob: new Minimatch("Takeout/Tasks/**") },
 
     // Attachments
-    { glob: new Minimatch("Takeout/Hangouts/Photos/**") },
+    { glob: new Minimatch("Takeout/Hangouts/**") },
 
     // Miscellaneous & Unparseable
     { glob: new Minimatch("Takeout/archive_browser.html") },

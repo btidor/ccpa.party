@@ -44,7 +44,7 @@ export default function render(
   return [
     <React.Fragment>
       {segments.length
-        ? segments.map((s: any) => {
+        ? segments.map((s: any, i: number) => {
             switch (s.type) {
               case "TEXT":
                 return s.text;
@@ -54,12 +54,13 @@ export default function render(
                     href={s.link_data?.link_target}
                     target="_blank"
                     rel="noreferrer"
+                    key={i}
                   >
                     {s.link_data?.display_url || s.text}
                   </a>
                 );
               case "LINE_BREAK":
-                return <br />;
+                return <br key={i} />;
               default:
                 return `[${s.type || "UNKNOWN"}]`;
             }
