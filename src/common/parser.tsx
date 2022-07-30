@@ -16,6 +16,7 @@ import type { GoHooks } from "@go";
 
 export type Tokenizer<U> = (
   data: ArrayBufferLike,
+  path: ReadonlyArray<string>,
   go: GoHooks
 ) => U[] | Promise<U[]>;
 

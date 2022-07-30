@@ -23,12 +23,16 @@ class Google implements Parser<CategoryKey> {
     // Settings
     { glob: new Minimatch("Takeout/Classic Sites/**") },
     { glob: new Minimatch("Takeout/Contacts/**") },
+    { glob: new Minimatch("Takeout/Google Business Profile/**") },
     { glob: new Minimatch("Takeout/Mail/User Settings/**") },
     { glob: new Minimatch("Takeout/News/**") },
     { glob: new Minimatch("Takeout/Profile/**") },
     { glob: new Minimatch("Takeout/Tasks/**") },
 
     // Attachments
+    { glob: new Minimatch("Takeout/Google Chat/**") },
+
+    // Duplicate
     { glob: new Minimatch("Takeout/Hangouts/**") },
 
     // Miscellaneous & Unparseable
@@ -45,20 +49,21 @@ class Google implements Parser<CategoryKey> {
 
   metadata: ReadonlyArray<MetadataParser> = [
     {
-      glob: new Minimatch("Takeout/Hangouts/Hangouts.json"),
-      tokenize: (data) =>
-        parseJSON(data).conversations.flatMap(
-          (c: { conversation: { conversation: unknown } }) =>
-            c.conversation.conversation
-        ),
-      parse: (item) => [`hangouts.${item.id.id}`, item],
+      glob: new Minimatch("Takeout/Google Chat/**/group_info.json"),
+      tokenize: (data, path) => [{ ...parseJSON(data), _group: path.at(-2) }],
+      parse: (item) => [`chat.${item._group}`, item],
+    },
+    {
+      glob: new Minimatch("Takeout/Google Chat/Users/User */user_info.json"),
+      tokenize: (data) => [parseJSON(data)],
+      parse: (item) => ["chat.user_info", item],
     },
   ];
 
   timeline: ReadonlyArray<TimelineParser<CategoryKey>> = [
     {
       glob: new Minimatch("**/*.eml"),
-      tokenize: (data, go) => [go.ParseEmail(new Uint8Array(data))],
+      tokenize: (data, _, go) => [go.ParseEmail(new Uint8Array(data))],
       parse: (item: string) => {
         const parts = item.split(/\r?\n/);
         const headers = {} as { [key: string]: string };
@@ -144,16 +149,16 @@ class Google implements Parser<CategoryKey> {
       },
     },
     {
-      glob: new Minimatch("Takeout/Hangouts/Hangouts.json"),
-      tokenize: (data) =>
-        parseJSON(data).conversations.flatMap(
-          (c: { events: unknown }) => c.events
-        ),
+      glob: new Minimatch("Takeout/Google Chat/**/messages.json"),
+      tokenize: (data) => parseJSON(data).messages,
       parse: (item) => {
-        if (item.event_type !== "REGULAR_CHAT_MESSAGE") {
-          throw new Error("Unknown item type: " + item.event_type);
-        }
-        return ["chat", DateTime.fromMillis(item.timestamp / 1000), null];
+        return [
+          "chat",
+          DateTime.fromFormat(item.created_date, "DDDD 'at' tt 'UTC'", {
+            zone: "UTC",
+          }),
+          null,
+        ];
       },
     },
   ];

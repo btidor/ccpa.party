@@ -8,69 +8,92 @@ import Google from "@src/providers/google";
 
 const provider = new Google();
 
+type UserType = "Human" | "Bot";
+
+type MembershipState =
+  | "MEMBER_UNKNOWN"
+  | "MEMBER_INVITED"
+  | "MEMBER_JOINED"
+  | "MEMBER_NOT_A_MEMBER"
+  | "MEMBER_FAILED";
+
+type User = { name: string; email: string; user_type: UserType };
+
+type UserInfo = {
+  user: User;
+  membership_info: [
+    {
+      group_name?: string;
+      group_id: string;
+      membership_state: MembershipState;
+    }
+  ];
+};
+
+type GroupInfo = {
+  name: string; // defaults to "Group Chat"
+  members: [User];
+};
+
+type Reaction = {
+  emoji: { unicode: string };
+  reactor_emails: ReadonlyArray<string>;
+};
+
+type Message = {
+  creator: User;
+  created_date: string;
+  text: string;
+  annotations: unknown;
+  reactions: [Reaction];
+  topic_id: string;
+};
+
 export default function render(
   entry: TimelineEntry<CategoryKey>,
   metadata: ReadonlyMap<string, unknown>
 ): RenderResult {
   if (entry.context !== null) return;
 
-  const conversation = metadata.get(
-    `hangouts.${entry.value.conversation_id.id}`
-  ) as any;
+  const group_id = entry.file.at(-2);
+  const message = entry.value as Message;
+  const user = metadata.get("chat.user_info") as UserInfo;
+  const group = metadata.get(`chat.${group_id}`) as GroupInfo;
 
-  const self = entry.value.self_event_state.user_id.chat_id;
-
-  const sender = conversation.participant_data.find(
-    (p: any) => p.id.chat_id === entry.value.sender_id.chat_id
+  let footer: string | void;
+  const group2 = user.membership_info.find(
+    (info) => info.group_id === group_id
   );
-  const displayName = (participant: any) =>
-    participant.fallback_name?.endsWith("@gmail.com")
-      ? participant.fallback_name.slice(0, -10)
-      : participant.fallback_name || "unknown";
-
-  const participants = conversation.participant_data.filter(
-    (p: any) => p.id.chat_id !== self && p.id.chat_id !== sender.id.chat_id
-  );
-  const footer = conversation.name
-    ? ` in ${conversation.name}`
-    : sender.id.chat_id === self
-    ? ` to ${displayName(participants[0])}`
-    : participants.length <= 1
-    ? undefined
-    : ` with ${participants.map((p: any) => displayName(p)).join(", ")}`;
-
-  const segments = entry.value.chat_message?.message_content?.segment || [];
+  if (group2?.group_name) {
+    footer = ` in ${group2.group_name}`;
+  } else {
+    const others = group.members.filter(
+      (member) => member.email !== user.user.email
+    );
+    if (others.length === 0) {
+      footer = undefined; // weird
+    } else if (others.length === 1) {
+      if (message.creator.email === user.user.email) {
+        footer = ` to ${others[0].name}`;
+      } else {
+        footer = undefined;
+      }
+    } else {
+      footer = ` with ${others.map((m) => m.name).join(", ")}`;
+    }
+  }
 
   return [
     <React.Fragment>
-      {segments.length
-        ? segments.map((s: any, i: number) => {
-            switch (s.type) {
-              case "TEXT":
-                return s.text;
-              case "LINK":
-                return (
-                  <a
-                    href={s.link_data?.link_target}
-                    target="_blank"
-                    rel="noreferrer"
-                    key={i}
-                  >
-                    {s.link_data?.display_url || s.text}
-                  </a>
-                );
-              case "LINE_BREAK":
-                return <br key={i} />;
-              default:
-                return `[${s.type || "UNKNOWN"}]`;
-            }
-          })
-        : "[UNKNOWN]"}
+      {message.text}
+      {message.reactions &&
+        ` (${message.reactions.map((r) => r.emoji.unicode).join(" ")})`}
     </React.Fragment>,
     footer,
     {
-      display: displayName(sender),
-      color: sender.id.chat_id === self ? provider.neonColor : "#ccc",
+      display: message.creator.name,
+      color:
+        message.creator.email === user.user.email ? provider.neonColor : "#ccc",
     },
   ];
 }

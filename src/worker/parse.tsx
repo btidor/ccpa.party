@@ -130,18 +130,18 @@ export function smartDecodeText(text: string): string {
 
 async function tokenize<T>(
   parser: TimelineParser<T> | MetadataParser,
-  path: string,
+  path: ReadonlyArray<string>,
   data: ArrayBufferLike,
   go: GoHooks
 ): Promise<unknown[]> {
-  const ext = path.split(".").at(-1) || "";
+  const ext = path.at(-1)?.split(".").at(-1) || "";
 
   const tokenizer = parser.tokenize || defaultTokenizers.get(ext);
   if (!tokenizer) {
     throw new Error(`No default tokenizer for .${ext || "unknown"}`);
   }
 
-  const tokens = await tokenizer(data, go);
+  const tokens = await tokenizer(data, path, go);
   if (!Array.isArray(tokens)) throw new Error("Non-Array Tokenization");
   return tokens;
 }
@@ -175,7 +175,12 @@ export async function parseByStages<T>(
   if (metadataParser) {
     response.status = "parsed";
     try {
-      const tokenized = await tokenize(metadataParser, path, file.data, go);
+      const tokenized = await tokenize(
+        metadataParser,
+        file.path,
+        file.data,
+        go
+      );
 
       for (const line of tokenized) {
         try {
@@ -193,7 +198,12 @@ export async function parseByStages<T>(
   if (timelineParser) {
     response.status = "parsed";
     try {
-      const tokenized = await tokenize(timelineParser, path, file.data, go);
+      const tokenized = await tokenize(
+        timelineParser,
+        file.path,
+        file.data,
+        go
+      );
 
       for (const line of tokenized) {
         try {
