@@ -165,6 +165,69 @@ class Google implements Parser<CategoryKey> {
         ];
       },
     },
+    {
+      glob: new Minimatch("Takeout/Calendar/*.ics"),
+      tokenize: (data) => {
+        const lines = this.decoder
+          .decode(data)
+          .replace(/\r?\n /g, "")
+          .split(/\r?\n/);
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const scanning = [{}] as any[];
+        let calendar;
+        for (const line of lines) {
+          const lparts = line.split(":");
+          const kparts = lparts[0].split(";");
+          const key = kparts[0];
+          const params = {} as { [key: string]: string };
+          kparts.slice(1).forEach((param) => {
+            const pparts = param.split("=");
+            params[pparts[0]] = pparts.slice(1).join("=");
+          });
+          const value = lparts.slice(1).join(":");
+          if (key === "BEGIN") {
+            scanning.push(
+              value === "VEVENT"
+                ? { _value: value, CALENDAR: calendar }
+                : { _value: value }
+            );
+          } else if (key === "END") {
+            const { _value, ...rest } = scanning.pop() || {};
+            const previous = scanning.at(-1);
+            if (previous) {
+              previous[_value as string] ||= [];
+              (previous[_value as string] as unknown[]).push(rest);
+            }
+          } else if (key === "X-WR-CALNAME") {
+            calendar = value;
+          } else {
+            const previous = scanning.at(-1);
+            if (previous) {
+              const object = Object.keys(params).length
+                ? { ...params, _: value }
+                : value;
+              if (key === "ATTENDEE") {
+                previous[key] ||= [];
+                previous[key].push(object);
+              } else {
+                previous[key] = object;
+              }
+            }
+          }
+        }
+        return scanning[0].VCALENDAR[0].VEVENT;
+      },
+      parse: (item) => {
+        const date =
+          typeof item.DTSTART === "string"
+            ? DateTime.fromISO(item.DTSTART)
+            : DateTime.fromISO(item.DTSTART._, {
+                zone: item.DTSTART.TZID,
+              });
+        return ["calendar", date, [item.SUMMARY, item.CALENDAR]];
+      },
+    },
   ];
 }
 

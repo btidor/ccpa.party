@@ -1,6 +1,11 @@
 import type { Provider, TimelineCategory } from "@src/common/provider";
 
-export type CategoryKey = "activity" | "chat" | "mail" | "security";
+export type CategoryKey =
+  | "activity"
+  | "calendar"
+  | "chat"
+  | "mail"
+  | "security";
 
 class Google implements Provider<CategoryKey> {
   slug = "google";
@@ -37,9 +42,18 @@ class Google implements Provider<CategoryKey> {
       },
     ],
     [
-      "chat",
+      "calendar",
       {
         char: "c",
+        icon: "📆",
+        displayName: "Calendar",
+        defaultEnabled: true,
+      },
+    ],
+    [
+      "chat",
+      {
+        char: "h",
         icon: "💬",
         displayName: "Chat",
         defaultEnabled: true,

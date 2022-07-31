@@ -164,7 +164,8 @@ async function displayMode(
       case "txt":
       case undefined: // e.g. "README"
       case "xml":
-      case "eml": {
+      case "eml":
+      case "ics": {
         return await decodeData(data, false);
       }
       case "htm":
