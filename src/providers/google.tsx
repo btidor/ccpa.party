@@ -2,6 +2,7 @@ import type { Provider, TimelineCategory } from "@src/common/provider";
 
 export type CategoryKey =
   | "activity"
+  | "billing"
   | "calendar"
   | "chat"
   | "mail"
@@ -38,6 +39,15 @@ class Google implements Provider<CategoryKey> {
         char: "a",
         icon: "🖱",
         displayName: "Activity",
+        defaultEnabled: true,
+      },
+    ],
+    [
+      "billing",
+      {
+        char: "b",
+        icon: "💵",
+        displayName: "Billing",
         defaultEnabled: true,
       },
     ],

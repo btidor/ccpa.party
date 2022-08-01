@@ -38,6 +38,13 @@ class Google implements Parser<CategoryKey> {
 
     // Duplicate
     { glob: new Minimatch("Takeout/Hangouts/**") },
+    { glob: new Minimatch("Takeout/Google Play Store/Order History.json") },
+    { glob: new Minimatch("Takeout/Google Play Store/Promotion History.json") },
+    { glob: new Minimatch("Takeout/Google Play Store/Purchase History.json") },
+    {
+      glob: new Minimatch("Takeout/Google Play Store/Redemption History.json"),
+    },
+    { glob: new Minimatch("Takeout/Google Play Store/Subscriptions.json") },
 
     // Miscellaneous & Unparseable
     { glob: new Minimatch("Takeout/archive_browser.html") },
@@ -226,6 +233,43 @@ class Google implements Parser<CategoryKey> {
                 zone: item.DTSTART.TZID,
               });
         return ["calendar", date, [item.SUMMARY, item.CALENDAR]];
+      },
+    },
+    {
+      glob: new Minimatch(
+        "Takeout/Google Pay/Google transactions/transactions_*.csv"
+      ),
+      parse: (item) => {
+        return [
+          "billing",
+          DateTime.fromFormat(item.Time, "MMM d, yyyy, h:mm a"),
+          [`Paid ${item.Amount}`, item.Product],
+        ];
+      },
+    },
+    {
+      glob: new Minimatch(
+        "Takeout/Google Pay/Money sends and requests/Money sends and requests.csv"
+      ),
+      parse: (item) => {
+        return [
+          "billing",
+          DateTime.fromFormat(item.Time, "MMM d, yyyy, h:mm a"),
+          [`${item.Status} Transfer`, item.Memo],
+        ];
+      },
+    },
+    {
+      glob: new Minimatch("Takeout/Google Play Store/Library.json"),
+      parse: (item) => {
+        return [
+          "billing",
+          DateTime.fromISO(item.libraryDoc.acquisitionTime),
+          [
+            `Added ${item.libraryDoc.doc.documentType} to Library`,
+            item.libraryDoc.doc.title,
+          ],
+        ];
       },
     },
   ];
