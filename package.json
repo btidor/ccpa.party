@@ -15,7 +15,7 @@
     "fflate": "^0.7.3",
     "luxon": "^2.4.0",
     "minimatch": "^5.1.0",
-    "plist": "^3.0.5",
+    "plist": "^3.0.6",
     "prettier": "^2.6.2",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
