@@ -37,7 +37,7 @@
     "colorjs.io": "^0.0.5",
     "eslint": "^8.16.0",
     "eslint-config-react-app": "^7.0.1",
-    "happy-dom": "^4.1.0",
+    "happy-dom": "^6.0.4",
     "typescript-plugin-css-modules": "^3.4.0",
     "vitest": "^0.12.9"
   },
