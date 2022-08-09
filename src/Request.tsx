@@ -21,6 +21,23 @@ type Status =
   | { type: "pending"; action: "importing" | "clearing"; progress: number }
   | { type: "unsupported" };
 
+function UploadLink(props: {
+  children: string | string[];
+  inputRef: React.RefObject<HTMLInputElement>;
+}): JSX.Element {
+  const { children, inputRef } = props;
+  return (
+    <label
+      htmlFor="import"
+      tabIndex={0}
+      onKeyDown={(e) => e.code === "Enter" && inputRef.current?.click()}
+      role="button"
+    >
+      {children}
+    </label>
+  );
+}
+
 function Request<T>(props: Props<T>): JSX.Element {
   const { provider } = props;
 
@@ -167,7 +184,7 @@ function Request<T>(props: Props<T>): JSX.Element {
             />
             {status?.type === "explore" ? (
               <React.Fragment>
-                <div className={styles.import}>
+                <div className={styles.explore}>
                   <Link to={`/${provider.slug}/timeline`}>Explore →</Link>
                   <div className={styles.grow}></div>
                   <div className={styles.reset}>
@@ -176,18 +193,16 @@ function Request<T>(props: Props<T>): JSX.Element {
                     </button>
                   </div>
                 </div>
+                {!provider.singleFile && (
+                  <div className={styles.more}>
+                    <UploadLink inputRef={inputRef}>+ Add File</UploadLink>
+                  </div>
+                )}
               </React.Fragment>
             ) : status?.type === "import" ? (
-              <label
-                htmlFor="import"
-                tabIndex={0}
-                onKeyDown={(e) =>
-                  e.code === "Enter" && inputRef.current?.click()
-                }
-                role="button"
-              >
+              <UploadLink inputRef={inputRef}>
                 Import {provider.fileName} ↑
-              </label>
+              </UploadLink>
             ) : status?.type === "pending" ? (
               (() => {
                 const bars = Math.round(status.progress * 25);

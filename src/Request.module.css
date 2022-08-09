@@ -93,15 +93,17 @@
   cursor: pointer;
 }
 
-.finger pre {
-  margin-top: 1em;
+.finger pre,
+.more {
+  margin-top: 0.3em;
 }
 
 .compass {
   width: 100%;
 }
 
-.import {
+.explore,
+.more {
   display: flex;
   width: 100%;
 }
