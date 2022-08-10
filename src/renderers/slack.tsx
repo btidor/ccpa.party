@@ -1,10 +1,11 @@
-import EmojiMap from "emoji-name-map";
 import React from "react";
 
 import type { RenderResult } from "@src/common/renderer";
 import { Highlight, Pill } from "@src/components/Record";
 import type { TimelineEntry } from "@src/database/types";
 import type { CategoryKey } from "@src/providers/slack";
+
+import emoji from "@src/common/emoji.json";
 
 export default function render(
   entry: TimelineEntry<CategoryKey>,
@@ -101,9 +102,10 @@ export default function render(
       }
       return [<span key={key}>{node}</span>];
     } else if (element.type === "emoji") {
+      const unicode = element.name && emoji[element.name as keyof typeof emoji];
       return [
         <span key={key}>
-          {EmojiMap.get(element.name) || `:${element.name}:`}
+          {typeof unicode === "string" ? unicode : `:${element.name}`}
         </span>,
       ];
     } else if (element.type === "user") {
