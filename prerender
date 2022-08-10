@@ -13,7 +13,7 @@ const noindex = `<meta name="robots" content="noindex" />`;
 (async () => {
   const { createServer } = require("vite");
   const vite = await createServer({
-    server: { middlewareMode: "ssr" },
+    server: { middlewareMode: true, appType: "custom" },
   });
   const { render, routes } = await vite.ssrLoadModule("/src/main-static.tsx");
   const template = fs.readFileSync("dist/index.html", "utf-8");
