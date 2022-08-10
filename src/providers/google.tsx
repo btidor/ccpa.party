@@ -28,7 +28,7 @@ class Google implements Provider<CategoryKey> {
     `click Multiple Formats`,
     `change HTML to JSON`,
   ];
-  singleFile = true;
+  singleFile = false;
   fileName = "zip/mbox files";
   privacyPolicy = "https://policies.google.com/privacy?hl=en#california";
 
