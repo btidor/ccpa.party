@@ -1,5 +1,5 @@
 import type { DateTime } from "luxon";
-import type { IMinimatch } from "minimatch";
+import type { Minimatch } from "minimatch";
 
 import type { Provider } from "@src/common/provider";
 import type { TimelineContext } from "@src/database/types";
@@ -25,7 +25,7 @@ export type TimelineTuple<T> = [T, DateTime, TimelineContext];
 export type ParsedItem<T> = TimelineTuple<T> | TimelineTuple<T>[] | void;
 
 export type MetadataParser = {
-  glob: IMinimatch;
+  glob: Minimatch;
   tokenize?: Tokenizer<unknown>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parse: (item: any) => [string, unknown];
@@ -41,14 +41,14 @@ export type TimelineParser<T> = (
       parse: (item: string) => ParsedItem<T>;
     }
 ) & {
-  glob: IMinimatch;
+  glob: Minimatch;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   filter?: (item: any, profile: string) => boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parse: (item: any) => ParsedItem<T>;
 };
 
-export type IgnoreParser = { glob: IMinimatch };
+export type IgnoreParser = { glob: Minimatch };
 
 export type ProfileParser = {
   file: string;

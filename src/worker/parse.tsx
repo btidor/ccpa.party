@@ -221,6 +221,8 @@ export async function parseByStages<T>(
               const timestamp = datetime.toSeconds();
               if (isNaN(timestamp))
                 throw new Error("Received NaN for timestamp");
+              const day = datetime.toISODate();
+              if (!day) throw new Error("Invalid datetime");
 
               const hash = await crypto.subtle.digest("SHA-1", serialize(line));
               const slug =
@@ -231,7 +233,7 @@ export async function parseByStages<T>(
                 file: file.path,
                 category,
                 slug,
-                day: datetime.toISODate(),
+                day,
                 timestamp,
                 context,
                 value: line,
