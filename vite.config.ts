@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import { execFileSync } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
-import { Plugin, PluginOption, defineConfig } from "vite";
+import { PluginOption, defineConfig } from "vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -14,7 +14,7 @@ export default defineConfig({
     },
     sourcemap: true,
   },
-  plugins: [react(), goServe()],
+  plugins: [react({}), goServe()],
   resolve: {
     alias: [{ find: "@src", replacement: path.resolve(__dirname, "src") }],
   },
@@ -54,8 +54,9 @@ async function compileGo(): Promise<Buffer> {
   return data;
 }
 
-function goServe(): Plugin {
+function goServe(): PluginOption {
   return {
+    name: "custom:go",
     apply: "serve",
     configureServer(server) {
       const fn = (f: string) => {
@@ -104,6 +105,7 @@ function goServe(): Plugin {
 
 function goBuild(): PluginOption {
   return {
+    name: "custom:go",
     apply: "build",
     resolveId(id: string) {
       if (id === "@go") {
