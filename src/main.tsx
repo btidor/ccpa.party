@@ -2,7 +2,6 @@ import React from "react";
 import ReactDOMClient from "react-dom/client";
 
 import App from "@src/App";
-import plausible from "@src/common/plausible";
 
 import "@src/index.css";
 
@@ -60,8 +59,6 @@ const swapIcons = () => {
 };
 dark.addListener(swapIcons);
 swapIcons();
-
-plausible();
 
 // Preload remaining assets used by the app, but only after the page loads, to
 // avoid blocking critical resources.
