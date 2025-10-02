@@ -1,10 +1,10 @@
 #!/bin/bash -euf
 
-if [[ $(cat node_modules/.go/VERSION || true) != "go1.19.3" ]]; then
+if [[ $(head -n1 node_modules/.go/VERSION || true) != "go1.25.1" ]]; then
   rm -rf node_modules/.go/
   mkdir node_modules/.go
-  curl -L https://go.dev/dl/go1.19.3.linux-amd64.tar.gz --output go.tmp
-  sha256sum --check <(echo "74b9640724fd4e6bb0ed2a1bc44ae813a03f1e72a4c76253e2d5c015494430ba go.tmp")
+  curl -L https://go.dev/dl/go1.25.1.linux-amd64.tar.gz --output go.tmp
+  sha256sum --check <(echo "7716a0d940a0f6ae8e1f3b3f4f36299dc53e31b16840dbd171254312c41ca12e go.tmp")
   tar -C node_modules/.go -xzf go.tmp --strip-components=1
   rm go.tmp
 fi

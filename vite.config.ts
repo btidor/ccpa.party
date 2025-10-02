@@ -9,7 +9,9 @@ import { Plugin, defineConfig } from "vite";
 export default defineConfig({
   build: {
     chunkSizeWarningLimit: 4 * 1024,
-    polyfillModulePreload: false,
+    modulePreload: {
+      polyfill: false,
+    },
     sourcemap: true,
   },
   plugins: [react(), goServe()],

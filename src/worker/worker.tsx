@@ -29,7 +29,7 @@ const chunkSize = 32 * 1024 * 1024;
 
 async function listProfiles<T>(
   provider: Provider<T>,
-  files: FileList
+  files: FileList,
 ): Promise<string[] | void> {
   const parser = getParser(provider);
   if (
@@ -51,7 +51,7 @@ async function importFiles<T>(
   provider: Provider<T>,
   profile: string | void,
   files: FileList,
-  reportProgress: (fraction: number) => void
+  reportProgress: (fraction: number) => void,
 ): Promise<void> {
   const start = new Date().getTime();
   const backend = await WriteBackend.connect(key, async () => undefined);
@@ -69,7 +69,7 @@ async function importFiles<T>(
   const metadata = new Map();
   const processEntry = async (
     path: ReadonlyArray<string>,
-    data: ArrayBufferLike
+    data: ArrayBufferLike,
   ): Promise<ImportFile | void> => {
     if (archiveSuffixes.some((s) => path.at(-1)?.endsWith(s))) {
       return { path, data };
@@ -78,7 +78,7 @@ async function importFiles<T>(
     // TODO: store oversize files by chunking them up
     const tooLarge = data.byteLength > (2 << 20) * fileSizeLimitMB;
     const hash = new Uint32Array(
-      await crypto.subtle.digest("SHA-1", serialize(path.join("/")))
+      await crypto.subtle.digest("SHA-1", serialize(path.join("/"))),
     );
     const dataFile: DataFile = {
       provider: provider.slug,
@@ -95,9 +95,7 @@ async function importFiles<T>(
       provider,
       profile,
       dataFile,
-      (
-        await go
-      ).hooks
+      (await go).hooks,
     );
     for (const entry of result.timeline) {
       await writer.putTimelineEntry(entry);
@@ -144,7 +142,7 @@ async function importFiles<T>(
       // Report progress as we read the underlying data. This has to be on the
       // original, compressed file because we know its size ahead of time.
       stream = stream.pipeThrough(
-        new ProgressStream((bytes) => reportProgress(bytes / size))
+        new ProgressStream((bytes) => reportProgress(bytes / size)),
       );
 
       // Un-gzip!
@@ -166,7 +164,7 @@ async function importFiles<T>(
         const ret = await tar.Read(buf);
         if (ret !== entry.size)
           throw new Error(
-            "Invalid read length: got " + ret + ", expected: " + entry.size
+            "Invalid read length: got " + ret + ", expected: " + entry.size,
           );
         const next = await processEntry(subpath, buf);
         if (next) work.push(next);
@@ -188,7 +186,7 @@ async function importFiles<T>(
 
       // Report progress as we read the underlying data.
       stream = stream.pipeThrough(
-        new ProgressStream((bytes) => reportProgress(bytes / size))
+        new ProgressStream((bytes) => reportProgress(bytes / size)),
       );
 
       const output = stream
@@ -202,7 +200,7 @@ async function importFiles<T>(
         if (done) break;
         const next = await processEntry(
           [...path, (value.msgid || crypto.randomUUID()) + ".eml"],
-          encoder.encode(value.data)
+          encoder.encode(value.data),
         );
         if (next)
           throw new Error("*.mbox processing should not result in next");
@@ -232,7 +230,7 @@ function sendResponse(msg: WorkerResponse) {
 
 async function decodeData(
   data: ArrayBufferLike,
-  tryJSON: boolean
+  tryJSON: boolean,
 ): Promise<DecodeResponse> {
   if (tryJSON) {
     try {
@@ -277,7 +275,7 @@ onmessage = (message: MessageEvent<WorkerRequest>) => {
         provider,
         data.profile,
         data.files,
-        reportProgress
+        reportProgress,
       );
     } else if (data.type === "resetProvider") {
       const provider = ProviderLookup.get(data.provider);
@@ -292,9 +290,7 @@ onmessage = (message: MessageEvent<WorkerRequest>) => {
         provider,
         undefined,
         data.file,
-        (
-          await go
-        ).hooks
+        (await go).hooks,
       );
     } else {
       throw new Error("unknown request type");
