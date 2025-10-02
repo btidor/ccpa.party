@@ -11,7 +11,7 @@ function Home(props: { scrolled: boolean }): JSX.Element {
   const ref = React.useRef<HTMLElement>(null);
   React.useEffect(
     () => ref.current?.scrollTo(props.scrolled ? 9999 : 0, 0),
-    [props.scrolled, ref]
+    [props.scrolled, ref],
   );
 
   const db = useBaseDatabase();

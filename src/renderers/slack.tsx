@@ -9,7 +9,7 @@ import emoji from "@src/common/emoji.json";
 
 export default function render(
   entry: TimelineEntry<CategoryKey>,
-  metadata: ReadonlyMap<string, unknown>
+  metadata: ReadonlyMap<string, unknown>,
 ): RenderResult {
   type User = {
     profile: { display_name?: string; real_name?: string };

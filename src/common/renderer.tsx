@@ -9,12 +9,12 @@ export type RenderResult =
   | [
       JSX.Element | void,
       string | void,
-      { display: string; color?: string } | void
+      { display: string; color?: string } | void,
     ];
 
 export type Renderer = (
   entry: TimelineEntry<unknown>,
-  metadata: ReadonlyMap<string, unknown>
+  metadata: ReadonlyMap<string, unknown>,
 ) => RenderResult;
 
 export const RendererLookup: ReadonlyMap<string, Renderer> = new Map([

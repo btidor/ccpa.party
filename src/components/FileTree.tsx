@@ -55,12 +55,12 @@ const Branch = React.memo((props: BranchProps): JSX.Element | null => {
   const { node, path, selected, onSelect } = props;
 
   const branches = Array.from(node.entries()).filter(
-    ([_, value]) => value instanceof Map
+    ([_, value]) => value instanceof Map,
   ) as [string, Tree][];
   branches.sort();
 
   const leaves = Array.from(node.entries()).filter(
-    ([_, value]) => !(value instanceof Map)
+    ([_, value]) => !(value instanceof Map),
   ) as unknown as [string, DataFileKey][];
   leaves.sort();
 

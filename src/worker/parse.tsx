@@ -43,7 +43,7 @@ export function parseJSON(
   data: ArrayBufferLike | string,
   // Use `smart: true` to try UTF-8 double-decoding everything. (Incurs a ~5x
   // slowdown).
-  opts?: { smart?: boolean }
+  opts?: { smart?: boolean },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): any {
   let text;
@@ -65,7 +65,7 @@ export function parseJSON(
 
 export function parseJSONND(
   data: ArrayBufferLike | string,
-  opts?: { smart?: boolean }
+  opts?: { smart?: boolean },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): any[] {
   let text;
@@ -79,7 +79,7 @@ export function parseJSONND(
 }
 
 export async function parseCSV(
-  data: ArrayBufferLike | string
+  data: ArrayBufferLike | string,
 ): Promise<{ [key: string]: string }[]> {
   let text;
   if (typeof data === "string") text = data;
@@ -96,7 +96,7 @@ export function smartDecode(data: ArrayBufferLike): string {
 
   // Try double-encoded UTF-8
   const double = utf8Decoder.decode(
-    Uint8Array.from(basic, (x) => x.charCodeAt(0))
+    Uint8Array.from(basic, (x) => x.charCodeAt(0)),
   );
 
   // Double-encoded UTF-8 often appears valid, e.g. a double-encoded "é" is
@@ -120,7 +120,7 @@ export function smartDecode(data: ArrayBufferLike): string {
 export function smartDecodeText(text: string): string {
   // First try double-encoded UTF-8 (see note above)
   const double = utf8Decoder.decode(
-    Uint8Array.from(text, (x) => x.charCodeAt(0))
+    Uint8Array.from(text, (x) => x.charCodeAt(0)),
   );
   if (isPrintableUnicode(double)) return double;
   if (isPrintableUnicode(text)) return text;
@@ -132,7 +132,7 @@ async function tokenize<T>(
   parser: TimelineParser<T> | MetadataParser,
   path: ReadonlyArray<string>,
   data: ArrayBufferLike,
-  go: GoHooks
+  go: GoHooks,
 ): Promise<unknown[]> {
   const ext = path.at(-1)?.split(".").at(-1) || "";
 
@@ -157,7 +157,7 @@ export async function parseByStages<T>(
   provider: Provider<T>,
   profile: string | void,
   file: DataFile,
-  go: GoHooks
+  go: GoHooks,
 ): Promise<ParseResponse<T>> {
   const path = file.path.slice(1).join("/");
   const parser = getParser(provider);
@@ -179,7 +179,7 @@ export async function parseByStages<T>(
         metadataParser,
         file.path,
         file.data,
-        go
+        go,
       );
 
       for (const line of tokenized) {
@@ -202,7 +202,7 @@ export async function parseByStages<T>(
         timelineParser,
         file.path,
         file.data,
-        go
+        go,
       );
 
       for (const line of tokenized) {
@@ -296,7 +296,7 @@ function objectIsEmpty(object: unknown): boolean {
 function handleError(
   error: unknown,
   stage: ParseStage,
-  line?: unknown
+  line?: unknown,
 ): ParseError {
   if (error instanceof Error) {
     return {

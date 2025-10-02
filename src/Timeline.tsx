@@ -35,11 +35,11 @@ function Timeline<T>(props: Props<T>): JSX.Element {
         Array.from(filter || []).map(
           (ch) =>
             Array.from(provider.timelineCategories.entries()).find(
-              ([_, category]) => category.char === ch
-            )?.[0]
-        )
+              ([_, category]) => category.char === ch,
+            )?.[0],
+        ),
       ),
-    [filter, provider]
+    [filter, provider],
   );
 
   // Load *all* timeline entries from the database (unhydrated: these are just
@@ -83,7 +83,7 @@ function Timeline<T>(props: Props<T>): JSX.Element {
       return undefined;
     } else {
       const filtered = entries.filter((entry) =>
-        selectedCategories.has(entry.category)
+        selectedCategories.has(entry.category),
       );
       const rows = [] as (Entry<T> | Group)[];
       let lastGroup;
@@ -99,7 +99,7 @@ function Timeline<T>(props: Props<T>): JSX.Element {
           lastTime = undefined;
         }
         let time: string | undefined = DateTime.fromSeconds(
-          entry.timestamp
+          entry.timestamp,
         ).toLocaleString(DateTime.TIME_24_SIMPLE);
         lastTime === time ? (time = undefined) : (lastTime = time);
         rows.push({ ...entry, time, isGroup: false });
@@ -208,7 +208,7 @@ function Timeline<T>(props: Props<T>): JSX.Element {
                           filter &&
                           navigate(
                             `/${provider.slug}/timeline:${filter}` +
-                              (selected === slug ? "" : `@${slug}`)
+                              (selected === slug ? "" : `@${slug}`),
                           )
                         }
                       />

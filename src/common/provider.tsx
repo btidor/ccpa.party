@@ -45,5 +45,5 @@ export const ProviderRegistry: ReadonlyArray<Provider<unknown>> = [
 ];
 
 export const ProviderLookup: ReadonlyMap<string, Provider<unknown>> = new Map(
-  ProviderRegistry.map((p) => [p.slug, p])
+  ProviderRegistry.map((p) => [p.slug, p]),
 );

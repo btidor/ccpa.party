@@ -65,7 +65,7 @@ function Request<T>(props: Props<T>): JSX.Element {
   const finishImport = async (files: FileList, profile?: string) => {
     setStatus({ type: "pending", action: "importing", progress: 0 });
     await importFiles(provider, profile, files, (progress: number) =>
-      setStatus({ type: "pending", action: "importing", progress })
+      setStatus({ type: "pending", action: "importing", progress }),
     );
     setStatus({ type: "explore" });
   };

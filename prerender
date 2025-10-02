@@ -20,7 +20,7 @@ const noindex = `<meta name="robots" content="noindex" />`;
 
   if (!template.includes(tag))
     throw new Error(
-      `Can't find ${tag} in dist/index.html. Was it already processed?`
+      `Can't find ${tag} in dist/index.html. Was it already processed?`,
     );
 
   for (const url of routes) {
@@ -38,7 +38,7 @@ const noindex = `<meta name="robots" content="noindex" />`;
     // Non-prerendered pages won't have search-friendly content and might be
     // soft 404s. Don't index.
     template.replace(tag, "").replace(headEnd, "\n" + noindex + headEnd),
-    { parser: "html" }
+    { parser: "html" },
   );
   fs.writeFileSync("dist/200.html", html);
 

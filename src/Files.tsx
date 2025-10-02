@@ -104,7 +104,7 @@ function Files<T>(props: Props<T>): JSX.Element {
                   onSelect={(slug) =>
                     navigate(
                       `/${provider.slug}/files` +
-                        (selected === slug ? "" : `@${slug}`)
+                        (selected === slug ? "" : `@${slug}`),
                     )
                   }
                 />

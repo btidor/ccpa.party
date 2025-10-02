@@ -120,12 +120,12 @@ export function useBaseDatabase(): BaseDatabase | void {
 }
 
 export function useProviderDatabase<T>(
-  provider: Provider<T>
+  provider: Provider<T>,
 ): ProviderDatabase<T> | void {
   const epoch = useBackendUpdates(provider);
   return React.useMemo(
     () => cache && new ProviderDatabase(cache.backend, provider),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [epoch, provider]
+    [epoch, provider],
   );
 }

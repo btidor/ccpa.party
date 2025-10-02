@@ -18,9 +18,9 @@ function FilterBar<T>(props: Props<T>): JSX.Element {
   const validChars = React.useMemo(
     () =>
       new Set(
-        Array.from(provider.timelineCategories.values()).map((cat) => cat.char)
+        Array.from(provider.timelineCategories.values()).map((cat) => cat.char),
       ),
-    [provider]
+    [provider],
   );
 
   if (filter === undefined) {
@@ -52,10 +52,10 @@ function FilterBar<T>(props: Props<T>): JSX.Element {
                   checked={checked}
                   onChange={() => {
                     const newFilter = Array.from(
-                      provider.timelineCategories.entries()
+                      provider.timelineCategories.entries(),
                     )
                       .filter(([islug, icat]) =>
-                        islug === slug ? !checked : filter.includes(icat.char)
+                        islug === slug ? !checked : filter.includes(icat.char),
                       )
                       .map(([_islug, icat]) => icat.char)
                       .join("");
@@ -65,7 +65,7 @@ function FilterBar<T>(props: Props<T>): JSX.Element {
                 {category.displayName}
               </label>
             );
-          }
+          },
         )}
       </React.Fragment>
     );

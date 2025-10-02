@@ -23,17 +23,17 @@ class Amazon implements Parser<CategoryKey> {
     { glob: new Minimatch("Feedback/Feedback-*.csv") },
     {
       glob: new Minimatch(
-        "Preferences/News/Preferences/News/NewsPreferences-*.csv"
+        "Preferences/News/Preferences/News/NewsPreferences-*.csv",
       ),
     },
     {
       glob: new Minimatch(
-        "Smart Home/Camera Smart Alerts/Camera Smart Alerts.csv"
+        "Smart Home/Camera Smart Alerts/Camera Smart Alerts.csv",
       ),
     },
     {
       glob: new Minimatch(
-        "Smart Home/Cameras Smart Alerts/Camera Smart Alerts.csv"
+        "Smart Home/Cameras Smart Alerts/Camera Smart Alerts.csv",
       ),
     },
     { glob: new Minimatch("Smart Home/Hunches.csv") },
@@ -42,7 +42,7 @@ class Amazon implements Parser<CategoryKey> {
     { glob: new Minimatch("Digital.CustomerAttributes.1.csv") },
     {
       glob: new Minimatch(
-        "Digital.PrimeVideo.CustomerTitleRelevanceRecommendations.csv"
+        "Digital.PrimeVideo.CustomerTitleRelevanceRecommendations.csv",
       ),
     },
     { glob: new Minimatch("Kindle.AuthorFollows/**") },
@@ -52,12 +52,12 @@ class Amazon implements Parser<CategoryKey> {
     { glob: new Minimatch("Retail.CommunityTrust/**") },
     {
       glob: new Minimatch(
-        "Retail.Reorder.1/Retail.Reorder.DigitalDashCustomerPreference.csv"
+        "Retail.Reorder.1/Retail.Reorder.DigitalDashCustomerPreference.csv",
       ),
     },
     {
       glob: new Minimatch(
-        "Retail.Reorder.1/Retail.Reorder.DigitalDashSummary.csv"
+        "Retail.Reorder.1/Retail.Reorder.DigitalDashSummary.csv",
       ),
     },
     { glob: new Minimatch("Retail.Search-Data.Retail.Product-Metrics.csv") },
@@ -278,7 +278,7 @@ class Amazon implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "**/Kindle.BooksPromotions.RewardOfferRepository.csv"
+        "**/Kindle.BooksPromotions.RewardOfferRepository.csv",
       ),
       parse: (item) => [
         "notification",
@@ -296,7 +296,7 @@ class Amazon implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "**/Kindle.Reach.KindleNotifications.InappNotificationEvents.csv"
+        "**/Kindle.Reach.KindleNotifications.InappNotificationEvents.csv",
       ),
       parse: (item) => [
         "notification",
@@ -308,7 +308,7 @@ class Amazon implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "OutboundNotifications.AmazonApplicationUpdateHistory.csv"
+        "OutboundNotifications.AmazonApplicationUpdateHistory.csv",
       ),
       parse: (item) => [
         "activity",
@@ -320,7 +320,7 @@ class Amazon implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "OutboundNotifications.EmailDeliveryStatusFeedback.csv"
+        "OutboundNotifications.EmailDeliveryStatusFeedback.csv",
       ),
       parse: (item) => [
         "notification",
@@ -332,7 +332,7 @@ class Amazon implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "OutboundNotifications.NotificationEngagementEvents.csv"
+        "OutboundNotifications.NotificationEngagementEvents.csv",
       ),
       parse: (item) => [
         "notification",
@@ -366,7 +366,7 @@ class Amazon implements Parser<CategoryKey> {
       glob: new Minimatch("PaymentOptions.PaymentInstruments.csv"),
       tokenize: async (data) =>
         (await parseCSV(data)).filter(
-          (row) => row["RegistrationDate"] !== "N/A"
+          (row) => row["RegistrationDate"] !== "N/A",
         ),
       parse: (item) => [
         "billing",
@@ -414,7 +414,7 @@ class Amazon implements Parser<CategoryKey> {
         DateTime.fromFormat(
           item["profileLastOnboardingTime"],
           "MM/dd/yyyy HH:mm:ss",
-          { zone: "UTC" }
+          { zone: "UTC" },
         ),
         ["Updated Customer Profile"],
       ],
@@ -439,7 +439,7 @@ class Amazon implements Parser<CategoryKey> {
             })
           : DateTime.fromFormat(
               item["DateOfReturn"],
-              "EEE, dd MMM yyyy HH:mm:ss z"
+              "EEE, dd MMM yyyy HH:mm:ss z",
             ),
         [
           `${item["Resolution"] || "Refund/Return"}`,
@@ -464,7 +464,7 @@ class Amazon implements Parser<CategoryKey> {
       glob: new Minimatch("Retail.OrdersReturned.Payments.*.csv"),
       tokenize: async (data) =>
         (await parseCSV(data)).filter(
-          (row) => row["RefundCompletionDate"] !== "N/A"
+          (row) => row["RefundCompletionDate"] !== "N/A",
         ),
       parse: (item) => [
         "billing",
@@ -473,7 +473,7 @@ class Amazon implements Parser<CategoryKey> {
           "MM/dd/yyyy HH:mm:ss z",
           {
             zone: "UTC",
-          }
+          },
         ),
         [`Payment ${item["DisbursementType"]}`],
       ],
@@ -496,7 +496,7 @@ class Amazon implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "**/Retail.OutboundNotifications.MobileApplications.csv"
+        "**/Retail.OutboundNotifications.MobileApplications.csv",
       ),
       parse: (item) => [
         "activity",
@@ -508,7 +508,7 @@ class Amazon implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "**/Retail.OutboundNotifications.notificationMetadata*.csv"
+        "**/Retail.OutboundNotifications.notificationMetadata*.csv",
       ),
       tokenize: (data) =>
         parseCSV(smartDecode(data).replace(/\nFile Summary:[\s\S]*/g, "")),
@@ -549,7 +549,7 @@ class Amazon implements Parser<CategoryKey> {
           "MM/dd/yyyy HH:mm",
           {
             zone: "UTC",
-          }
+          },
         ),
         ["Created Dash Button", item["productTitle"].slice(1, -1)],
       ],

@@ -38,7 +38,7 @@ async function dbInit(): Promise<IDBDatabase> {
       // For now, schema upgrades wipe the database
       const db = op.result;
       Array.from(db.objectStoreNames).forEach((store) =>
-        db.deleteObjectStore(store)
+        db.deleteObjectStore(store),
       );
       db.createObjectStore(dbStore);
     };
@@ -56,7 +56,7 @@ export class ReadBackend {
     db: IDBDatabase,
     key: CryptoKey,
     keyHash: string,
-    reload: () => Promise<void>
+    reload: () => Promise<void>,
   ) {
     db.onversionchange = () => (db.close(), reload());
     db.onclose = () => reload();
@@ -69,7 +69,7 @@ export class ReadBackend {
 
   static async connect(
     key: ArrayBuffer,
-    reload: () => Promise<void>
+    reload: () => Promise<void>,
   ): Promise<ReadBackend | void> {
     const db = await dbInit();
 
@@ -77,7 +77,7 @@ export class ReadBackend {
     // cookie jar is encrypted using OS-level data protection APIs while
     // IndexedDB is not, and (b) we can force the key to expire after 24 hours.
     const keyHash = b64enc(
-      await globalThis.crypto.subtle.digest("SHA-256", key)
+      await globalThis.crypto.subtle.digest("SHA-256", key),
     );
     const storedHash: string = await new Promise((resolve, reject) => {
       const op = db.transaction(dbStore).objectStore(dbStore).get(keyHashKey);
@@ -91,7 +91,7 @@ export class ReadBackend {
         key,
         "AES-GCM",
         false,
-        keyUsages
+        keyUsages,
       );
       return new this(db, cryptoKey, keyHash, reload);
     } else {
@@ -103,7 +103,7 @@ export class ReadBackend {
 
   async get(
     k: string,
-    opts?: { binary?: boolean; named?: boolean }
+    opts?: { binary?: boolean; named?: boolean },
   ): Promise<unknown> {
     const result = await new Promise<
       ArrayBufferLike | [string, ArrayBufferLike]
@@ -128,7 +128,7 @@ export class ReadBackend {
     const plaintext = await globalThis.crypto.subtle.decrypt(
       { name: "AES-GCM", iv },
       this.key,
-      ciphertext
+      ciphertext,
     );
     if (!opts?.binary) return deserialize(plaintext);
     return plaintext;
@@ -143,7 +143,7 @@ export class ReadBackend {
 export class WriteBackend extends ReadBackend {
   static async connect(
     key: ArrayBuffer,
-    reload: () => Promise<void>
+    reload: () => Promise<void>,
   ): Promise<WriteBackend> {
     const db = await dbInit();
 
@@ -151,7 +151,7 @@ export class WriteBackend extends ReadBackend {
     // cookie jar is encrypted using OS-level data protection APIs while
     // IndexedDB is not, and (b) we can force the key to expire after 24 hours.
     const keyHash = b64enc(
-      await globalThis.crypto.subtle.digest("SHA-256", key)
+      await globalThis.crypto.subtle.digest("SHA-256", key),
     );
     const storedHash: string = await new Promise((resolve, reject) => {
       const op = db.transaction(dbStore).objectStore(dbStore).get(keyHashKey);
@@ -179,7 +179,7 @@ export class WriteBackend extends ReadBackend {
       // Database exists but the original encryption key has expired. We got
       // unlucky; the expiry process should have cleaned it up by now...
       throw new Error(
-        "writing to database created under old encryption key..."
+        "writing to database created under old encryption key...",
       );
     }
 
@@ -188,7 +188,7 @@ export class WriteBackend extends ReadBackend {
       key,
       "AES-GCM",
       false,
-      keyUsages
+      keyUsages,
     );
     return new this(db, cryptoKey, keyHash, reload);
   }
@@ -219,15 +219,15 @@ export class WriteBackend extends ReadBackend {
 
   async encrypt(
     data: unknown,
-    opts?: { binary: false }
+    opts?: { binary: false },
   ): Promise<DatabaseRecord>;
   async encrypt(
     data: ArrayBufferLike,
-    opts: { binary: true }
+    opts: { binary: true },
   ): Promise<DatabaseRecord>;
   async encrypt(
     data: unknown,
-    opts?: { binary?: boolean }
+    opts?: { binary?: boolean },
   ): Promise<DatabaseRecord> {
     const source = (opts?.binary ? data : serialize(data)) as ArrayBufferLike;
     const iv = await globalThis.crypto.getRandomValues(new Uint8Array(12));
@@ -236,7 +236,7 @@ export class WriteBackend extends ReadBackend {
       ciphertext: await globalThis.crypto.subtle.encrypt(
         { name: "AES-GCM", iv },
         this.key,
-        source
+        source,
       ),
     };
   }

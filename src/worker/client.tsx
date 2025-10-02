@@ -36,7 +36,7 @@ function sendRequest(msg: WorkerRequest): void {
 
 export async function listProfiles(
   provider: Provider<unknown>,
-  files: FileList
+  files: FileList,
 ): Promise<string[] | void> {
   const id = globalThis.crypto.randomUUID();
   return await new Promise<string[] | void>((resolve) => {
@@ -54,7 +54,7 @@ export async function importFiles(
   provider: Provider<unknown>,
   profile: string | void,
   files: FileList,
-  reportProgress: (fraction: number) => void
+  reportProgress: (fraction: number) => void,
 ): Promise<void> {
   const id = globalThis.crypto.randomUUID();
   const key = await getOrGenerateKeyFromCookie();
@@ -73,7 +73,7 @@ export async function importFiles(
 }
 
 export async function resetProvider(
-  provider: Provider<unknown>
+  provider: Provider<unknown>,
 ): Promise<void> {
   const id = globalThis.crypto.randomUUID();
   const key = await getOrGenerateKeyFromCookie();
@@ -90,7 +90,7 @@ export async function resetProvider(
 
 export async function decodeData(
   data: ArrayBufferLike,
-  tryJSON: boolean
+  tryJSON: boolean,
 ): Promise<DecodeResponse> {
   const id = globalThis.crypto.randomUUID();
   return await new Promise<DecodeResponse>((resolve) => {
@@ -106,7 +106,7 @@ export async function decodeData(
 
 export async function parseByStages(
   provider: Provider<unknown>,
-  file: DataFile
+  file: DataFile,
 ): Promise<unknown> {
   const id = globalThis.crypto.randomUUID();
   return await new Promise<DecodeResponse>((resolve) => {

@@ -50,7 +50,7 @@ class Google implements Parser<CategoryKey> {
     { glob: new Minimatch("Takeout/archive_browser.html") },
     {
       glob: new Minimatch(
-        "Takeout/Google Pay/**/Loyalty Gift Cards and Offers.pdf"
+        "Takeout/Google Pay/**/Loyalty Gift Cards and Offers.pdf",
       ),
     },
     { glob: new Minimatch("Takeout/My Activity/**/*.html") },
@@ -93,7 +93,7 @@ class Google implements Parser<CategoryKey> {
         const labels = (headers["X-Gmail-Labels"] || "").split(",");
         const date = DateTime.fromFormat(
           headers["Date"],
-          "EEE MMM dd HH:mm:ss ZZZ yyyy"
+          "EEE MMM dd HH:mm:ss ZZZ yyyy",
         );
 
         const subject = headers["Subject"];
@@ -147,7 +147,7 @@ class Google implements Parser<CategoryKey> {
         let { title, header } = item;
         if (
           item.details?.some(
-            (x: { name: string }) => x.name === "From Google Ads"
+            (x: { name: string }) => x.name === "From Google Ads",
           )
         )
           header = "Google Ads";
@@ -197,7 +197,7 @@ class Google implements Parser<CategoryKey> {
             scanning.push(
               value === "VEVENT"
                 ? { _value: value, CALENDAR: calendar }
-                : { _value: value }
+                : { _value: value },
             );
           } else if (key === "END") {
             const { _value, ...rest } = scanning.pop() || {};
@@ -237,7 +237,7 @@ class Google implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "Takeout/Google Pay/Google transactions/transactions_*.csv"
+        "Takeout/Google Pay/Google transactions/transactions_*.csv",
       ),
       parse: (item) => {
         return [
@@ -249,7 +249,7 @@ class Google implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "Takeout/Google Pay/Money sends and requests/Money sends and requests.csv"
+        "Takeout/Google Pay/Money sends and requests/Money sends and requests.csv",
       ),
       parse: (item) => {
         return [

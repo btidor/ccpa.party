@@ -26,7 +26,7 @@ type UserInfo = {
       group_name?: string;
       group_id: string;
       membership_state: MembershipState;
-    }
+    },
   ];
 };
 
@@ -51,7 +51,7 @@ type Message = {
 
 export default function render(
   entry: TimelineEntry<CategoryKey>,
-  metadata: ReadonlyMap<string, unknown>
+  metadata: ReadonlyMap<string, unknown>,
 ): RenderResult {
   if (entry.context !== null) return;
 
@@ -62,13 +62,13 @@ export default function render(
 
   let footer: string | void;
   const group2 = user.membership_info.find(
-    (info) => info.group_id === group_id
+    (info) => info.group_id === group_id,
   );
   if (group2?.group_name) {
     footer = ` in ${group2.group_name}`;
   } else {
     const others = group.members.filter(
-      (member) => member.email !== user.user.email
+      (member) => member.email !== user.user.email,
     );
     if (others.length === 0) {
       footer = undefined; // weird

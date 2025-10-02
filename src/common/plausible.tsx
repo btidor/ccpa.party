@@ -34,7 +34,7 @@ export default function plausible(): void {
 
   if (
     /^localhost$|^127(\.[0-9]+){0,2}\.[0-9]+$|^\[::1?\]$/.test(
-      location.hostname
+      location.hostname,
     ) ||
     location.protocol === "file:"
   )
@@ -53,6 +53,6 @@ export default function plausible(): void {
       d: location.host,
       r: document.referrer || null,
       w: window.innerWidth,
-    })
+    }),
   );
 }

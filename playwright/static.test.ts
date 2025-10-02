@@ -21,7 +21,7 @@ test("request page renders", async ({ page }) => {
   const link = page.locator("a", { hasText: /account settings/i });
   await expect(link).toHaveAttribute(
     "href",
-    "https://github.com/settings/admin"
+    "https://github.com/settings/admin",
   );
 
   const info = page.locator("code", { hasText: /results in 15 minutes/i });

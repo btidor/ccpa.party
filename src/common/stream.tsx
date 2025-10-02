@@ -66,7 +66,7 @@ class FflateDecompressionStream extends TransformStream<
     super({
       async start(controller) {
         decompressor = new Gunzip((chunk: Uint8Array, final: boolean) =>
-          final ? controller.terminate() : controller.enqueue(chunk)
+          final ? controller.terminate() : controller.enqueue(chunk),
         );
       },
       async transform(chunk) {

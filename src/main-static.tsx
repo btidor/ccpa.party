@@ -8,7 +8,7 @@ export function render(url: string) {
   return ReactDOMServer.renderToString(
     <React.StrictMode>
       <App location={url} />
-    </React.StrictMode>
+    </React.StrictMode>,
   );
 }
 

@@ -79,12 +79,12 @@ export class ProviderDatabase<T> extends BaseDatabase {
         category: category as unknown as T,
         iv,
         offset,
-      })
+      }),
     );
   }
 
   async hydrateTimelineEntry(
-    entry: TimelineEntryKey<T>
+    entry: TimelineEntryKey<T>,
   ): Promise<TimelineEntry<T> | void> {
     if (!entry.iv || entry.offset === undefined) {
       throw new Error("TimelineEntryKey is missing IV or offset");
@@ -93,7 +93,7 @@ export class ProviderDatabase<T> extends BaseDatabase {
     const data = (await this.backend.get(entry.iv)) as [
       string[],
       TimelineContext,
-      { [key: string]: unknown }
+      { [key: string]: unknown },
     ][];
     if (!data) return;
     const [file, context, value] = data[entry.offset];
@@ -107,7 +107,7 @@ export class ProviderDatabase<T> extends BaseDatabase {
 
   async getTimelineEntryBySlug(slug: string): Promise<TimelineEntry<T> | void> {
     const entry = (await this.providerIndex).timeline.find(
-      ([, , , , s]) => s === slug
+      ([, , , , s]) => s === slug,
     );
     if (!entry) return;
     const [iv, offset, day, timestamp, s, category] = entry;

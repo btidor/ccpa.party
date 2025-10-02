@@ -35,7 +35,7 @@ function Navigation<T>(props: Props<T>): JSX.Element {
       setLinks([...baseLinks, { label: ":)", to: "errors" }]);
       const active = await db.getProviders();
       setProviders(
-        ProviderRegistry.filter((provider) => active.has(provider.slug))
+        ProviderRegistry.filter((provider) => active.has(provider.slug)),
       );
       setLinks([
         ...baseLinks,

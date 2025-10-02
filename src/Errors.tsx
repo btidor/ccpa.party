@@ -33,7 +33,7 @@ function Errors<T>(props: Props<T>): JSX.Element {
       rows.push(
         (await db.getHasErrors())
           ? "💥 Imported with errors"
-          : "✨ Import completed without errors"
+          : "✨ Import completed without errors",
       );
 
       for (const { path, errors } of files) {
@@ -62,7 +62,7 @@ function Errors<T>(props: Props<T>): JSX.Element {
       if (unknowns.length)
         rows.push(
           "Unknown Files:\n" +
-            unknowns.map((f) => `* ${f.path.join("/")}`).join("\n")
+            unknowns.map((f) => `* ${f.path.join("/")}`).join("\n"),
         );
 
       setMessage({ provider: provider.slug, text: rows.join("\n\n") + "\n" });

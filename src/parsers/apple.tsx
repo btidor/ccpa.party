@@ -27,7 +27,7 @@ class Apple implements Parser<CategoryKey> {
     { glob: new Minimatch("**/iTunes Payment Stack - Activity.csv") },
     {
       glob: new Minimatch(
-        "iCloud Drive/System Data/shoebox/UbiquitousCards/**"
+        "iCloud Drive/System Data/shoebox/UbiquitousCards/**",
       ),
     },
 
@@ -40,7 +40,7 @@ class Apple implements Parser<CategoryKey> {
     {
       glob: new Minimatch(
         "iCloud Drive/System Data/TextInput/Dictionaries/**",
-        { dot: true }
+        { dot: true },
       ),
     },
   ];
@@ -111,8 +111,8 @@ class Apple implements Parser<CategoryKey> {
           (item["Preference"] === "LOVE"
             ? "Loved"
             : item["Preference"] === "DISLIKE"
-            ? "Disliked"
-            : "Marked") + " Track",
+              ? "Disliked"
+              : "Marked") + " Track",
           item["Item Description"],
         ],
       ],
@@ -124,14 +124,14 @@ class Apple implements Parser<CategoryKey> {
           ? [
               "media",
               DateTime.fromISO(
-                item["Event Start Timestamp"] || item["Event End Timestamp"]
+                item["Event Start Timestamp"] || item["Event End Timestamp"],
               ),
               [
                 item["Event Type"] === "PLAY_END"
                   ? "Played Track"
                   : item["Event Type"] === "LYRIC_DISPLAY"
-                  ? "Viewed Lyrics"
-                  : "Media Event",
+                    ? "Viewed Lyrics"
+                    : "Media Event",
                 item["Song Name"],
               ],
             ]
@@ -139,7 +139,7 @@ class Apple implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "**/Customer Device History - Computer Authorizations.csv"
+        "**/Customer Device History - Computer Authorizations.csv",
       ),
       parse: (item) => [
         "account",
@@ -178,8 +178,8 @@ class Apple implements Parser<CategoryKey> {
             item["Content Type"].includes("Apps")
               ? "App"
               : item["Content Type"].endsWith("s")
-              ? item["Content Type"].slice(0, -1)
-              : item["Content Type"]
+                ? item["Content Type"].slice(0, -1)
+                : item["Content Type"]
           }`,
           item["Item Description"],
         ],
@@ -292,7 +292,7 @@ class Apple implements Parser<CategoryKey> {
                   game,
                   leaderboard,
                   ...score,
-                }))
+                })),
             ) as TokenizedItem[];
             const y = (achievements || []).map((item) => ({
               type: "achievement",
@@ -300,7 +300,7 @@ class Apple implements Parser<CategoryKey> {
               ...item,
             }));
             return x.concat(y);
-          }
+          },
         ),
       parse: (item) =>
         item.type === "leaderboard"
@@ -308,7 +308,7 @@ class Apple implements Parser<CategoryKey> {
               "icloud",
               DateTime.fromFormat(
                 item.submitted_time_utc,
-                "MM/dd/yyyy HH:mm:ss"
+                "MM/dd/yyyy HH:mm:ss",
               ),
               [
                 "Game Center Leaderboard",
@@ -326,7 +326,7 @@ class Apple implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "**/iTunes and App-Book Re-download and Update History.csv"
+        "**/iTunes and App-Book Re-download and Update History.csv",
       ),
       parse: (item) => [
         "activity",
@@ -419,7 +419,7 @@ class Apple implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "**/Device Registration History Pre iOS8 and Yosemite.csv"
+        "**/Device Registration History Pre iOS8 and Yosemite.csv",
       ),
       parse: (item) => [
         "activity",
@@ -476,7 +476,7 @@ class Apple implements Parser<CategoryKey> {
               .map((r) =>
                 r["display name"]
                   ? `${r["display name"]} <${r["address"]}>`
-                  : r["address"]
+                  : r["address"],
               )
               .join(", ");
             return [
@@ -490,7 +490,7 @@ class Apple implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "**/Apple Features Using iCloud/Wi-Fi/KnownNetworks.xml"
+        "**/Apple Features Using iCloud/Wi-Fi/KnownNetworks.xml",
       ),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tokenize: (data) => plist.parse(smartDecode(data)) as any,
@@ -529,7 +529,7 @@ class Apple implements Parser<CategoryKey> {
         if (header) groups.set(header, buffer);
 
         const registration = groups.get(
-          "iCloud: Device registration from an iCloud enabled device"
+          "iCloud: Device registration from an iCloud enabled device",
         );
         return registration ? await parseCSV(registration.join("\n")) : [];
       },

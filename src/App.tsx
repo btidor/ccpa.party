@@ -22,7 +22,7 @@ class App extends React.Component<Props, State> {
     super(props);
     if (import.meta.env.SSR && !this.props.location) {
       throw new Error(
-        "LocationContext must be provided during server-side rendering"
+        "LocationContext must be provided during server-side rendering",
       );
     }
     this.state = {
@@ -48,7 +48,7 @@ class App extends React.Component<Props, State> {
 
   componentDidMount() {
     window.addEventListener("unhandledrejection", () =>
-      this.setState({ hasError: true })
+      this.setState({ hasError: true }),
     );
     window.addEventListener("popstate", () =>
       this.setState({
@@ -58,7 +58,7 @@ class App extends React.Component<Props, State> {
           state: window.history.state,
           _set: (location) => this.setState({ hasError: false, location }),
         },
-      })
+      }),
     );
   }
 

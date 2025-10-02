@@ -10,7 +10,7 @@ export const LocationContext = React.createContext<Location | void>(undefined);
 
 export function useNavigate(): (
   to: string,
-  opts?: { replace?: boolean; state?: unknown }
+  opts?: { replace?: boolean; state?: unknown },
 ) => void {
   const location = React.useContext(LocationContext);
   return (to, opts) => {
@@ -29,7 +29,7 @@ export function Link(
     replace?: boolean;
     state?: unknown;
     to: string;
-  } & React.ComponentPropsWithRef<"a">
+  } & React.ComponentPropsWithRef<"a">,
 ): JSX.Element {
   const navigate = useNavigate();
   const { children, replace, state, to, ...rest } = props;

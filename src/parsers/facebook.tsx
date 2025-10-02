@@ -35,7 +35,7 @@ class Facebook implements Parser<CategoryKey> {
     { glob: new Minimatch("voting_location_and_reminders/location.json") },
     {
       glob: new Minimatch(
-        "voting_location_and_reminders/voting_reminders.json"
+        "voting_location_and_reminders/voting_reminders.json",
       ),
     },
     { glob: new Minimatch("your_topics/your_topics.json") },
@@ -43,17 +43,17 @@ class Facebook implements Parser<CategoryKey> {
     // Duplicate
     {
       glob: new Minimatch(
-        "security_and_login_information/browser_cookies.json"
+        "security_and_login_information/browser_cookies.json",
       ),
     },
     {
       glob: new Minimatch(
-        "security_and_login_information/where_you're_logged_in.json"
+        "security_and_login_information/where_you're_logged_in.json",
       ),
     },
     {
       glob: new Minimatch(
-        "security_and_login_information/your_facebook_activity_history.json"
+        "security_and_login_information/your_facebook_activity_history.json",
       ),
     },
   ];
@@ -61,7 +61,7 @@ class Facebook implements Parser<CategoryKey> {
   timeline: ReadonlyArray<TimelineParser<CategoryKey>> = [
     {
       glob: new Minimatch(
-        "apps_and_websites_off_of_facebook/apps_and_websites.json"
+        "apps_and_websites_off_of_facebook/apps_and_websites.json",
       ),
       tokenize: (data) => parseJSON(data, { smart: true }).installed_apps_v2,
       parse: (item) => [
@@ -75,14 +75,14 @@ class Facebook implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "apps_and_websites_off_of_facebook/your_off-facebook_activity.json"
+        "apps_and_websites_off_of_facebook/your_off-facebook_activity.json",
       ),
       tokenize: (data) =>
         parseJSON(data, {
           smart: true,
         }).off_facebook_activity_v2.flatMap(
           ({ events, ...rest }: { events: { [key: string]: unknown }[] }) =>
-            events.map((item) => ({ company: rest, ...item }))
+            events.map((item) => ({ company: rest, ...item })),
         ),
       parse: (item) => [
         "activity",
@@ -133,7 +133,7 @@ class Facebook implements Parser<CategoryKey> {
             parsed.events_declined.map((item) => ({
               type: "declined",
               ...item,
-            }))
+            })),
           );
       },
       parse: (item) => [
@@ -157,7 +157,7 @@ class Facebook implements Parser<CategoryKey> {
           category.entries.map((entry) => ({
             name: category.name,
             ...entry,
-          }))
+          })),
         ),
       parse: (item) => [
         "activity",
@@ -167,7 +167,7 @@ class Facebook implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "friends_and_followers/friend_requests_received.json"
+        "friends_and_followers/friend_requests_received.json",
       ),
       tokenize: (data) => parseJSON(data, { smart: true }).received_requests_v2,
       parse: (item) => [
@@ -187,7 +187,7 @@ class Facebook implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "friends_and_followers/rejected_friend_requests.json"
+        "friends_and_followers/rejected_friend_requests.json",
       ),
       tokenize: (data) => parseJSON(data, { smart: true }).rejected_requests_v2,
       parse: (item) => [
@@ -324,7 +324,7 @@ class Facebook implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "security_and_login_information/account_activity.json"
+        "security_and_login_information/account_activity.json",
       ),
       tokenize: (data) => parseJSON(data, { smart: true }).account_activity_v2,
       parse: (item) => [
@@ -341,7 +341,7 @@ class Facebook implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "security_and_login_information/email_address_verifications.json"
+        "security_and_login_information/email_address_verifications.json",
       ),
       tokenize: (data) =>
         parseJSON(data, { smart: true }).contact_verifications_v2,
@@ -353,7 +353,7 @@ class Facebook implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "security_and_login_information/ip_address_activity.json"
+        "security_and_login_information/ip_address_activity.json",
       ),
       tokenize: (data) => parseJSON(data, { smart: true }).used_ip_address_v2,
       parse: (item) => [
@@ -370,7 +370,7 @@ class Facebook implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "security_and_login_information/login_protection_data.json"
+        "security_and_login_information/login_protection_data.json",
       ),
       tokenize: (data) =>
         parseJSON(data, { smart: true }).login_protection_data_v2,
@@ -382,7 +382,7 @@ class Facebook implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "security_and_login_information/logins_and_logouts.json"
+        "security_and_login_information/logins_and_logouts.json",
       ),
       tokenize: (data) => parseJSON(data, { smart: true }).account_accesses_v2,
       parse: (item) => [
@@ -424,7 +424,7 @@ class Facebook implements Parser<CategoryKey> {
         ).flatMap(({ entries, ...rest }) =>
           (entries || [])
             .map((item) => ({ category: rest, ...item }))
-            .filter((item) => item.timestamp)
+            .filter((item) => item.timestamp),
         ),
       parse: (item) => [
         "activity",
@@ -434,7 +434,7 @@ class Facebook implements Parser<CategoryKey> {
     },
     {
       glob: new Minimatch(
-        "your_interactions_on_facebook/recently_visited.json"
+        "your_interactions_on_facebook/recently_visited.json",
       ),
       tokenize: (data) =>
         (
@@ -446,7 +446,7 @@ class Facebook implements Parser<CategoryKey> {
         ).flatMap(({ entries, ...rest }) =>
           (entries || [])
             .map((item) => ({ category: rest, ...item }))
-            .filter((item) => item.timestamp)
+            .filter((item) => item.timestamp),
         ),
       parse: (item) => [
         "activity",
@@ -455,10 +455,10 @@ class Facebook implements Parser<CategoryKey> {
           item.category.name === "Profile visits"
             ? "Viewed Profile"
             : item.category.name === "Events visited"
-            ? "Viewed Event"
-            : item.category.name === "Groups visited"
-            ? "Viewed Group"
-            : `Activity: ${item.category.name}`,
+              ? "Viewed Event"
+              : item.category.name === "Groups visited"
+                ? "Viewed Group"
+                : `Activity: ${item.category.name}`,
           item.data.name,
         ],
       ],

@@ -7,7 +7,7 @@ export function b64enc(buf: ArrayBufferLike): string {
   return btoa(
     Array.from(new Uint8Array(buf))
       .map((c) => String.fromCharCode(c))
-      .join("")
+      .join(""),
   )
     .replaceAll("/", "_")
     .replaceAll("+", "-");
@@ -16,8 +16,8 @@ export function b64enc(buf: ArrayBufferLike): string {
 export function b64dec(str: string): ArrayBufferLike {
   return new Uint8Array(
     Array.from(atob(str.replaceAll("_", "/").replaceAll("-", "+"))).map((c) =>
-      c.charCodeAt(0)
-    )
+      c.charCodeAt(0),
+    ),
   ).buffer;
 }
 
@@ -76,7 +76,7 @@ export async function clearKeyCookieIfMatch(matchHash: string): Promise<void> {
   const cookieKey = getKeyFromCookie();
   if (!cookieKey) return;
   const cookieHash = b64enc(
-    await globalThis.crypto.subtle.digest("SHA-256", cookieKey)
+    await globalThis.crypto.subtle.digest("SHA-256", cookieKey),
   );
   if (cookieHash !== matchHash) return;
 

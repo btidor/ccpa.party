@@ -9,15 +9,15 @@ import type { CategoryKey } from "@src/providers/discord";
 
 export default function render(
   entry: TimelineEntry<CategoryKey>,
-  metadata: ReadonlyMap<string, unknown>
+  metadata: ReadonlyMap<string, unknown>,
 ): RenderResult {
   let body, trailer;
   if (entry.category === "activity") {
     const channel = metadata.get(
-      `channel_meta.${entry.value.channel_id || entry.value.channel}`
+      `channel_meta.${entry.value.channel_id || entry.value.channel}`,
     ) as { name: string };
     const server = metadata.get(
-      `server.${entry.value.guild_id || entry.value.server}`
+      `server.${entry.value.guild_id || entry.value.server}`,
     );
 
     body = (entry.value.event_type as string)
@@ -44,12 +44,12 @@ export default function render(
             channel === undefined
               ? "#unknown"
               : channel.includes(" ")
-              ? channel
-              : `#${channel}`
+                ? channel
+                : `#${channel}`
           }\``;
         }
         return original;
-      }
+      },
     );
     body = (
       <ReactMarkdown remarkPlugins={[remarkGfm]} linkTarget="_blank">
@@ -70,7 +70,7 @@ export default function render(
       guild: { name: string };
     };
     const fallback = metadata.get(
-      `channel.${entry.file[2].slice(1)}`
+      `channel.${entry.file[2].slice(1)}`,
     ) as string;
     if (channel && [0, 2].includes(channel.type))
       trailer = `in #${channel.name} (${channel.guild.name})`;

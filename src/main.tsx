@@ -19,7 +19,7 @@ const root = ReactDOMClient.createRoot(elem);
 root.render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>
+  </React.StrictMode>,
 );
 
 type LinkKey = "as" | "crossOrigin" | "href" | "type";
@@ -55,7 +55,7 @@ const swapIcons = () => {
   addLink(
     "icon",
     dark.matches ? faviconDarkSvg : faviconSvg,
-    new Map([["type", "image/svg+xml"]])
+    new Map([["type", "image/svg+xml"]]),
   );
 };
 dark.addListener(swapIcons);

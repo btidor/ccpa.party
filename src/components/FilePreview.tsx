@@ -48,7 +48,7 @@ function FilePreview(props: Props): JSX.Element {
       URL.createObjectURL(
         new Blob([mode.document], {
           type: "application/pdf",
-        })
+        }),
       ) + "#toolbar=0";
     return (
       // Unfortunately, Chrome won't load its PDF viewer in an iframe if
@@ -82,7 +82,7 @@ function FilePreview(props: Props): JSX.Element {
     const url = URL.createObjectURL(
       new Blob([mode.document], {
         type: "text/html; charset=utf-8",
-      })
+      }),
     );
     return (
       <iframe
@@ -118,14 +118,14 @@ type DisplayMode =
 async function displayMode(
   data: void | string | ArrayBufferLike | { [key: string]: unknown },
   filename: string | void,
-  special: "email" | void
+  special: "email" | void,
 ): Promise<DisplayMode | void> {
   if (data === undefined) {
     return undefined;
   } else if (special === "email") {
     if (typeof data !== "string") {
       throw new Error(
-        "filepreview: special email must be used with string data"
+        "filepreview: special email must be used with string data",
       );
     }
     const parts = data.split("\r\n\r\n");
@@ -138,7 +138,7 @@ async function displayMode(
           "<pre style='background-color: #000; color: #fff; font-size: 13px; padding: 4px; line-height: 1.425;'>" +
             header +
             "</pre>" +
-            body
+            body,
         ),
       };
     } else {

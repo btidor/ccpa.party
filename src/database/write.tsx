@@ -101,7 +101,7 @@ export class Writer<T> {
         file,
         context,
         value,
-      ])
+      ]),
     );
     this.timeline.pendingWrite.push(record);
     for (let i = 0; i < this.timeline.pendingBatch.length; i++) {
@@ -142,7 +142,7 @@ export class Writer<T> {
 
     // Update root index
     await this.backend.updateRootIndex(
-      (index) => (index[this.provider.slug] = record.iv)
+      (index) => (index[this.provider.slug] = record.iv),
     );
 
     // Reset internal state
@@ -184,14 +184,14 @@ export class Resetter<T> {
     (await this.query.getFiles()).forEach((f) => deletes.add(f.iv));
     (await this.query.getTimelineEntries()).forEach((e) => deletes.add(e.iv));
     deletes.add(
-      ((await this.backend.getRootIndex()) || {})[this.provider.slug]
+      ((await this.backend.getRootIndex()) || {})[this.provider.slug],
     );
     deletes.delete(undefined);
     await this.backend.deletes(deletes as Set<string>);
 
     // Update root index
     await this.backend.updateRootIndex(
-      (index) => delete index[this.provider.slug]
+      (index) => delete index[this.provider.slug],
     );
 
     const remaining = new Set(Object.keys(await this.backend.getRootIndex()));

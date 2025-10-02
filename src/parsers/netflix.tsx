@@ -117,8 +117,8 @@ class Netflix implements Parser<CategoryKey> {
             ? item["Thumbs Value"] === "1"
               ? "Thumbs Down"
               : item["Thumbs Value"] === "2"
-              ? "Thumbs Up"
-              : "Rated"
+                ? "Thumbs Up"
+                : "Rated"
             : "Rated",
           item["Title Name"],
         ],
@@ -187,10 +187,10 @@ class Netflix implements Parser<CategoryKey> {
               item["Channel"] === "EMAIL"
                 ? "Email"
                 : item["Channel"] === "NOTIFICATIONS"
-                ? "In-App Notification"
-                : item["Channel"] === "PUSH"
-                ? "Push Notification"
-                : "Notification",
+                  ? "In-App Notification"
+                  : item["Channel"] === "PUSH"
+                    ? "Push Notification"
+                    : "Notification",
               item["Title Name"],
             ],
           ],
@@ -201,10 +201,10 @@ class Netflix implements Parser<CategoryKey> {
               (item["Channel"] === "EMAIL"
                 ? "Email"
                 : item["Channel"] === "NOTIFICATIONS"
-                ? "In-App Notification"
-                : item["Channel"] === "PUSH"
-                ? "Push Notification"
-                : "Notification") + " Click",
+                  ? "In-App Notification"
+                  : item["Channel"] === "PUSH"
+                    ? "Push Notification"
+                    : "Notification") + " Click",
               item["Title Name"],
             ],
           ],

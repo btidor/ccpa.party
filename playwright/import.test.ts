@@ -18,7 +18,7 @@ test("tar.gz import", async ({ page }) => {
 
   await page.locator("span", { hasText: /successfully deployed to/i }).click();
   expect(await page.locator("pre").last()).toContainText(
-    /"commit_id": "d1b0afe149159c278113a4bd110d3bd4cd7c4250",/i
+    /"commit_id": "d1b0afe149159c278113a4bd110d3bd4cd7c4250",/i,
   );
 
   await page.locator("a", { hasText: /files/i }).click(); // files
@@ -27,7 +27,7 @@ test("tar.gz import", async ({ page }) => {
     .last()
     .click();
   expect(await page.locator("pre").last()).toContainText(
-    /"url": "https:\/\/github.com\/btidor\/ccpa.party",/i
+    /"url": "https:\/\/github.com\/btidor\/ccpa.party",/i,
   );
 });
 
@@ -52,7 +52,7 @@ test("zip import", async ({ page }) => {
     .last()
     .click();
   expect(await page.locator("pre").last()).toContainText(
-    /"client_msg_id": "20848668-047f-44b9-a314-0d1f44ed8d5c",/i
+    /"client_msg_id": "20848668-047f-44b9-a314-0d1f44ed8d5c",/i,
   );
 
   await page.locator("a", { hasText: /files/i }).click(); // files
@@ -65,6 +65,6 @@ test("zip import", async ({ page }) => {
     .last()
     .click();
   expect(await page.locator("pre").last()).toContainText(
-    /\[\s*{\s*"client_msg_id":/i
+    /\[\s*{\s*"client_msg_id":/i,
   );
 });
