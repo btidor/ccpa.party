@@ -11,8 +11,7 @@
   "settings": {
     "editor.tabSize": 2,
     "files.exclude": {
-      "node_modules/**": true,
-      ".vercel/**": true
+      "node_modules/**": true
     },
     "go.toolsEnvVars": {
       "GOOS": "js",

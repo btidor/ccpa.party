@@ -4,7 +4,7 @@ FROM mcr.microsoft.com/devcontainers/base:noble
 COPY *.sources /etc/apt/sources.list.d/
 
 ADD --apt nodejs libatomic1
-RUN npm install -g npm@latest vercel@latest && \
+RUN npm install -g npm@latest && \
   sudo -iu vscode -- npx --yes playwright install --with-deps
 
 ADD --apt python3-pip brotli
