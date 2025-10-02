@@ -13,7 +13,7 @@ export type WorkerRequest = (
       files: FileList;
     }
   | { type: "resetProvider"; key: ArrayBuffer; provider: string }
-  | { type: "decodeData"; data: ArrayBufferLike; tryJSON: boolean }
+  | { type: "decodeData"; data: ArrayBuffer; tryJSON: boolean }
   | { type: "parseByStages"; provider: string; file: DataFile }
 ) & { id: string };
 

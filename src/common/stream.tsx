@@ -116,7 +116,9 @@ class TextDecoderPolyfillStream extends TransformStream<BufferSource, string> {
 }
 
 export const TextDecoderPonyfillStream: {
-  new (label?: string | undefined): TransformStream<BufferSource, string>;
+  new (
+    label?: string | undefined,
+  ): TransformStream<Uint8Array<ArrayBuffer>, string>;
 } = globalThis.TextDecoderStream || TextDecoderPolyfillStream;
 
 export type MboxEntry = {

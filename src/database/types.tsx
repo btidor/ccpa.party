@@ -16,7 +16,7 @@ export type ParseError = {
   line?: string;
 };
 
-export type DataFile = DataFileKey & { data: ArrayBufferLike };
+export type DataFile = DataFileKey & { data: ArrayBuffer };
 
 export type TimelineEntryKey<T> = {
   day: string;

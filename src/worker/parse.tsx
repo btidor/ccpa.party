@@ -40,7 +40,7 @@ const isPrintableUnicode = (str: string): boolean => {
 };
 
 export function parseJSON(
-  data: ArrayBufferLike | string,
+  data: ArrayBuffer | string,
   // Use `smart: true` to try UTF-8 double-decoding everything. (Incurs a ~5x
   // slowdown).
   opts?: { smart?: boolean },
@@ -64,7 +64,7 @@ export function parseJSON(
 }
 
 export function parseJSONND(
-  data: ArrayBufferLike | string,
+  data: ArrayBuffer | string,
   opts?: { smart?: boolean },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): any[] {
@@ -79,7 +79,7 @@ export function parseJSONND(
 }
 
 export async function parseCSV(
-  data: ArrayBufferLike | string,
+  data: ArrayBuffer | string,
 ): Promise<{ [key: string]: string }[]> {
   let text;
   if (typeof data === "string") text = data;
@@ -90,7 +90,7 @@ export async function parseCSV(
 
 // Some companies (e.g. Amazon, Facebook) mis-encode some of their files, for
 // instance by applying UTF-8 encoding twice.
-export function smartDecode(data: ArrayBufferLike): string {
+export function smartDecode(data: ArrayBuffer): string {
   // Try simple UTF-8
   const basic = utf8Decoder.decode(data);
 
@@ -131,7 +131,7 @@ export function smartDecodeText(text: string): string {
 async function tokenize<T>(
   parser: TimelineParser<T> | MetadataParser,
   path: ReadonlyArray<string>,
-  data: ArrayBufferLike,
+  data: ArrayBuffer,
   go: GoHooks,
 ): Promise<unknown[]> {
   const ext = path.at(-1)?.split(".").at(-1) || "";
@@ -260,7 +260,7 @@ export async function parseByStages<T>(
   return response;
 }
 
-async function fileIsEmpty(data: ArrayBufferLike): Promise<boolean> {
+async function fileIsEmpty(data: ArrayBuffer): Promise<boolean> {
   if (data.byteLength > 16 * 1024) return false;
 
   const decoded = utf8Decoder.decode(data);

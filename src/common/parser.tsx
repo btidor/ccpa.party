@@ -15,7 +15,7 @@ import Slack from "@src/parsers/slack";
 import type { GoHooks } from "@go";
 
 export type Tokenizer<U> = (
-  data: ArrayBufferLike,
+  data: ArrayBuffer,
   path: ReadonlyArray<string>,
   go: GoHooks,
 ) => U[] | Promise<U[]>;
@@ -52,7 +52,7 @@ export type IgnoreParser = { glob: Minimatch };
 
 export type ProfileParser = {
   file: string;
-  extract: (data: ArrayBufferLike) => Promise<string[]>;
+  extract: (data: ArrayBuffer) => Promise<string[]>;
 };
 
 export type TimelineCategory = {

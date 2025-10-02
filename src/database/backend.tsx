@@ -100,18 +100,25 @@ export class ReadBackend {
       return undefined;
     }
   }
-
+  async get(
+    k: string,
+    opts: { binary: true; named?: boolean },
+  ): Promise<ArrayBuffer>;
+  async get(
+    k: string,
+    opts?: { binary?: boolean; named?: boolean },
+  ): Promise<unknown>;
   async get(
     k: string,
     opts?: { binary?: boolean; named?: boolean },
   ): Promise<unknown> {
-    const result = await new Promise<
-      ArrayBufferLike | [string, ArrayBufferLike]
-    >((resolve, reject) => {
-      const op = this.db.transaction(dbStore).objectStore(dbStore).get(k);
-      op.onsuccess = () => resolve(op.result);
-      op.onerror = (e) => reject(e);
-    });
+    const result = await new Promise<ArrayBuffer | [string, ArrayBuffer]>(
+      (resolve, reject) => {
+        const op = this.db.transaction(dbStore).objectStore(dbStore).get(k);
+        op.onsuccess = () => resolve(op.result);
+        op.onerror = (e) => reject(e);
+      },
+    );
     if (result === undefined) return;
 
     let iv, ciphertext;
@@ -222,14 +229,14 @@ export class WriteBackend extends ReadBackend {
     opts?: { binary: false },
   ): Promise<DatabaseRecord>;
   async encrypt(
-    data: ArrayBufferLike,
+    data: ArrayBuffer,
     opts: { binary: true },
   ): Promise<DatabaseRecord>;
   async encrypt(
     data: unknown,
     opts?: { binary?: boolean },
   ): Promise<DatabaseRecord> {
-    const source = (opts?.binary ? data : serialize(data)) as ArrayBufferLike;
+    const source = opts?.binary ? (data as ArrayBuffer) : serialize(data);
     const iv = await globalThis.crypto.getRandomValues(new Uint8Array(12));
     return {
       iv: b64enc(iv),

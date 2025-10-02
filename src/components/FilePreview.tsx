@@ -9,7 +9,7 @@ type Props = {
   children:
     | void // show standard loading message
     | string // show custom placeholder message
-    | ArrayBufferLike // display file (please also pass filename)
+    | ArrayBuffer // display file (please also pass filename)
     | { [key: string]: unknown }; // display JSON object
   filename?: string;
   special?: "email" | void;
@@ -111,12 +111,12 @@ type DisplayMode =
   | { type: "unknown" }
   | { type: "text"; parsed: string }
   | { type: "json"; parsed: unknown }
-  | { type: "pdf"; document: ArrayBufferLike }
-  | { type: "webpage"; document: ArrayBufferLike }
-  | { type: "image"; document: ArrayBufferLike };
+  | { type: "pdf"; document: BlobPart }
+  | { type: "webpage"; document: BlobPart }
+  | { type: "image"; document: BlobPart };
 
 async function displayMode(
-  data: void | string | ArrayBufferLike | { [key: string]: unknown },
+  data: void | string | ArrayBuffer | { [key: string]: unknown },
   filename: string | void,
   special: "email" | void,
 ): Promise<DisplayMode | void> {

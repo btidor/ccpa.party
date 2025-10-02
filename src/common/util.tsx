@@ -3,7 +3,7 @@ const keyMaxAge = 24 * 3600; // 24 hours
 
 export const archiveSuffixes = [".zip", ".tar.gz", ".tgz", ".mbox"];
 
-export function b64enc(buf: ArrayBufferLike): string {
+export function b64enc(buf: ArrayBuffer | Uint8Array<ArrayBuffer>): string {
   return btoa(
     Array.from(new Uint8Array(buf))
       .map((c) => String.fromCharCode(c))
@@ -13,7 +13,7 @@ export function b64enc(buf: ArrayBufferLike): string {
     .replaceAll("+", "-");
 }
 
-export function b64dec(str: string): ArrayBufferLike {
+export function b64dec(str: string): ArrayBuffer {
   return new Uint8Array(
     Array.from(atob(str.replaceAll("_", "/").replaceAll("-", "+"))).map((c) =>
       c.charCodeAt(0),
@@ -24,11 +24,11 @@ export function b64dec(str: string): ArrayBufferLike {
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-export function serialize(obj: unknown): ArrayBufferLike {
+export function serialize(obj: unknown): Uint8Array<ArrayBuffer> {
   return encoder.encode(JSON.stringify(obj));
 }
 
-export function deserialize(buf: ArrayBufferLike): unknown {
+export function deserialize(buf: BufferSource): unknown {
   return JSON.parse(decoder.decode(buf));
 }
 
@@ -69,7 +69,7 @@ export async function getOrGenerateKeyFromCookie(): Promise<ArrayBuffer> {
   const key = getKeyFromCookie();
   if (key) return key;
   setCookie(keyCookie, b64enc(rand), keyMaxAge);
-  return rand;
+  return rand.buffer.slice(rand.byteOffset, rand.byteOffset + rand.byteLength);
 }
 
 export async function clearKeyCookieIfMatch(matchHash: string): Promise<void> {

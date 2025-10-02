@@ -89,7 +89,7 @@ export async function resetProvider(
 }
 
 export async function decodeData(
-  data: ArrayBufferLike,
+  data: ArrayBuffer,
   tryJSON: boolean,
 ): Promise<DecodeResponse> {
   const id = globalThis.crypto.randomUUID();

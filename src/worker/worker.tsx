@@ -22,7 +22,7 @@ import Go from "@go";
 
 type ImportFile = {
   path: ReadonlyArray<string>;
-  data: File | ArrayBufferLike;
+  data: File | ArrayBuffer;
 };
 
 const chunkSize = 32 * 1024 * 1024;
@@ -69,7 +69,7 @@ async function importFiles<T>(
   const metadata = new Map();
   const processEntry = async (
     path: ReadonlyArray<string>,
-    data: ArrayBufferLike,
+    data: ArrayBuffer,
   ): Promise<ImportFile | void> => {
     if (archiveSuffixes.some((s) => path.at(-1)?.endsWith(s))) {
       return { path, data };
@@ -166,7 +166,10 @@ async function importFiles<T>(
           throw new Error(
             "Invalid read length: got " + ret + ", expected: " + entry.size,
           );
-        const next = await processEntry(subpath, buf);
+        const next = await processEntry(
+          subpath,
+          buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength),
+        );
         if (next) work.push(next);
       }
     } else if (path.at(-1)?.endsWith(".mbox")) {
@@ -198,9 +201,10 @@ async function importFiles<T>(
       for (;;) {
         const { value, done } = await reader.read();
         if (done) break;
+        const enc = encoder.encode(value.data);
         const next = await processEntry(
           [...path, (value.msgid || crypto.randomUUID()) + ".eml"],
-          encoder.encode(value.data),
+          enc.buffer.slice(enc.byteOffset, enc.byteOffset + enc.byteLength),
         );
         if (next)
           throw new Error("*.mbox processing should not result in next");
@@ -229,7 +233,7 @@ function sendResponse(msg: WorkerResponse) {
 }
 
 async function decodeData(
-  data: ArrayBufferLike,
+  data: ArrayBuffer,
   tryJSON: boolean,
 ): Promise<DecodeResponse> {
   if (tryJSON) {

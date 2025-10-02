@@ -59,9 +59,9 @@ export class ProviderDatabase<T> extends BaseDatabase {
     if (!file.iv) throw new Error("DataFileKey is missing IV");
     if (file.skipped) return { ...file, data: new ArrayBuffer(0) };
     if (!this.backend) return;
-    const data = (await this.backend.get(file.iv, {
+    const data = await this.backend.get(file.iv, {
       binary: true,
-    })) as ArrayBufferLike | void;
+    });
     if (!data) return;
     return { ...file, data };
   }
