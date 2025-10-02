@@ -1,41 +1,13 @@
+// WARNING! This file must be updated every time we update the Go version.
+//
+// Source: $(go env GOROOT)/lib/wasm/wasm_exec.js
+// Version: 1.25.1
+//
 // Copyright 2018 The Go Authors. All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//    * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//    * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//    * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
 
-// Modifications:
-//
-// * use myGlobal instead of globalThis, since the
-//   `process` polyfill is incomplete and interferes
-//    with other libraries
-//
-// WARNING! This file must be updated every time we
-// update the Go version.
-//
+"use strict";
 
 (() => {
   const enosys = () => {
@@ -44,19 +16,9 @@
     return err;
   };
 
-  let outputBuf = "";
-  const hooks = {};
-  const myGlobal = {
-    hooks,
-    performance,
-    Array,
-    Object,
-    Promise,
-    TextDecoder,
-    TextEncoder,
-    Uint8Array,
-
-    fs: {
+  if (!globalThis.fs) {
+    let outputBuf = "";
+    globalThis.fs = {
       constants: {
         O_WRONLY: -1,
         O_RDWR: -1,
@@ -64,13 +26,14 @@
         O_TRUNC: -1,
         O_APPEND: -1,
         O_EXCL: -1,
+        O_DIRECTORY: -1,
       }, // unused
       writeSync(fd, buf) {
         outputBuf += decoder.decode(buf);
         const nl = outputBuf.lastIndexOf("\n");
         if (nl != -1) {
-          console.log(outputBuf.substr(0, nl));
-          outputBuf = outputBuf.substr(nl + 1);
+          console.log(outputBuf.substring(0, nl));
+          outputBuf = outputBuf.substring(nl + 1);
         }
         return buf.length;
       },
@@ -151,8 +114,11 @@
       utimes(path, atime, mtime, callback) {
         callback(enosys());
       },
-    },
-    process: {
+    };
+  }
+
+  if (!globalThis.process) {
+    globalThis.process = {
       getuid() {
         return -1;
       },
@@ -179,8 +145,40 @@
       chdir() {
         throw enosys();
       },
-    },
-  };
+    };
+  }
+
+  if (!globalThis.path) {
+    globalThis.path = {
+      resolve(...pathSegments) {
+        return pathSegments.join("/");
+      },
+    };
+  }
+
+  if (!globalThis.crypto) {
+    throw new Error(
+      "globalThis.crypto is not available, polyfill required (crypto.getRandomValues only)",
+    );
+  }
+
+  if (!globalThis.performance) {
+    throw new Error(
+      "globalThis.performance is not available, polyfill required (performance.now only)",
+    );
+  }
+
+  if (!globalThis.TextEncoder) {
+    throw new Error(
+      "globalThis.TextEncoder is not available, polyfill required",
+    );
+  }
+
+  if (!globalThis.TextDecoder) {
+    throw new Error(
+      "globalThis.TextDecoder is not available, polyfill required",
+    );
+  }
 
   const encoder = new TextEncoder("utf-8");
   const decoder = new TextDecoder("utf-8");
@@ -188,7 +186,6 @@
   globalThis.Go = class {
     constructor() {
       this.argv = ["js"];
-      this.hooks = hooks;
       this.env = {};
       this.exit = (code) => {
         if (code !== 0) {
@@ -205,6 +202,10 @@
       const setInt64 = (addr, v) => {
         this.mem.setUint32(addr + 0, v, true);
         this.mem.setUint32(addr + 4, Math.floor(v / 4294967296), true);
+      };
+
+      const setInt32 = (addr, v) => {
+        this.mem.setUint32(addr + 0, v, true);
       };
 
       const getInt64 = (addr) => {
@@ -296,13 +297,22 @@
         const saddr = getInt64(addr + 0);
         const len = getInt64(addr + 8);
         return decoder.decode(
-          new DataView(this._inst.exports.mem.buffer, saddr, len)
+          new DataView(this._inst.exports.mem.buffer, saddr, len),
         );
+      };
+
+      const testCallExport = (a, b) => {
+        this._inst.exports.testExport0();
+        return this._inst.exports.testExport(a, b);
       };
 
       const timeOrigin = Date.now() - performance.now();
       this.importObject = {
-        go: {
+        _gotest: {
+          add: (a, b) => a + b,
+          callExport: testCallExport,
+        },
+        gojs: {
           // Go's SP does not change as long as no Go code is running. Some operations (e.g. calls, getters and setters)
           // may synchronously trigger a Go event handler. This makes Go code get executed in the middle of the imported
           // function. A goroutine can switch to a new stack if the current stack is too small (see morestack function).
@@ -327,9 +337,9 @@
             const fd = getInt64(sp + 8);
             const p = getInt64(sp + 16);
             const n = this.mem.getInt32(sp + 24, true);
-            myGlobal.fs.writeSync(
+            fs.writeSync(
               fd,
-              new Uint8Array(this._inst.exports.mem.buffer, p, n)
+              new Uint8Array(this._inst.exports.mem.buffer, p, n),
             );
           },
 
@@ -370,8 +380,8 @@
                     this._resume();
                   }
                 },
-                getInt64(sp + 8) + 1 // setTimeout has been seen to fire up to 1 millisecond early
-              )
+                getInt64(sp + 8),
+              ),
             );
             this.mem.setInt32(sp + 16, id, true);
           },
@@ -423,7 +433,7 @@
             Reflect.set(
               loadValue(sp + 8),
               loadString(sp + 16),
-              loadValue(sp + 32)
+              loadValue(sp + 32),
             );
           },
 
@@ -438,7 +448,7 @@
             sp >>>= 0;
             storeValue(
               sp + 24,
-              Reflect.get(loadValue(sp + 8), getInt64(sp + 16))
+              Reflect.get(loadValue(sp + 8), getInt64(sp + 16)),
             );
           },
 
@@ -448,7 +458,7 @@
             Reflect.set(
               loadValue(sp + 8),
               getInt64(sp + 16),
-              loadValue(sp + 24)
+              loadValue(sp + 24),
             );
           },
 
@@ -530,7 +540,7 @@
             sp >>>= 0;
             this.mem.setUint8(
               sp + 24,
-              loadValue(sp + 8) instanceof loadValue(sp + 16) ? 1 : 0
+              loadValue(sp + 8) instanceof loadValue(sp + 16) ? 1 : 0,
             );
           },
 
@@ -588,7 +598,7 @@
         null,
         true,
         false,
-        myGlobal,
+        globalThis,
         this,
       ];
       this._goRefCounts = new Array(this._values.length).fill(Infinity); // number of references that Go has to a JS value, indexed by reference id
@@ -598,7 +608,7 @@
         [null, 2],
         [true, 3],
         [false, 4],
-        [myGlobal, 5],
+        [globalThis, 5],
         [this, 6],
       ]);
       this._idPool = []; // unused ids that have been garbage collected
@@ -644,7 +654,7 @@
       const wasmMinDataAddr = 4096 + 8192;
       if (offset >= wasmMinDataAddr) {
         throw new Error(
-          "total length of command line and environment variables exceeds limit"
+          "total length of command line and environment variables exceeds limit",
         );
       }
 

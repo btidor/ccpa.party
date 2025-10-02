@@ -5,8 +5,8 @@ import (
 )
 
 func main() {
-	js.Global().Get("hooks").Set("TarFile", js.FuncOf(TarFile))
-	js.Global().Get("hooks").Set("ParseEmail", js.FuncOf(ParseEmail))
+	js.Global().Set("TarFile", js.FuncOf(TarFile))
+	js.Global().Set("ParseEmail", js.FuncOf(ParseEmail))
 
 	ch := make(chan interface{})
 	<-ch

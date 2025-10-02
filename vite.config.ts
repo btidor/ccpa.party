@@ -92,6 +92,10 @@ function goServe(): Plugin {
           const go = new Go();
           const result = await WebAssembly.instantiate(bytes, go.importObject);
           go.run(result.instance);
+          go.hooks = {
+            TarFile: globalThis.TarFile,
+            ParseEmail: globalThis.ParseEmail,
+          };
           return go;
         }`;
       }

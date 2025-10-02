@@ -1,3 +1,3 @@
 module github.com/btidor/ccpa.party/go
 
-go 1.18
+go 1.25
