@@ -1,0 +1,30 @@
+name: deploy
+on: [push]
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm install
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist/
+
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/production'
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deploy-pages
