@@ -40,7 +40,7 @@ const noindex = `<meta name="robots" content="noindex" />`;
     template.replace(tag, "").replace(headEnd, "\n" + noindex + headEnd),
     { parser: "html" },
   );
-  fs.writeFileSync("dist/200.html", html);
+  fs.writeFileSync("dist/404.html", html);
 
   vite.close();
 })();
