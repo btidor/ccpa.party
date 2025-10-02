@@ -5,9 +5,9 @@ import Slack from "@src/renderers/slack";
 
 export type RenderResult =
   | void
-  | [JSX.Element, string | void]
+  | [React.JSX.Element, string | void]
   | [
-      JSX.Element | void,
+      React.JSX.Element | void,
       string | void,
       { display: string; color?: string } | void,
     ];

@@ -51,11 +51,7 @@ export default function render(
         return original;
       },
     );
-    body = (
-      <ReactMarkdown remarkPlugins={[remarkGfm]} linkTarget="_blank">
-        {body}
-      </ReactMarkdown>
-    );
+    body = <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>;
     if (entry.value.Attachments)
       body = (
         <React.Fragment>
@@ -81,5 +77,5 @@ export default function render(
   } else {
     throw new Error("Unknown category: " + entry.category);
   }
-  return [body as JSX.Element, trailer];
+  return [body as React.JSX.Element, trailer];
 }

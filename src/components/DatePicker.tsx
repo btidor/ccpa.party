@@ -17,7 +17,7 @@ const VerboseDateFormat = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 });
 
-function DatePicker<T>(props: Props<T>): JSX.Element {
+function DatePicker<T>(props: Props<T>): React.JSX.Element {
   const { index, rows, scrollToIndex } = props;
 
   const ref = React.useRef<HTMLInputElement>(null);

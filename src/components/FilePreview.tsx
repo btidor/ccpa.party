@@ -19,7 +19,7 @@ const decodeFailureMessage = "🥗 Unable to decode text";
 const emptyMessage = "🥛 File is empty";
 const unknownMessage = "😕 Unknown file type";
 
-function FilePreview(props: Props): JSX.Element {
+function FilePreview(props: Props): React.JSX.Element {
   const { children, filename, special } = props;
 
   const [mode, setMode] = React.useState<DisplayMode | void>();

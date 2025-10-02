@@ -9,7 +9,7 @@ import type {
 import Worker from "@src/worker/worker?worker";
 
 let worker: Worker | void;
-if (!import.meta.env.SSR) {
+if (!import.meta.env.SSR && import.meta.env.MODE !== "test") {
   worker = new Worker();
   worker.onmessage = (msg: MessageEvent<WorkerResponse>) => {
     const { data } = msg;

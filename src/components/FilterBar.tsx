@@ -11,7 +11,7 @@ type Props<T> = {
   provider: Provider<T>;
 };
 
-function FilterBar<T>(props: Props<T>): JSX.Element {
+function FilterBar<T>(props: Props<T>): React.JSX.Element {
   const { filter, filterPath, provider } = props;
   const navigate = useNavigate();
 

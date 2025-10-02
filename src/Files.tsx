@@ -22,7 +22,7 @@ type Props<T> = {
 const FileParseAction = <T,>(props: {
   file: DataFile;
   provider: Provider<T>;
-}): JSX.Element | null =>
+}): React.JSX.Element | null =>
   import.meta.env.DEV ? (
     <div
       className={styles.action}
@@ -34,7 +34,7 @@ const FileParseAction = <T,>(props: {
     </div>
   ) : null;
 
-const FileDownloadAction = (props: { file: DataFile }): JSX.Element => (
+const FileDownloadAction = (props: { file: DataFile }): React.JSX.Element => (
   <a
     className={styles.action}
     download={props.file.path.at(-1)}
@@ -44,7 +44,7 @@ const FileDownloadAction = (props: { file: DataFile }): JSX.Element => (
   </a>
 );
 
-function Files<T>(props: Props<T>): JSX.Element {
+function Files<T>(props: Props<T>): React.JSX.Element {
   const navigate = useNavigate();
   const { provider, selected } = props;
 

@@ -127,6 +127,10 @@ function goBuild(): PluginOption {
             fetch("__VITE_ASSET__${ref}__"), go.importObject,
           );
           go.run(result.instance);
+          go.hooks = {
+            TarFile: globalThis.TarFile,
+            ParseEmail: globalThis.ParseEmail,
+          };
           return go;
         }`;
       }

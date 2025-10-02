@@ -13,7 +13,7 @@ type Props<T> = {
   provider: Provider<T>;
 };
 
-function Errors<T>(props: Props<T>): JSX.Element {
+function Errors<T>(props: Props<T>): React.JSX.Element {
   const { provider } = props;
 
   const navigate = useNavigate();

@@ -70,7 +70,9 @@ export default function render(
     if (channelName) trailer += ` in #${channelName}`;
   }
   let key = 0;
-  const handleElement = (element: Element): JSX.Element | JSX.Element[] => {
+  const handleElement = (
+    element: Element,
+  ): React.JSX.Element | React.JSX.Element[] => {
     key++;
     if (element.type === "rich_text_section") {
       return (element.elements || []).flatMap(handleElement);

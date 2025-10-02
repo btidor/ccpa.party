@@ -6,7 +6,7 @@ type Props = {
 
 const loadingMessage = "📊 Loading...";
 
-function Placeholder(props: Props): JSX.Element {
+function Placeholder(props: Props): React.JSX.Element {
   return (
     <code className={styles.placeholder}>
       {props.children || loadingMessage}

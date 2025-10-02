@@ -51,7 +51,7 @@ type BranchProps = {
   onSelect: (slug?: string) => void;
 };
 
-const Branch = React.memo((props: BranchProps): JSX.Element | null => {
+const Branch = React.memo((props: BranchProps): React.JSX.Element | null => {
   const { node, path, selected, onSelect } = props;
 
   const branches = Array.from(node.entries()).filter(
@@ -126,7 +126,7 @@ const Branch = React.memo((props: BranchProps): JSX.Element | null => {
   }
 });
 
-function FileTree(props: Props): JSX.Element {
+function FileTree(props: Props): React.JSX.Element {
   const { items, onSelect, selected } = props;
 
   const tree = React.useMemo(() => treeify(items), [items]);

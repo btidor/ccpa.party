@@ -12,7 +12,7 @@ type Params = {
   picker?: boolean;
 };
 
-function Logo(params: Params): JSX.Element {
+function Logo(params: Params): React.JSX.Element {
   const { block, party, picker } = params;
   return (
     <Link

@@ -30,7 +30,7 @@ export function Link(
     state?: unknown;
     to: string;
   } & React.ComponentPropsWithRef<"a">,
-): JSX.Element {
+): React.JSX.Element {
   const navigate = useNavigate();
   const { children, replace, state, to, ...rest } = props;
   const onClick: MouseEventHandler = (e) => {
@@ -49,7 +49,7 @@ export function Navigate(props: {
   to: string;
   replace?: boolean;
   state?: unknown;
-}): JSX.Element {
+}): React.JSX.Element {
   const navigate = useNavigate();
   const { to, ...opts } = props;
   React.useEffect(() => navigate(to, opts));

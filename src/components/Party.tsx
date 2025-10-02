@@ -5,7 +5,7 @@ type Params = {
   glow?: boolean;
 };
 
-function Party(params: Params): JSX.Element {
+function Party(params: Params): React.JSX.Element {
   const { glow } = params;
 
   // On Safari, enabling the glow effect makes the image very pixelated.

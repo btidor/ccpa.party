@@ -18,7 +18,7 @@ const baseLinks = [
   { label: "Files", to: "files" },
 ];
 
-function Navigation<T>(props: Props<T>): JSX.Element {
+function Navigation<T>(props: Props<T>): React.JSX.Element {
   const { provider, pageSlug } = props;
 
   const navigate = useNavigate();

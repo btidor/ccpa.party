@@ -23,8 +23,8 @@ type Status =
 
 function UploadLink(props: {
   children: string | string[];
-  inputRef: React.RefObject<HTMLInputElement>;
-}): JSX.Element {
+  inputRef: React.RefObject<HTMLInputElement | null>;
+}): React.JSX.Element {
   const { children, inputRef } = props;
   return (
     <label
@@ -38,7 +38,7 @@ function UploadLink(props: {
   );
 }
 
-function Request<T>(props: Props<T>): JSX.Element {
+function Request<T>(props: Props<T>): React.JSX.Element {
   const { provider } = props;
 
   const support = useBrowserSupport();

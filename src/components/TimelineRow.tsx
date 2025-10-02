@@ -30,7 +30,7 @@ type Props<T> = {
   setSelected: (selected: string) => unknown;
 };
 
-function TimelineRow<T>(props: Props<T>): JSX.Element {
+function TimelineRow<T>(props: Props<T>): React.JSX.Element {
   const { db, isLast, metadata, provider, row, selected, setSelected } = props;
 
   const [hydrated, setHydrated] = React.useState<TimelineEntry<T> | void>();

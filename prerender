@@ -5,7 +5,7 @@
 const fs = require("fs");
 const prettier = require("prettier");
 
-const tag = "<!-- PRERENDER -->";
+const tag = "<PRE-RENDER />";
 
 const headEnd = "</head>";
 const noindex = `<meta name="robots" content="noindex" />`;
@@ -25,7 +25,7 @@ const noindex = `<meta name="robots" content="noindex" />`;
 
   for (const url of routes) {
     const content = await render(url);
-    const html = prettier.format(template.replace(tag, content), {
+    const html = await prettier.format(template.replace(tag, content), {
       parser: "html",
     });
 
@@ -34,7 +34,7 @@ const noindex = `<meta name="robots" content="noindex" />`;
     console.log("Pre-rendered:", path);
   }
 
-  const html = prettier.format(
+  const html = await prettier.format(
     // Non-prerendered pages won't have search-friendly content and might be
     // soft 404s. Don't index.
     template.replace(tag, "").replace(headEnd, "\n" + noindex + headEnd),

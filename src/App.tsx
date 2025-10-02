@@ -70,7 +70,7 @@ class App extends React.Component<Props, State> {
     );
   }
 
-  route(location: Location): JSX.Element {
+  route(location: Location): React.JSX.Element {
     const parts = location.pathname.split("/");
     parts.shift(); // empty due to leading slash
 

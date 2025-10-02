@@ -22,7 +22,7 @@ type Props<T> = {
   selected?: string;
 };
 
-function Timeline<T>(props: Props<T>): JSX.Element {
+function Timeline<T>(props: Props<T>): React.JSX.Element {
   const { provider, filter, selected } = props;
   const navigate = useNavigate();
   const db = useProviderDatabase(provider);

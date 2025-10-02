@@ -7,7 +7,7 @@ import { useBaseDatabase } from "@src/database/hooks";
 
 import styles from "@src/Home.module.css";
 
-function Home(props: { scrolled: boolean }): JSX.Element {
+function Home(props: { scrolled: boolean }): React.JSX.Element {
   const ref = React.useRef<HTMLElement>(null);
   React.useEffect(
     () => ref.current?.scrollTo(props.scrolled ? 9999 : 0, 0),
